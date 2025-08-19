@@ -164,7 +164,7 @@ export default function Home() {
                 isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
               }`}
             >
-              <p className="font-sans text-white/80 text-sm">© 2024 CATSO AV. Todos los derechos reservados.</p>
+              <p className="font-sans text-white/80 text-sm">© 2025 CATSO AV. Todos los derechos reservados.</p>
             </div>
           </div>
         </div>
