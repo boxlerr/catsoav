@@ -1,22 +1,23 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Faustina, Chivo } from "next/font/google"
-import "./globals.css"
+import type React from "react";
+import type { Metadata } from "next";
+import { Faustina, Chivo } from "next/font/google";
+import "./globals.css";
 
 const faustina = Faustina({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-faustina",
-})
+});
 
 const chivo = Chivo({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-chivo",
-})
+});
 
 export const metadata: Metadata = {
-  title: "CATSO AV - Productora de Video Profesional | Videoclips, Fotografía y Contenido Digital",
+  title:
+    "CATSO AV - Productora de Video Profesional | Videoclips, Fotografía y Contenido Digital",
   description:
     "CATSO AV es una productora de video profesional especializada en videoclips musicales, fotografía de productos, contenido para redes sociales, aftermovies de discotecas y DJ sets. Servicios audiovisuales de alta calidad.",
   keywords: [
@@ -65,7 +66,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "CATSO AV - Productora de Video Profesional",
-    description: "Servicios audiovisuales profesionales: videoclips, fotografía, contenido digital y más.",
+    description:
+      "Servicios audiovisuales profesionales: videoclips, fotografía, contenido digital y más.",
     images: ["/og-image.jpg"],
   },
   viewport: {
@@ -77,16 +79,34 @@ export const metadata: Metadata = {
     google: "your-google-verification-code",
   },
   category: "business",
-}
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="es" className={`${faustina.variable} ${chivo.variable}`}>
       <head>
+        {/* Site Name para Google */}
+        <meta property="og:site_name" content="CATSO AV" />
+
+        {/* Schema WebSite */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              url: "https://catsoav.com",
+              name: "CATSO AV",
+              alternateName: "Catso AudioVisual",
+            }),
+          }}
+        />
+
+        {/* Schema Organization */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -115,6 +135,8 @@ export default function RootLayout({
             }),
           }}
         />
+
+        {/* Meta básicos */}
         <link rel="canonical" href="https://catsoav.com" />
         <meta name="theme-color" content="#dc2626" />
         <link rel="icon" href="/favicon.ico" />
@@ -122,5 +144,5 @@ export default function RootLayout({
       </head>
       <body className="antialiased font-sans">{children}</body>
     </html>
-  )
+  );
 }
