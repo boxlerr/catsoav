@@ -3,6 +3,45 @@
 import Script from "next/script"
 import { useEffect, useState } from "react"
 
+const CATEGORIES = [
+  {
+    id: "videoclips",
+    title: "Videoclips",
+    description: "Producción musical y visual de alto impacto.",
+    items: [1, 2, 3, 4, 5, 6], // Placeholders
+  },
+  {
+    id: "restaurants",
+    title: "Restaurants",
+    description: "Experiencias culinarias capturadas en video.",
+    items: [1, 2, 3, 4],
+  },
+  {
+    id: "nightclubs",
+    title: "Nightclubs & Aftermovies",
+    description: "La energía de la noche, inmortalizada.",
+    items: [1, 2, 3, 4],
+  },
+  {
+    id: "photography",
+    title: "Photography",
+    description: "Momentos estáticos con narrativa dinámica.",
+    items: [1, 2, 3, 4, 5, 6],
+  },
+  {
+    id: "social-media",
+    title: "Social Media",
+    description: "Contenido optimizado para redes.",
+    items: [1, 2, 3, 4],
+  },
+  {
+    id: "dj-sets",
+    title: "DJ Sets",
+    description: "Sesiones completas con sonido y visuales premium.",
+    items: [1, 2, 3],
+  },
+]
+
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false)
 
@@ -15,11 +54,6 @@ export default function Home() {
 
   return (
     <>
-      {/* UnicornStudio Background */}
-      <div className="unicorn-bg">
-        <div data-us-project="DmxX3AU5Ot4TeJbMP4tT" style={{ width: "100vw", height: "100vh" }} />
-      </div>
-
       <Script
         id="unicorn-studio"
         strategy="afterInteractive"
@@ -40,134 +74,126 @@ export default function Home() {
         }}
       />
 
-      <div className="min-h-screen flex items-center justify-center p-4 relative z-10">
-        <div className="max-w-4xl w-full">
-          {/* Main Content Container */}
+      {/* Fixed Background */}
+      <div className="fixed inset-0 z-0">
+        <div data-us-project="DmxX3AU5Ot4TeJbMP4tT" style={{ width: "100vw", height: "100vh" }} />
+        {/* Overlay gradient for better text readability on lower sections */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/80 to-black pointer-events-none" />
+      </div>
+
+      <div className="relative z-10 w-full">
+        {/* HERO SECTION */}
+        <section className="h-screen flex flex-col items-center justify-center p-4">
           <div
-            className={`bg-red-600/90 backdrop-blur-md rounded-3xl p-8 md:p-12 lg:p-16 shadow-2xl border border-red-500/20 transition-all duration-1000 ${
-              isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-            }`}
+            className={`text-center transition-all duration-1000 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+              }`}
           >
-            {/* Logo Section */}
-            <div
-              className={`text-center mb-8 transition-all duration-800 delay-200 ${
-                isLoaded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"
+            <h1 className="font-serif text-6xl md:text-8xl lg:text-9xl font-bold text-white tracking-tight mb-2 drop-shadow-2xl">
+              CATSO
+              <span className="text-red-600 ml-2">AV</span>
+            </h1>
+            <p className="font-sans text-white/90 text-xl md:text-2xl font-light tracking-widest uppercase">
+              Video production company
+            </p>
+          </div>
+
+          <div
+            className={`absolute bottom-12 transition-all duration-1000 delay-500 ${isLoaded ? "opacity-70 translate-y-0" : "opacity-0 -translate-y-4"
               }`}
-            >
-              <h1 className="font-serif text-6xl md:text-7xl lg:text-8xl font-bold text-white tracking-tight">
-                CATSO
-                <span className="text-4xl md:text-5xl lg:text-6xl ml-2">AV</span>
-              </h1>
-              <p className="font-sans text-white text-lg md:text-xl mt-4 font-medium">Video production company</p>
-            </div>
-
-            {/* Under Development Message */}
-            <div
-              className={`text-center mb-12 transition-all duration-600 delay-400 ${
-                isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
-              }`}
-            >
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20">
-                <h2 className="font-sans text-white text-2xl md:text-3xl font-bold mb-3">Sitio en Desarrollo</h2>
-                <p className="font-sans text-white/90 text-lg">
-                  Estamos trabajando en algo increíble. Mientras tanto, explora nuestro portafolio.
-                </p>
-              </div>
-            </div>
-
-            {/* Navigation Buttons */}
-            <div
-              className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto transition-all duration-800 delay-600 ${
-                isLoaded ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
-              }`}
-            >
-              <a
-                href="https://catsoav.myportfolio.com/music-videos"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`enhanced-button bg-white/95 backdrop-blur-sm text-red-600 font-sans font-semibold py-4 px-6 rounded-xl hover:bg-white hover:text-red-700 transition-all duration-300 text-center text-lg shadow-lg hover:shadow-2xl border border-white/30 group ${
-                  isLoaded ? "animate-button-1" : ""
-                }`}
+          >
+            <div className="animate-bounce text-white flex flex-col items-center gap-2">
+              <span className="text-xs uppercase tracking-widest">Scroll to Explore</span>
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                <span className="relative z-10 group-hover:scale-105 transition-transform duration-200">
-                  Videoclips
-                </span>
-              </a>
-
-              <a
-                href="https://catsoav.myportfolio.com/restaurants"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`enhanced-button bg-white/95 backdrop-blur-sm text-red-600 font-sans font-semibold py-4 px-6 rounded-xl hover:bg-white hover:text-red-700 transition-all duration-300 text-center text-lg shadow-lg hover:shadow-2xl border border-white/30 group ${
-                  isLoaded ? "animate-button-2" : ""
-                }`}
-              >
-                <span className="relative z-10 group-hover:scale-105 transition-transform duration-200">
-                  Restaurants
-                </span>
-              </a>
-
-              <a
-                href="https://catsoav.myportfolio.com/nightclubs-and-aftermovies"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`enhanced-button bg-white/95 backdrop-blur-sm text-red-600 font-sans font-semibold py-4 px-6 rounded-xl hover:bg-white hover:text-red-700 transition-all duration-300 text-center text-lg shadow-lg hover:shadow-2xl border border-white/30 group ${
-                  isLoaded ? "animate-button-3" : ""
-                }`}
-              >
-                <span className="relative z-10 group-hover:scale-105 transition-transform duration-200">
-                  Nightclubs
-                </span>
-              </a>
-
-              <a
-                href="https://catsoav.myportfolio.com/product-photography"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`enhanced-button bg-white/95 backdrop-blur-sm text-red-600 font-sans font-semibold py-4 px-6 rounded-xl hover:bg-white hover:text-red-700 transition-all duration-300 text-center text-lg shadow-lg hover:shadow-2xl border border-white/30 group ${
-                  isLoaded ? "animate-button-4" : ""
-                }`}
-              >
-                <span className="relative z-10 group-hover:scale-105 transition-transform duration-200">
-                  Photography
-                </span>
-              </a>
-
-              <a
-                href="https://catsoav.myportfolio.com/talking-head-content"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`enhanced-button bg-white/95 backdrop-blur-sm text-red-600 font-sans font-semibold py-4 px-6 rounded-xl hover:bg-white hover:text-red-700 transition-all duration-300 text-center text-lg shadow-lg hover:shadow-2xl border border-white/30 group ${
-                  isLoaded ? "animate-button-5" : ""
-                }`}
-              >
-                <span className="relative z-10 group-hover:scale-105 transition-transform duration-200">
-                  Social Media
-                </span>
-              </a>
-
-              <a
-                href="https://catsoav.myportfolio.com/dj-sets"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`enhanced-button bg-white/95 backdrop-blur-sm text-red-600 font-sans font-semibold py-4 px-6 rounded-xl hover:bg-white hover:text-red-700 transition-all duration-300 text-center text-lg shadow-lg hover:shadow-2xl border border-white/30 group ${
-                  isLoaded ? "animate-button-6" : ""
-                }`}
-              >
-                <span className="relative z-10 group-hover:scale-105 transition-transform duration-200">DJ Sets</span>
-              </a>
-            </div>
-
-            {/* Footer */}
-            <div
-              className={`text-center mt-12 transition-all duration-600 delay-1000 ${
-                isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-              }`}
-            >
-              <p className="font-sans text-white/80 text-sm">© 2025 CATSO AV. Todos los derechos reservados.</p>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
             </div>
           </div>
+        </section>
+
+        {/* PORTFOLIO SECTIONS */}
+        <div className="max-w-7xl mx-auto px-4 pb-20">
+          {CATEGORIES.map((category) => (
+            <section
+              key={category.id}
+              id={category.id}
+              className="min-h-[80vh] flex flex-col justify-center py-20 border-t border-white/10 first:border-none"
+            >
+              <div className="mb-12 md:mb-16 ml-4 md:ml-0">
+                <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">
+                  {category.title}
+                  <span className="text-red-600">.</span>
+                </h2>
+                <p className="text-white/60 text-lg md:text-xl font-light max-w-xl">{category.description}</p>
+              </div>
+
+              {/* Grid Layout */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                {category.items.map((item, index) => (
+                  <div
+                    key={index}
+                    className="group relative aspect-video bg-neutral-900/50 rounded-xl overflow-hidden border border-white/10 hover:border-red-600/50 transition-all duration-500 hover:shadow-2xl hover:shadow-red-900/20"
+                  >
+                    {/* Placeholder Content */}
+                    <div className="absolute inset-0 flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
+                      <div className="text-white/20 group-hover:text-red-600/50 transition-colors">
+                        <svg
+                          className="w-12 h-12"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1}
+                            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1}
+                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+
+                    {/* Overlay Info */}
+                    <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/90 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                      <p className="text-white font-medium text-sm">Project Title {item}</p>
+                      <p className="text-white/50 text-xs">Client Name</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
         </div>
+
+        {/* FOOTER */}
+        <footer className="py-12 border-t border-white/10 bg-black/80 backdrop-blur-md">
+          <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-white font-serif font-bold text-xl">
+              CATSO <span className="text-red-600">AV</span>
+            </div>
+            <p className="text-white/40 text-sm">© 2025 CATSO AV. Todos los derechos reservados.</p>
+            <div className="flex gap-6">
+              <a href="#" className="text-white/60 hover:text-red-600 transition-colors">
+                Instagram
+              </a>
+              <a href="#" className="text-white/60 hover:text-red-600 transition-colors">
+                Contact
+              </a>
+            </div>
+          </div>
+        </footer>
       </div>
     </>
   )
