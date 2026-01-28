@@ -4,9 +4,16 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 
 export async function GET(request: Request) {
+    const session = await getServerSession(authOptions)
+    const isAdmin = session?.user?.role === "admin"
+
     try {
         const projects = await prisma.project.findMany({
-            orderBy: { createdAt: 'desc' }
+            where: isAdmin ? {} : { published: true },
+            orderBy: [
+                { order: 'asc' },
+                { createdAt: 'desc' }
+            ]
         })
         return NextResponse.json(projects)
     } catch (error) {
@@ -31,6 +38,7 @@ export async function POST(request: Request) {
                 imageUrl: json.imageUrl,
                 videoUrl: json.videoUrl,
                 clientName: json.clientName,
+                published: json.published ?? true,
                 author: { connect: { id: session.user.id } }
             }
         })

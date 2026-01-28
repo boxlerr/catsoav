@@ -13,7 +13,9 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent
+  DragEndEvent,
+  closestCorners,
+  rectIntersection
 } from '@dnd-kit/core'
 import {
   arrayMove,
@@ -22,39 +24,11 @@ import {
   rectSortingStrategy
 } from '@dnd-kit/sortable'
 import { SortableItem } from "@/components/SortableItem"
+import VideoThumbnail from "@/components/VideoThumbnail"
+import CatsoVideoPlayer from "@/components/CatsoVideoPlayer"
+import { CategoryDroppable } from "@/components/CategoryDroppable"
 
-const CATEGORIES = [
-  {
-    id: "videoclips",
-    title: "Videoclips",
-    description: "Producción musical y visual de alto impacto.",
-  },
-  {
-    id: "restaurants",
-    title: "Restaurants",
-    description: "Experiencias culinarias capturadas en video.",
-  },
-  {
-    id: "nightclubs",
-    title: "Nightclubs",
-    description: "La energía de la noche, inmortalizada.",
-  },
-  {
-    id: "photography",
-    title: "Photography",
-    description: "Momentos estáticos con narrativa dinámica.",
-  },
-  {
-    id: "social-media",
-    title: "Social Media",
-    description: "Contenido optimizado para redes.",
-  },
-  {
-    id: "dj-sets",
-    title: "DJ Sets",
-    description: "Sesiones completas con sonido y visuales premium.",
-  },
-]
+
 
 export default function Home() {
   return (
@@ -68,19 +42,35 @@ function HomeContent() {
   const { data: session } = useSession()
   const [isLoaded, setIsLoaded] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-
-  // State for real data and hydration fix
   const [mounted, setMounted] = useState(false)
   const [projects, setProjects] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
+  const [selectedProject, setSelectedProject] = useState<any>(null)
 
   useEffect(() => {
     setMounted(true)
-    fetchProjects()
+    fetchInitialData()
   }, [])
+
+  const fetchInitialData = async () => {
+    await Promise.all([fetchProjects(), fetchCategories()])
+  }
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch('/api/categories', { cache: 'no-store' })
+      if (res.ok) {
+        const data = await res.json()
+        setCategories(data)
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error)
+    }
+  }
 
   const fetchProjects = async () => {
     try {
-      const res = await fetch('/api/projects')
+      const res = await fetch('/api/projects', { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
         setProjects(data)
@@ -90,67 +80,185 @@ function HomeContent() {
     }
   }
 
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    if (!confirm("¿Estás seguro de que quieres eliminar este proyecto?")) return
+
+    try {
+      const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setProjects(prev => prev.filter(p => p.id !== id))
+      }
+    } catch (error) {
+      console.error("Error deleting project:", error)
+    }
+  }
+
+  const toggleVisibility = async (e: React.MouseEvent, project: any) => {
+    e.stopPropagation()
+    const newStatus = !project.published
+    setProjects((prev: any[]) => prev.map(p => p.id === project.id ? { ...p, published: newStatus } : p))
+    try {
+      const res = await fetch(`/api/projects/${project.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ published: newStatus })
+      })
+      if (!res.ok) throw new Error()
+    } catch (err) {
+      setProjects((prev: any[]) => prev.map(p => p.id === project.id ? { ...p, published: !newStatus } : p))
+    }
+  }
+
+  const renderVideo = (url: string) => {
+    const isDirectVideo = url?.startsWith('/uploads/') ||
+      url?.startsWith('blob:') ||
+      /\.(mp4|webm|mov|ogg|m4v|3gp|avi)($|\?|#)/i.test(url)
+
+    if (isDirectVideo) {
+      return (
+        <CatsoVideoPlayer src={url} title="Catso AV Production" />
+      )
+    }
+
+    let embedUrl = url
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      const id = url.includes('v=') ? url.split('v=')[1].split('&')[0] : url.split('/').pop()
+      // rel=0: related from same channel, iv_load_policy=3: hide annotations
+      embedUrl = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3`
+    } else if (url.includes('vimeo.com')) {
+      const id = url.split('/').pop()
+      // title, byline, portrait = 0: clean player
+      embedUrl = `https://player.vimeo.com/video/${id}?autoplay=1&title=0&byline=0&portrait=0`
+    }
+
+    return (
+      <iframe
+        src={embedUrl}
+        className="w-full aspect-video rounded-lg shadow-2xl bg-black"
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowFullScreen
+      />
+    )
+  }
   // Helper: Get projects for a specific category, sorted by order
-  // If no projects in category, return empty array (admin needs to add one first or we add droppable zone later)
-  const getCategoryProjects = (catId: string) => {
+  const getCategoryProjects = (catName: string) => {
     return projects
-      .filter(p => p.category === catId)
-      .sort((a, b) => (a.order || 0) - (b.order || 0))
+      .filter((p: any) => p.category === catName)
+      .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
   }
 
   // DnD Sensors
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   )
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragOver = (event: any) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    if (session?.user?.role !== "admin") return
+
+    const activeId = active.id.toString()
+    const overId = over.id.toString()
+
+    setProjects((prev) => {
+      const activeProject = prev.find((p) => p.id === activeId)
+      if (!activeProject) return prev
+
+      // Find if we are over a project or a category section
+      const overProject = prev.find((p) => p.id === overId)
+      const isOverCategory = categories.some((c) => c.name === overId)
+
+      if (overProject) {
+        // Dragging over another project
+        if (activeProject.category !== overProject.category) {
+          const activeIndex = prev.findIndex((p) => p.id === activeId)
+          const overIndex = prev.findIndex((p) => p.id === overId)
+          const newProjects = [...prev]
+          newProjects[activeIndex] = {
+            ...newProjects[activeIndex],
+            category: overProject.category
+          }
+          return arrayMove(newProjects, activeIndex, overIndex)
+        }
+      } else if (isOverCategory) {
+        // Dragging over an empty category section
+        if (activeProject.category !== overId) {
+          const activeIndex = prev.findIndex((p) => p.id === activeId)
+          const newProjects = [...prev]
+          newProjects[activeIndex] = {
+            ...newProjects[activeIndex],
+            category: overId
+          }
+          return newProjects
+        }
+      }
+
+      return prev
+    })
+  }
+
+  const handleDragEnd = async (event: any) => {
     const { active, over } = event
 
-    // Only allow if admin and valid drop
     if (session?.user?.role !== "admin" || !over) return
 
     const activeId = active.id.toString()
     const overId = over.id.toString()
 
-    if (activeId !== overId) {
-      setProjects((prev) => {
-        const activeIndex = prev.findIndex((p) => p.id === activeId)
-        const overIndex = prev.findIndex((p) => p.id === overId)
+    setProjects((prev) => {
+      const activeProject = prev.find(p => p.id === activeId)
+      const overProject = prev.find(p => p.id === overId)
+      const isOverCategory = categories.some((c) => c.name === overId)
 
-        if (activeIndex === -1 || overIndex === -1) return prev
+      if (!activeProject) return prev
 
-        const newProjects = [...prev]
+      const activeIndex = prev.findIndex((p) => p.id === activeId)
+      let overIndex = prev.findIndex((p) => p.id === overId)
 
-        // Check if moving between categories (by checking the target project's category)
-        const targetCategory = newProjects[overIndex].category
-        if (newProjects[activeIndex].category !== targetCategory) {
-          newProjects[activeIndex].category = targetCategory
-        }
+      // If dropped over a category section, move to the end of that category
+      if (overIndex === -1 && isOverCategory) {
+        overIndex = prev.length - 1
+      }
 
-        const reordered = arrayMove(newProjects, activeIndex, overIndex)
+      if (overIndex === -1) return prev
 
-        // Prepare update payload
-        // We need to update orders. A simple robust way is to update everyone's order 
-        // derived from the new array index which implies global order.
-        const updates = reordered.map((p, index) => ({
-          id: p.id,
-          order: index,
-          category: p.category
-        }))
+      let reordered = [...prev]
+      if (activeIndex !== overIndex) {
+        reordered = arrayMove(reordered, activeIndex, overIndex)
+      }
 
-        // Persist to DB
-        fetch('/api/projects/reorder', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items: updates })
-        }).catch(console.error)
+      // Sync local order property
+      const finalProjects = reordered.map((p, index) => ({
+        ...p,
+        order: index
+      }))
 
-        return reordered
+      // Persist to DB
+      const updates = finalProjects.map((p) => ({
+        id: p.id,
+        order: p.order,
+        category: p.category
+      }))
+
+      fetch('/api/projects/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: updates })
+      }).catch(err => {
+        console.error("Error updating order:", err)
+        fetchProjects() // Revert on error
       })
-    }
+
+      return finalProjects
+    })
   }
 
   // Scroll hooks for Hero Fade
@@ -237,7 +345,18 @@ function HomeContent() {
             transition={{ duration: 0.5, ease: "easeInOut" }}
             className="fixed top-0 left-0 right-0 z-50 h-20 flex items-center"
           >
-            <div className="w-full max-w-7xl mx-auto px-4 flex items-center justify-between">
+            {/* Gradient overlay that extends below */}
+            <div
+              className="absolute inset-x-0 top-0 h-20 pointer-events-none"
+              style={{
+                background: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 100%)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                maskImage: 'linear-gradient(to bottom, black 0%, black 50%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 50%, transparent 100%)'
+              }}
+            />
+            <div className="relative w-full max-w-7xl mx-auto px-4 flex items-center justify-between">
               <a href="#" onClick={(e) => scrollToSection(e, "top")} className="text-white font-serif font-bold text-2xl group">
                 CATSO <span className="text-red-600 group-hover:text-white transition-colors duration-300">AV</span>
               </a>
@@ -246,11 +365,11 @@ function HomeContent() {
                 <a href="#" onClick={(e) => scrollToSection(e, "top")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider">
                   Inicio
                 </a>
-                {CATEGORIES.map((category) => (
+                {categories.filter(cat => (session as any)?.user?.role === "admin" || getCategoryProjects(cat.name).length > 0).map((category) => (
                   <a
                     key={category.id}
-                    href={`#${category.id}`}
-                    onClick={(e) => scrollToSection(e, category.id)}
+                    href={`#${category.name}`}
+                    onClick={(e) => scrollToSection(e, category.name)}
                     className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider"
                   >
                     {category.title.split(" ")[0]}
@@ -314,16 +433,18 @@ function HomeContent() {
             {mounted ? (
               <DndContext
                 sensors={sensors}
-                collisionDetection={closestCenter}
+                collisionDetection={closestCorners}
+                onDragOver={handleDragOver}
                 onDragEnd={handleDragEnd}
               >
-                {CATEGORIES.map((category) => {
-                  const catProjects = getCategoryProjects(category.id)
+                {categories.map((category) => {
+                  const catProjects = getCategoryProjects(category.name)
+                  if ((session as any)?.user?.role !== "admin" && catProjects.length === 0) return null;
 
                   return (
-                    <section
+                    <CategoryDroppable
                       key={category.id}
-                      id={category.id}
+                      id={category.name}
                       className="min-h-[80vh] flex flex-col justify-center py-20 border-t border-neutral-900 first:border-none"
                     >
                       <div className="mb-12 md:mb-16 ml-4 md:ml-0">
@@ -344,28 +465,72 @@ function HomeContent() {
                             catProjects.map((project) => (
                               <SortableItem key={project.id} id={project.id} disabled={session?.user?.role !== "admin"}>
                                 <div
-                                  className="group relative aspect-video bg-neutral-900/50 overflow-hidden border border-white/5 hover:border-red-600/50 transition-all duration-500 hover:shadow-2xl hover:shadow-red-900/20 w-full h-full"
+                                  onClick={() => setSelectedProject(project)}
+                                  className={`group relative aspect-video bg-neutral-900/50 overflow-hidden border border-white/5 hover:border-red-600/50 transition-all duration-500 hover:shadow-2xl hover:shadow-red-900/20 w-full h-full cursor-pointer ${!project.published ? "opacity-40 grayscale" : ""}`}
                                 >
+                                  {/* Animated Visibility Switch (Admin Only) */}
+                                  {session?.user?.role === "admin" && (
+                                    <div
+                                      onClick={(e) => toggleVisibility(e, project)}
+                                      className="absolute top-3 left-3 z-40 flex items-center gap-2 group/switch cursor-pointer"
+                                    >
+                                      <div className={`w-9 h-5 rounded-full relative transition-colors duration-500 backdrop-blur-md border border-white/20 flex items-center px-1 ${project.published ? "bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.3)]" : "bg-black/60"}`}>
+                                        <motion.div
+                                          animate={{ x: project.published ? 16 : 0 }}
+                                          transition={{ type: "spring", stiffness: 600, damping: 35 }}
+                                          className="w-3 h-3 bg-white rounded-full shadow-md"
+                                        />
+                                      </div>
+                                      <span className={`text-[8px] uppercase font-black tracking-widest transition-opacity duration-300 ${project.published ? "text-white opacity-0 group-hover/switch:opacity-100" : "text-white/40"}`}>
+                                        {project.published ? "On" : "Off"}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {/* Deletion & Edit Buttons (Admin Only) */}
+                                  {session?.user?.role === "admin" && (
+                                    <div className="absolute top-2 right-2 z-30 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          window.dispatchEvent(new CustomEvent('editProject', { detail: project }))
+                                        }}
+                                        className="bg-black/60 hover:bg-white text-white/40 hover:text-black p-1.5 rounded-md transition-all duration-300"
+                                        title="Editar Proyecto"
+                                      >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        </svg>
+                                      </button>
+                                      <button
+                                        onClick={(e) => handleDelete(e, project.id)}
+                                        className="bg-black/60 hover:bg-red-600 text-white/40 hover:text-white p-1.5 rounded-md transition-all duration-300"
+                                        title="Eliminar Proyecto"
+                                      >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                      </button>
+                                    </div>
+                                  )}
+
                                   {/* Thumbnail */}
                                   <div className="absolute inset-0 flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
-                                    {project.imageUrl ? (
-                                      <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
-                                    ) : (
-                                      <div className="text-white/20 group-hover:text-red-600/50 transition-colors">
-                                        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                      </div>
-                                    )}
+                                    <VideoThumbnail
+                                      videoUrl={project.videoUrl}
+                                      imageUrl={project.imageUrl}
+                                      title={project.title}
+                                    />
                                   </div>
 
                                   {/* Overlay Info */}
-                                  <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/90 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none">
-                                    <p className="text-white font-medium text-sm">{project.title}</p>
-                                    <p className="text-white/50 text-xs">{(project as any).clientName || 'Client Name'}</p>
+                                  <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-500">
+                                    <p className="text-white font-serif font-bold text-lg mb-0.5 tracking-tight">{project.title}</p>
+                                    <p className="text-white/40 text-xs uppercase tracking-[0.2em] font-medium">{(project as any).clientName || 'Producción'}</p>
                                     {session?.user?.role === "admin" && (
-                                      <p className="text-red-500 text-[10px] mt-1 uppercase tracking-wider font-bold">Drag to Reorder</p>
+                                      <div className="mt-3 pt-3 border-t border-white/10 flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
+                                        <span className="text-red-500 text-[9px] uppercase tracking-[0.2em] font-bold">Admin: Drag to Reorder</span>
+                                      </div>
                                     )}
                                   </div>
                                 </div>
@@ -378,14 +543,14 @@ function HomeContent() {
                           )}
                         </div>
                       </SortableContext>
-                    </section>
+                    </CategoryDroppable>
                   )
                 })}
               </DndContext>
             ) : (
               /* SSR Hydration Match -> Render static list without DnD for initial paint */
-              CATEGORIES.map((category) => (
-                <section key={category.id} id={category.id} className="min-h-[80vh] flex flex-col justify-center py-20 border-t border-neutral-900 first:border-none">
+              categories.map((category) => (
+                <section key={category.id} id={category.name} className="min-h-[80vh] flex flex-col justify-center py-20 border-t border-neutral-900 first:border-none">
                   <div className="mb-12 md:mb-16 ml-4 md:ml-0">
                     <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">{category.title}<span className="text-red-600">.</span></h2>
                     <p className="text-white/60 text-lg md:text-xl font-light max-w-xl">{category.description}</p>
@@ -427,11 +592,29 @@ function HomeContent() {
                   </div>
                 </form>
               ) : (
-                <div className="bg-neutral-900/30 border border-white/5 p-12 rounded-xl backdrop-blur-sm">
-                  <p className="text-white/80 mb-6 text-xl">Debes iniciar sesión para enviarnos un mensaje.</p>
-                  <div className="flex gap-4 justify-center">
-                    <Link href="/login" className="bg-white text-black hover:bg-neutral-200 px-8 py-3 font-medium uppercase tracking-widest text-sm transition-colors">Iniciar Sesión</Link>
-                    <Link href="/register" className="border border-white/20 text-white hover:border-red-600 hover:text-red-500 px-8 py-3 font-medium uppercase tracking-widest text-sm transition-colors">Registrarse</Link>
+                <div className="relative">
+                  {/* Blurry Form Preview */}
+                  <div className="space-y-6 text-left opacity-20 pointer-events-none select-none filter blur-[2px]">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div><div className="h-4 bg-white/20 w-20 mb-2" /><div className="h-12 bg-white/5 border border-white/10" /></div>
+                      <div><div className="h-4 bg-white/20 w-20 mb-2" /><div className="h-12 bg-white/5 border border-white/10" /></div>
+                    </div>
+                    <div><div className="h-4 bg-white/20 w-20 mb-2" /><div className="h-32 bg-white/5 border border-white/10" /></div>
+                  </div>
+
+                  {/* Lock Overlay */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center p-8 bg-black/60 backdrop-blur-md border border-white/5 rounded-2xl shadow-2xl">
+                    <div className="bg-red-600/10 p-4 rounded-full mb-6 text-red-600">
+                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-white text-2xl font-serif font-bold mb-3 tracking-tight">Acceso Restringido</h3>
+                    <p className="text-white/40 mb-8 max-w-sm">Únete a la comunidad de Catso AV para solicitar cotizaciones y enviarnos tus propuestas directamente.</p>
+                    <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                      <Link href="/login" className="bg-white text-black hover:bg-red-600 hover:text-white px-10 py-4 font-serif font-black uppercase tracking-[0.2em] text-[10px] transition-all duration-500 rounded-lg">Iniciar Sesión</Link>
+                      <Link href="/register" className="border border-white/20 text-white hover:border-red-600 hover:text-red-500 px-10 py-4 font-serif font-black uppercase tracking-[0.2em] text-[10px] transition-all duration-500 rounded-lg">Registrarse</Link>
+                    </div>
                   </div>
                 </div>
               )}
@@ -448,6 +631,55 @@ function HomeContent() {
               </div>
             </div>
           </footer>
+
+          {/* Video Modal */}
+          <AnimatePresence>
+            {selectedProject && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[110] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 md:p-10"
+                onClick={() => setSelectedProject(null)}
+              >
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                  className="relative w-full max-w-6xl aspect-video bg-neutral-900 shadow-2xl overflow-hidden rounded-2xl"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <button
+                    onClick={() => setSelectedProject(null)}
+                    className="absolute top-4 right-4 z-50 bg-black/50 hover:bg-red-600 text-white p-2 rounded-full transition-all group"
+                  >
+                    <svg className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+
+                  <div className="w-full h-full flex flex-col">
+                    <div className="flex-1 bg-black overflow-hidden flex items-center justify-center">
+                      {renderVideo(selectedProject.videoUrl)}
+                    </div>
+
+                    <div className="p-6 md:p-8 bg-black/40 border-t border-white/5 backdrop-blur-md">
+                      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                        <div>
+                          <span className="text-red-600 text-[10px] uppercase tracking-[0.3em] font-bold mb-2 block">{selectedProject.category}</span>
+                          <h3 className="text-2xl md:text-3xl font-serif font-bold text-white mb-1 tracking-tight">{selectedProject.title}</h3>
+                          <p className="text-white/40 text-sm uppercase tracking-widest leading-relaxed">{(selectedProject as any).clientName}</p>
+                        </div>
+                        <div className="max-w-md text-right">
+                          <p className="text-white/60 text-sm italic font-light">"{selectedProject.description}"</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <QuickProjectButton />
