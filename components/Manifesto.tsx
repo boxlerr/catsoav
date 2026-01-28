@@ -21,9 +21,14 @@ export default function Manifesto() {
             className="relative min-h-screen flex items-center justify-center py-20 overflow-hidden"
         >
             <div className="absolute inset-0 bg-black/80 z-0">
-                {/* Noise overlay */}
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
-                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+                {/* Optimized Noise overlay - Static Image instead of heavy SVG Filter */}
+                <div
+                    className="absolute inset-0 opacity-[0.05] pointer-events-none"
+                    style={{
+                        backgroundImage: `url("https://grainy-gradients.vercel.app/noise.svg")`,
+                        backgroundRepeat: 'repeat',
+                        backgroundSize: '100px 100px'
+                    }}
                 />
             </div>
 
@@ -47,8 +52,8 @@ export default function Manifesto() {
                             style={{ y }}
                             className="md:w-1/3 pt-10 hidden md:block"
                         >
-                            <div className="w-full h-[1px] bg-red-600 mb-4" />
-                            <span className="text-red-600 text-xs uppercase tracking-[0.3em] font-bold block">
+                            <div className="w-full h-[2px] bg-red-600 mb-4 shadow-[0_0_15px_rgba(220,38,38,0.5)]" />
+                            <span className="text-red-500 text-xs uppercase tracking-[0.3em] font-bold block">
                                 Nuestra Visión
                             </span>
                         </motion.div>
@@ -57,16 +62,16 @@ export default function Manifesto() {
                             initial={{ opacity: 0 }}
                             whileInView={{ opacity: 1 }}
                             transition={{ duration: 0.8, delay: 0.2 }}
-                            className="md:w-2/3 text-xl md:text-2xl lg:text-3xl text-white/80 font-light leading-relaxed"
+                            className="md:w-2/3 text-xl md:text-2xl lg:text-3xl text-white font-light leading-relaxed"
                         >
                             En un mundo saturado de ruido, el silencio visual es un pecado.
-                            Creamos experiencias que <span className="text-white font-medium border-b border-red-600">incomodan</span>,
-                            <span className="text-white font-medium border-b border-red-600 mx-2">emocionan</span> y
-                            <span className="text-white font-medium border-b border-red-600">permanecen</span>.
+                            Creamos experiencias que <span className="text-white font-medium border-b-2 border-red-600">incomodan</span>,
+                            <span className="text-white font-medium border-b-2 border-red-600 mx-2">emocionan</span> y
+                            <span className="text-white font-medium border-b-2 border-red-600">permanecen</span>.
                             Somos el puente entre tu idea abstracta y una realidad visual impactante.
                             <br /><br />
                             No hacemos videos. <br />
-                            Construimos legados digitales.
+                            <span className="text-red-500 font-bold">Construimos legados digitales.</span>
                         </motion.p>
                     </div>
                 </motion.div>

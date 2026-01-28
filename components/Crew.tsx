@@ -50,28 +50,28 @@ export default function Crew() {
                             key={i}
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
+                            viewport={{ once: true, margin: "-50px" }}
                             transition={{ delay: i * 0.1 }}
                             className="group relative"
                         >
-                            <div className="aspect-[3/4] overflow-hidden mb-6 bg-neutral-900 relative">
-                                {/* Grayscale Filter Layer */}
-                                <div className="absolute inset-0 bg-neutral-900 z-10 mix-blend-color group-hover:opacity-0 transition-opacity duration-700 pointer-events-none" />
+                            <div className="aspect-[3/4] overflow-hidden mb-6 bg-neutral-900 relative border border-white/10 group-hover:border-red-600/50 transition-colors">
+                                {/* Grayscale Filter Layer - Reduced intensity */}
+                                <div className="absolute inset-0 bg-neutral-900/20 z-10 group-hover:opacity-0 transition-opacity duration-700 pointer-events-none" />
 
                                 <img
                                     src={member.image}
                                     alt={member.name}
-                                    className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+                                    className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-700"
                                 />
                                 {/* Red Overlay on Hover */}
-                                <div className="absolute inset-0 bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 mix-blend-overlay" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-red-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                             </div>
 
                             <div className="text-center md:text-left">
                                 <h3 className="text-white text-xl font-bold uppercase tracking-wider mb-1 group-hover:text-red-500 transition-colors">
                                     {member.name}
                                 </h3>
-                                <p className="text-white/40 text-xs font-mono uppercase tracking-widest mb-3">
+                                <p className="text-white/60 text-xs font-mono uppercase tracking-widest mb-3 group-hover:text-white transition-colors">
                                     {member.role}
                                 </p>
                             </div>

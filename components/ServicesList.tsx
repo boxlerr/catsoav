@@ -56,17 +56,20 @@ export default function ServicesList() {
                             key={service.id}
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
+                            viewport={{ once: true, margin: "-50px" }}
                             transition={{ duration: 0.5 }}
                             onMouseEnter={() => setHoveredService(service.id)}
                             onMouseLeave={() => setHoveredService(null)}
-                            className="group relative border-b border-white/10 py-12 cursor-pointer transition-colors hover:bg-white/5"
+                            className="group relative border-b border-white/20 py-12 cursor-pointer transition-colors hover:bg-neutral-900/50"
                         >
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10 px-4">
-                                <h3 className="text-3xl md:text-5xl font-sans font-light text-white group-hover:text-red-500 transition-colors duration-300">
-                                    {service.title}
-                                </h3>
-                                <p className="text-white/40 max-w-md text-sm md:text-base font-light group-hover:text-white/80 transition-colors duration-300">
+                                <div className="flex items-center gap-4">
+                                    <span className="text-red-600 font-mono text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">0{service.id}</span>
+                                    <h3 className="text-3xl md:text-5xl font-sans font-medium text-white group-hover:text-red-500 transition-colors duration-300">
+                                        {service.title}
+                                    </h3>
+                                </div>
+                                <p className="text-white/60 max-w-md text-sm md:text-base font-light group-hover:text-white transition-colors duration-300">
                                     {service.description}
                                 </p>
                                 <div className="md:hidden w-full h-[1px] bg-red-600/30 mt-4" />
