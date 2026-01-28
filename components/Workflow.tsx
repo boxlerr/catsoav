@@ -72,40 +72,81 @@ export default function Workflow() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-0 border-t border-white/10">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-0 border-t border-white/10 group/container">
                     {steps.map((step, index) => (
                         <motion.div
                             key={step.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
+                            initial={{ opacity: 0, x: -20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{
+                                duration: 0.8,
+                                delay: index * 0.2,
+                                ease: [0.215, 0.61, 0.355, 1]
+                            }}
                             onMouseEnter={() => setActiveStep(index)}
                             onMouseLeave={() => setActiveStep(null)}
                             className={`
-                group relative border-l border-white/10 p-8 min-h-[400px] flex flex-col justify-between
-                transition-colors duration-500
-                ${activeStep === index ? 'bg-white/5' : 'bg-transparent'}
-                hover:border-red-600/50
-              `}
+                                group relative border-l border-white/10 p-10 min-h-[450px] flex flex-col justify-between
+                                transition-all duration-700 ease-out
+                                ${activeStep === index ? 'bg-red-950/20' : 'bg-transparent'}
+                                hover:z-20
+                            `}
                         >
-                            <div className="relative text-white/20 group-hover:text-red-600 transition-colors duration-500">
-                                <span className="text-6xl font-black font-sans opacity-20 group-hover:opacity-100 transition-opacity duration-500">{step.id}</span>
+                            {/* Animated Background Line */}
+                            <motion.div
+                                className="absolute top-0 left-0 w-[2px] h-0 bg-red-600 z-30"
+                                animate={{ height: activeStep === index ? "100%" : "0%" }}
+                                transition={{ duration: 0.5 }}
+                            />
+
+                            <div className="relative">
+                                <motion.div
+                                    className="text-white/10 group-hover:text-red-600/20 transition-colors duration-700"
+                                    animate={{
+                                        scale: activeStep === index ? 1.1 : 1,
+                                        y: activeStep === index ? -10 : 0
+                                    }}
+                                >
+                                    <span className="text-8xl font-black font-sans tracking-tighter select-none">{step.id}</span>
+                                </motion.div>
                             </div>
 
-                            <div className="mt-auto relative z-10">
-                                <div className="mb-6 text-white/60 group-hover:text-white transition-colors duration-300">
+                            <div className="relative z-10 mt-auto">
+                                <motion.div
+                                    className="mb-8 text-white/40 group-hover:text-red-600 transition-all duration-500"
+                                    animate={{
+                                        scale: activeStep === index ? 1.2 : 1,
+                                        rotate: activeStep === index ? [0, -10, 10, 0] : 0
+                                    }}
+                                    transition={{ duration: 0.5 }}
+                                >
                                     {step.icon}
-                                </div>
-                                <h3 className="text-2xl font-serif font-bold text-white mb-4 group-hover:translate-x-2 transition-transform duration-300">
+                                </motion.div>
+
+                                <h3 className="text-2xl font-serif font-bold text-white mb-4 group-hover:text-red-500 transition-colors duration-500">
                                     {step.title}
                                 </h3>
-                                <p className="text-white/40 text-sm leading-relaxed group-hover:text-white/80 transition-colors duration-300">
-                                    {step.description}
-                                </p>
+
+                                <div className="overflow-hidden">
+                                    <motion.p
+                                        className="text-white/40 text-sm leading-relaxed"
+                                        animate={{
+                                            opacity: activeStep === index ? 1 : 0.4,
+                                            y: activeStep === index ? 0 : 5
+                                        }}
+                                    >
+                                        {step.description}
+                                    </motion.p>
+                                </div>
                             </div>
 
-                            {/* Hover Glow */}
-                            <div className={`active-glow absolute inset-0 bg-red-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`} />
+                            {/* Corner Accents */}
+                            <div className="absolute top-4 right-4 w-2 h-2 border-t border-r border-white/0 group-hover:border-red-600/50 transition-all duration-500" />
+                            <div className="absolute bottom-4 left-4 w-2 h-2 border-b border-l border-white/0 group-hover:border-red-600/50 transition-all duration-500" />
+
+                            {/* Hover Glow Gradient */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-red-600/0 via-transparent to-red-600/0 opacity-0 group-hover:opacity-10 transition-opacity duration-700 pointer-events-none" />
                         </motion.div>
                     ))}
                 </div>

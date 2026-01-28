@@ -667,7 +667,10 @@ function HomeContent() {
                         </svg>
                         <a href="mailto:laureanogomez@catsoav.com">laureanogomez@catsoav.com</a>
                       </p>
-                      <p className="text-white/60 text-sm font-medium tracking-wider hover:text-red-600 transition-colors">
+                      <p className="text-white/60 text-sm font-medium tracking-wider flex items-center gap-2 hover:text-red-600 transition-colors justify-end">
+                        <svg className="w-4 h-4 text-white/40 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                        </svg>
                         <a href="mailto:camiloserra@catsoav.com">camiloserra@catsoav.com</a>
                       </p>
                     </div>

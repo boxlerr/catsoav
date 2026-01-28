@@ -61,7 +61,7 @@ export default function Manifesto() {
                         >
                             En un mundo saturado de ruido, el silencio visual es un pecado.
                             Creamos experiencias que <span className="text-white font-medium border-b border-red-600">incomodan</span>,
-                            <span className="text-white font-medium border-b border-red-600 mx-2">emocionan</span> y
+                            <span className="text-white font-medium border-b border-red-600 mx-2">emocionan</span> y{' '}
                             <span className="text-white font-medium border-b border-red-600">permanecen</span>.
                             Somos el puente entre tu idea abstracta y una realidad visual impactante.
                             <br /><br />
