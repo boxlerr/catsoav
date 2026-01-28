@@ -27,6 +27,11 @@ import { SortableItem } from "@/components/SortableItem"
 import VideoThumbnail from "@/components/VideoThumbnail"
 import CatsoVideoPlayer from "@/components/CatsoVideoPlayer"
 import { CategoryDroppable } from "@/components/CategoryDroppable"
+import Manifesto from "@/components/Manifesto"
+import Workflow from "@/components/Workflow"
+import ServicesList from "@/components/ServicesList"
+import Crew from "@/components/Crew"
+import Clients from "@/components/Clients"
 
 
 
@@ -365,6 +370,15 @@ function HomeContent() {
                 <a href="#" onClick={(e) => scrollToSection(e, "top")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider">
                   Inicio
                 </a>
+                <a href="#" onClick={(e) => scrollToSection(e, "manifesto")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider">
+                  Nosotros
+                </a>
+                <a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider">
+                  Servicios
+                </a>
+                <a href="#" onClick={(e) => scrollToSection(e, "process")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider">
+                  Proceso
+                </a>
                 {categories.filter(cat => (session as any)?.user?.role === "admin" || getCategoryProjects(cat.name).length > 0).map((category) => (
                   <a
                     key={category.id}
@@ -375,6 +389,9 @@ function HomeContent() {
                     {category.title.split(" ")[0]}
                   </a>
                 ))}
+                <a href="#" onClick={(e) => scrollToSection(e, "crew")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider">
+                  Equipo
+                </a>
                 {session && (
                   <span className="text-white/40 text-xs px-2 cursor-default font-medium uppercase tracking-wider">Hola, {session.user?.name || 'Usuario'}</span>
                 )}
@@ -426,6 +443,10 @@ function HomeContent() {
 
           <div className="absolute bottom-0 left-0 right-0 h-3/4 bg-gradient-to-b from-transparent via-black/40 to-black pointer-events-none z-10" />
         </section>
+
+        <Manifesto />
+        <ServicesList />
+        <Workflow />
 
         <div className="w-full bg-black relative z-20">
           <div className="max-w-7xl mx-auto px-4 pb-20">
@@ -560,6 +581,9 @@ function HomeContent() {
             )}
           </div>
 
+          <Clients />
+          <Crew />
+
           <section id="contact" className="py-20 border-t border-neutral-900 bg-black">
             <div className="max-w-3xl mx-auto px-4 text-center">
               <h2 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4">
@@ -621,18 +645,18 @@ function HomeContent() {
                 <div>
                   <h4 className="text-white font-bold mb-6 uppercase tracking-widest text-xs">Empresa</h4>
                   <ul className="space-y-4">
-                    <li><a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Sobre Nosotros</a></li>
-                    <li><a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Nuestro Equipo</a></li>
-                    <li><a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Carreras</a></li>
+                    <li><a href="#" onClick={(e) => scrollToSection(e, "manifesto")} className="text-white/40 hover:text-white transition-colors text-sm">Sobre Nosotros</a></li>
+                    <li><a href="#" onClick={(e) => scrollToSection(e, "crew")} className="text-white/40 hover:text-white transition-colors text-sm">Nuestro Equipo</a></li>
+                    <li><a href="#" onClick={(e) => scrollToSection(e, "clients")} className="text-white/40 hover:text-white transition-colors text-sm">Clientes</a></li>
                   </ul>
                 </div>
 
                 <div>
                   <h4 className="text-white font-bold mb-6 uppercase tracking-widest text-xs">Servicios</h4>
                   <ul className="space-y-4">
-                    <li><a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Videoclips</a></li>
-                    <li><a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Contenido Social</a></li>
-                    <li><a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Post-producción</a></li>
+                    <li><a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/40 hover:text-white transition-colors text-sm">Videoclips</a></li>
+                    <li><a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/40 hover:text-white transition-colors text-sm">Commercial</a></li>
+                    <li><a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/40 hover:text-white transition-colors text-sm">Brand Content</a></li>
                   </ul>
                 </div>
               </div>
