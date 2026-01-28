@@ -736,7 +736,9 @@ function HomeContent() {
               </div>
 
               <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
-                <p className="text-white/20 text-xs">© {new Date().getFullYear()} CATSO AV. Todos los derechos reservados.</p>
+                <p className="text-white/20 text-xs">
+                  © {new Date().getFullYear()} <a href="https://vaxler.com.ar/" target="_blank" rel="noopener noreferrer" className="hover:text-red-600 transition-colors">Vaxler</a>. Todos los derechos reservados.
+                </p>
                 <div className="flex gap-8">
                   <a href="#" className="text-white/20 hover:text-white transition-colors text-xs">Privacidad</a>
                   <a href="#" className="text-white/20 hover:text-white transition-colors text-xs">Términos</a>

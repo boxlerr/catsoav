@@ -17,17 +17,18 @@ export default function Clients() {
                 </div>
 
                 {/* Logo Grid - Placeholder SVGs */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 md:gap-20 opacity-50 grayscale hover:grayscale-0 transition-all duration-700">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 md:gap-20">
                     {[...Array(5)].map((_, i) => (
                         <motion.div
                             key={i}
-                            className="flex items-center justify-center p-4"
-                            whileHover={{ scale: 1.1, opacity: 1 }}
-                            initial={{ opacity: 0.3 }}
-                            whileInView={{ opacity: 0.5 }}
+                            className="flex items-center justify-center p-4 opacity-50 hover:opacity-100 transition-opacity duration-300"
+                            whileHover={{ scale: 1.1 }}
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 0.6 }}
+                            viewport={{ once: true }}
                         >
-                            {/* Placeholder Logo Circle */}
-                            <div className="w-full max-w-[120px] aspect-[3/1] bg-white/10 rounded-sm animate-pulse" />
+                            {/* Placeholder Logo Circle - Brighter */}
+                            <div className="w-full max-w-[120px] aspect-[3/1] bg-white/20 rounded-sm hover:bg-white/40 transition-colors" />
                         </motion.div>
                     ))}
                 </div>
