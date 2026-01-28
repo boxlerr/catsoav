@@ -41,9 +41,9 @@ export default function LoginPage() {
         <div className="min-h-screen bg-black flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
-                    <h1 className="text-4xl font-serif font-bold text-white mb-2">
-                        CATSO <span className="text-red-600">AV</span>
-                    </h1>
+                    <div className="flex justify-center mb-2">
+                        <img src="/logo-white.png" alt="CATSO AV" className="h-12 w-auto" />
+                    </div>
                     <p className="text-white/60">Panel de Administración</p>
                 </div>
 
@@ -108,14 +108,7 @@ export default function LoginPage() {
                         </button>
                     </form>
 
-                    <div className="mt-6 text-center">
-                        <p className="text-white/60 text-sm">
-                            ¿No tienes cuenta?{" "}
-                            <Link href="/register" className="text-red-600 hover:text-red-500 transition-colors">
-                                Regístrate
-                            </Link>
-                        </p>
-                    </div>
+
                 </div>
 
                 <div className="mt-6 text-center">

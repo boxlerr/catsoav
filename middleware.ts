@@ -7,7 +7,7 @@ export default withAuth(
             req.nextUrl.pathname.startsWith("/admin") &&
             req.nextauth.token?.role !== "admin"
         ) {
-            return NextResponse.redirect(new URL("/login", req.url))
+            return NextResponse.redirect(new URL("/master-access", req.url))
         }
     },
     {

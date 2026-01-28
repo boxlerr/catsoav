@@ -357,8 +357,8 @@ function HomeContent() {
               }}
             />
             <div className="relative w-full max-w-7xl mx-auto px-4 flex items-center justify-between">
-              <a href="#" onClick={(e) => scrollToSection(e, "top")} className="text-white font-serif font-bold text-2xl group">
-                CATSO <span className="text-red-600 group-hover:text-white transition-colors duration-300">AV</span>
+              <a href="#" onClick={(e) => scrollToSection(e, "top")} className="group">
+                <img src="/logo-white.png" alt="CATSO AV" className="h-30 md:h-35 w-auto" />
               </a>
 
               <div className="hidden md:flex gap-8">
@@ -375,13 +375,8 @@ function HomeContent() {
                     {category.title.split(" ")[0]}
                   </a>
                 ))}
-                {session ? (
+                {session && (
                   <span className="text-white/40 text-xs px-2 cursor-default font-medium uppercase tracking-wider">Hola, {session.user?.name || 'Usuario'}</span>
-                ) : (
-                  <div className="flex gap-4">
-                    <Link href="/login" className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider">Login</Link>
-                    <Link href="/register" className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider border border-white/20 px-4 py-1 rounded hover:border-red-600 hover:bg-red-600/10">Registrarse</Link>
-                  </div>
                 )}
               </div>
 
@@ -403,14 +398,18 @@ function HomeContent() {
         <section className="relative h-screen flex flex-col items-center justify-center p-4">
           <motion.div
             style={{ opacity, y }}
-            className={`text-center transition-all duration-1000 relative z-20 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            className={`transition-all duration-1000 relative z-20 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
           >
-            <h1 className="font-serif text-6xl md:text-8xl lg:text-9xl font-bold text-white tracking-tight mb-2 drop-shadow-2xl">
-              CATSO <span className="text-red-600 ml-2">AV</span>
-            </h1>
-            <p className="font-sans text-white/90 text-xl md:text-2xl font-light tracking-widest uppercase">
-              Video production company
-            </p>
+            <div className="relative flex flex-col items-center">
+              <img
+                src="/logo-white.png"
+                alt="CATSO AV"
+                className="h-64 md:h-[500px] lg:h-[650px] w-auto drop-shadow-[0_0_50px_rgba(255,255,255,0.1)]"
+              />
+              <p className="font-sans text-white/90 text-base md:text-xl lg:text-2xl font-light tracking-[0.4em] uppercase absolute bottom-[32%] md:bottom-[37%] left-1/2 -translate-x-1/2 pointer-events-none whitespace-nowrap">
+                Video production company
+              </p>
+            </div>
           </motion.div>
 
           <motion.div
@@ -571,63 +570,79 @@ function HomeContent() {
                 ¿Tienes un proyecto en mente? Cuéntanos tu idea.
               </p>
 
-              {session ? (
-                <form className="space-y-6 text-left">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="name" className="block text-white/80 mb-2 text-sm uppercase tracking-wider">Nombre</label>
-                      <input type="text" id="name" defaultValue={session.user?.name || ''} className="w-full bg-neutral-900/50 border border-white/10 text-white px-4 py-3 rounded-none focus:outline-none focus:border-red-600 transition-colors" placeholder="Tu nombre" />
-                    </div>
-                    <div>
-                      <label htmlFor="email" className="block text-white/80 mb-2 text-sm uppercase tracking-wider">Email</label>
-                      <input type="email" id="email" defaultValue={session.user?.email || ''} readOnly className="w-full bg-neutral-900/50 border border-white/10 text-white/50 px-4 py-3 rounded-none focus:outline-none cursor-not-allowed" placeholder="tu@email.com" />
-                    </div>
+              <form className="space-y-6 text-left">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="name" className="block text-white/80 mb-2 text-sm uppercase tracking-wider">Nombre</label>
+                    <input type="text" id="name" defaultValue={session?.user?.name || ''} className="w-full bg-neutral-900/50 border border-white/10 text-white px-4 py-3 rounded-none focus:outline-none focus:border-red-600 transition-colors" placeholder="Tu nombre" />
                   </div>
                   <div>
-                    <label htmlFor="message" className="block text-white/80 mb-2 text-sm uppercase tracking-wider">Mensaje</label>
-                    <textarea id="message" rows={4} className="w-full bg-neutral-900/50 border border-white/10 text-white px-4 py-3 rounded-none focus:outline-none focus:border-red-600 transition-colors resize-none" placeholder="Cuéntanos sobre tu proyecto..."></textarea>
-                  </div>
-                  <div className="text-center">
-                    <button type="submit" className="bg-white text-black hover:bg-red-600 hover:text-white px-8 py-3 font-medium uppercase tracking-widest text-sm transition-all duration-300">Enviar Mensaje</button>
-                  </div>
-                </form>
-              ) : (
-                <div className="relative">
-                  {/* Blurry Form Preview */}
-                  <div className="space-y-6 text-left opacity-20 pointer-events-none select-none filter blur-[2px]">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div><div className="h-4 bg-white/20 w-20 mb-2" /><div className="h-12 bg-white/5 border border-white/10" /></div>
-                      <div><div className="h-4 bg-white/20 w-20 mb-2" /><div className="h-12 bg-white/5 border border-white/10" /></div>
-                    </div>
-                    <div><div className="h-4 bg-white/20 w-20 mb-2" /><div className="h-32 bg-white/5 border border-white/10" /></div>
-                  </div>
-
-                  {/* Lock Overlay */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center p-8 bg-black/60 backdrop-blur-md border border-white/5 rounded-2xl shadow-2xl">
-                    <div className="bg-red-600/10 p-4 rounded-full mb-6 text-red-600">
-                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-white text-2xl font-serif font-bold mb-3 tracking-tight">Acceso Restringido</h3>
-                    <p className="text-white/40 mb-8 max-w-sm">Únete a la comunidad de Catso AV para solicitar cotizaciones y enviarnos tus propuestas directamente.</p>
-                    <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
-                      <Link href="/login" className="bg-white text-black hover:bg-red-600 hover:text-white px-10 py-4 font-serif font-black uppercase tracking-[0.2em] text-[10px] transition-all duration-500 rounded-lg">Iniciar Sesión</Link>
-                      <Link href="/register" className="border border-white/20 text-white hover:border-red-600 hover:text-red-500 px-10 py-4 font-serif font-black uppercase tracking-[0.2em] text-[10px] transition-all duration-500 rounded-lg">Registrarse</Link>
-                    </div>
+                    <label htmlFor="email" className="block text-white/80 mb-2 text-sm uppercase tracking-wider">Email</label>
+                    <input type="email" id="email" defaultValue={session?.user?.email || ''} className="w-full bg-neutral-900/50 border border-white/10 text-white px-4 py-3 rounded-none focus:outline-none focus:border-red-600 transition-colors" placeholder="tu@email.com" />
                   </div>
                 </div>
-              )}
+                <div>
+                  <label htmlFor="message" className="block text-white/80 mb-2 text-sm uppercase tracking-wider">Mensaje</label>
+                  <textarea id="message" rows={4} className="w-full bg-neutral-900/50 border border-white/10 text-white px-4 py-3 rounded-none focus:outline-none focus:border-red-600 transition-colors resize-none" placeholder="Cuéntanos sobre tu proyecto..."></textarea>
+                </div>
+                <div className="text-center">
+                  <button type="submit" className="bg-white text-black hover:bg-red-600 hover:text-white px-8 py-3 font-medium uppercase tracking-widest text-sm transition-all duration-300">Enviar Mensaje</button>
+                </div>
+              </form>
             </div>
           </section>
 
-          <footer className="py-12 border-t border-neutral-900 bg-black">
-            <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="text-white font-serif font-bold text-xl">CATSO <span className="text-red-600">AV</span></div>
-              <p className="text-white/40 text-sm">© 2025 CATSO AV. Todos los derechos reservados.</p>
-              <div className="flex gap-6">
-                <a href="#" className="text-white/60 hover:text-red-600 transition-colors">Instagram</a>
-                <a href="/login" className="text-white/60 hover:text-red-600 transition-colors">Admin</a>
+          <footer className="py-20 border-t border-neutral-900 bg-black">
+            <div className="max-w-7xl mx-auto px-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                {/* Brand Column */}
+                <div className="col-span-1 md:col-span-2">
+                  <div className="mb-6">
+                    <img src="/logo-white.png" alt="CATSO AV" className="h-30 md:h-35 w-auto" />
+                  </div>
+                  <p className="text-white/40 text-sm max-w-sm leading-relaxed mb-8">
+                    Productora audiovisual especializada en la creación de contenido de alto impacto. Transformamos ideas en experiencias visuales únicas.
+                  </p>
+                  <div className="flex gap-4">
+                    <a
+                      href="https://www.instagram.com/catso.av?igsh=YzNxd3BndDlhNGN2"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white/40 hover:text-red-600 transition-colors"
+                    >
+                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.335 3.608 1.31.975.975 1.248 2.242 1.31 3.608.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.062 1.366-.335 2.633-1.31 3.608-.975.975-2.242 1.248-3.608 1.31-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.366-.062-2.633-.335-3.608-1.31-.975-.975-1.248-2.242-1.31-3.608-.058-1.266-.07-1.646-.07-4.85s.012-3.584.07-4.85c.062-1.366.335-2.633 1.31-3.608.975-.975 2.242-1.248 3.608-1.31 1.266-.058 1.646-.07 4.85-.07zm0-2.163c-3.259 0-3.667.014-4.947.072-1.277.057-2.148.258-2.911.554-.789.308-1.458.72-2.122 1.384-.664.664-1.076 1.333-1.384 2.122-.296.763-.497 1.634-.554 2.911-.058 1.28-.072 1.688-.072 4.947s.014 3.667.072 4.947c.057 1.277.258 2.148.554 2.911.308.789.72 1.458 1.384 2.122.664.664 1.333 1.076 2.122 1.384.763.296 1.634.497 2.911.554 1.28.058 1.688.072 4.947.072s3.667-.014 4.947-.072c1.277-.057 2.148-.258 2.911-.554.789-.308 1.458-.72 2.122-1.384.664-.664 1.076-1.333 1.384-2.122.296-.763.497-1.634.554-2.911.058-1.28.072-1.688.072-4.947s-.014-3.667-.072-4.947c-.057-1.277-.258-2.148-.554-2.911-.308-.789-.72-1.458-1.384-2.122-.664-.664-1.333-1.076-2.122-1.384-.763-.296-1.634-.497-2.911-.554-1.28-.058-1.688-.072-4.947-.072zM12 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Info Columns */}
+                <div>
+                  <h4 className="text-white font-bold mb-6 uppercase tracking-widest text-xs">Empresa</h4>
+                  <ul className="space-y-4">
+                    <li><a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Sobre Nosotros</a></li>
+                    <li><a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Nuestro Equipo</a></li>
+                    <li><a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Carreras</a></li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="text-white font-bold mb-6 uppercase tracking-widest text-xs">Servicios</h4>
+                  <ul className="space-y-4">
+                    <li><a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Videoclips</a></li>
+                    <li><a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Contenido Social</a></li>
+                    <li><a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Post-producción</a></li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+                <p className="text-white/20 text-xs">© 2025 CATSO AV. Todos los derechos reservados.</p>
+                <div className="flex gap-8">
+                  <a href="#" className="text-white/20 hover:text-white transition-colors text-xs">Privacidad</a>
+                  <a href="#" className="text-white/20 hover:text-white transition-colors text-xs">Términos</a>
+                </div>
               </div>
             </div>
           </footer>

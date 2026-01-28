@@ -9,10 +9,10 @@ export default function AdminLayout({
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between items-center">
                         <div className="flex items-center gap-8">
-                            <span className="font-serif font-bold text-xl">
-                                CATSO <span className="text-red-600">AV</span>
-                                <span className="ml-2 text-xs font-sans font-normal text-white/40 uppercase tracking-widest">Admin</span>
-                            </span>
+                            <div className="flex items-center gap-2">
+                                <img src="/logo-white.png" alt="CATSO AV" className="h-6 w-auto" />
+                                <span className="text-xs font-sans font-normal text-white/40 uppercase tracking-widest">Admin</span>
+                            </div>
                             <div className="hidden md:flex gap-6">
                                 <a href="/admin" className="text-sm font-medium hover:text-red-600 transition-colors">Dashboard</a>
                                 <a href="/admin/projects" className="text-sm font-medium hover:text-red-600 transition-colors">Proyectos</a>
