@@ -32,14 +32,13 @@ import Workflow from "@/components/Workflow"
 import ServicesList from "@/components/ServicesList"
 import Crew from "@/components/Crew"
 import Clients from "@/components/Clients"
+import { getYouTubeId, getVimeoId, isDirectVideo as checkIsDirectVideo } from "@/lib/video-utils"
 
 
 
 export default function Home() {
   return (
-    <SessionProvider>
-      <HomeContent />
-    </SessionProvider>
+    <HomeContent />
   )
 }
 
@@ -115,35 +114,50 @@ function HomeContent() {
     }
   }
 
-  const renderVideo = (url: string) => {
-    const isDirectVideo = url?.startsWith('/uploads/') ||
-      url?.startsWith('blob:') ||
-      /\.(mp4|webm|mov|ogg|m4v|3gp|avi)($|\?|#)/i.test(url)
-
-    if (isDirectVideo) {
+  const renderVideo = (url: string, project: any) => {
+    if (checkIsDirectVideo(url)) {
       return (
-        <CatsoVideoPlayer src={url} title="Catso AV Production" />
+        <CatsoVideoPlayer src={url} title={project.title} />
       )
     }
 
-    let embedUrl = url
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      const id = url.includes('v=') ? url.split('v=')[1].split('&')[0] : url.split('/').pop()
-      // rel=0: related from same channel, iv_load_policy=3: hide annotations
-      embedUrl = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3`
-    } else if (url.includes('vimeo.com')) {
-      const id = url.split('/').pop()
-      // title, byline, portrait = 0: clean player
-      embedUrl = `https://player.vimeo.com/video/${id}?autoplay=1&title=0&byline=0&portrait=0`
+    const ytId = getYouTubeId(url)
+    const vimeoId = getVimeoId(url)
+
+    if (ytId) {
+      const embedUrl = `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3`
+      return (
+        <iframe
+          src={embedUrl}
+          className="w-full aspect-video rounded-lg shadow-2xl bg-black"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowFullScreen
+        />
+      )
+    } else if (vimeoId) {
+      const embedUrl = `https://player.vimeo.com/video/${vimeoId}?autoplay=1&title=0&byline=0&portrait=0`
+      return (
+        <iframe
+          src={embedUrl}
+          className="w-full aspect-video rounded-lg shadow-2xl bg-black"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowFullScreen
+        />
+      )
     }
 
+    // Fallback: Si no es un video válido, mostrar la imagen de portada grande
     return (
-      <iframe
-        src={embedUrl}
-        className="w-full aspect-video rounded-lg shadow-2xl bg-black"
-        allow="autoplay; fullscreen; picture-in-picture"
-        allowFullScreen
-      />
+      <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-white/10 group">
+        <img
+          src={project.imageUrl || '/placeholder-project.jpg'}
+          alt={project.title}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+          <p className="text-white/60 text-sm font-medium tracking-widest uppercase">Visualizaciones de Behance</p>
+        </div>
+      </div>
     )
   }
   // Helper: Get projects for a specific category, sorted by order
@@ -774,8 +788,8 @@ function HomeContent() {
                   </button>
 
                   <div className="w-full h-full flex flex-col">
-                    <div className="flex-1 bg-black overflow-hidden flex items-center justify-center">
-                      {renderVideo(selectedProject.videoUrl)}
+                    <div className="flex-1 bg-black overflow-hidden relative">
+                      {renderVideo(selectedProject.videoUrl, selectedProject)}
                     </div>
 
                     <div className="p-6 md:p-8 bg-black/40 border-t border-white/5 backdrop-blur-md">

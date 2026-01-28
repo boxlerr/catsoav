@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
+import { getYouTubeId, getVimeoId, isDirectVideo as checkIsDirectVideo } from "@/lib/video-utils"
 
 interface VideoThumbnailProps {
     videoUrl: string
@@ -13,6 +14,7 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
     const [isVideo, setIsVideo] = useState(false)
     const [isLoaded, setIsLoaded] = useState(false)
     const [isAdobeCCV, setIsAdobeCCV] = useState(false)
+    const videoRef = useRef<HTMLVideoElement>(null)
 
     useEffect(() => {
         setIsLoaded(false)
@@ -33,17 +35,15 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
             return
         }
 
-        // Check if it's YouTube
-        const ytMatch = videoUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)
-        if (ytMatch && ytMatch[1]) {
-            setThumbnailUrl(`https://img.youtube.com/vi/${ytMatch[1]}/maxresdefault.jpg`)
+        const ytId = getYouTubeId(videoUrl)
+        if (ytId) {
+            setThumbnailUrl(`https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`)
             setIsVideo(false)
             return
         }
 
-        // Check if it's Vimeo
-        const vimeoMatch = videoUrl.match(/vimeo\.com\/(?:video\/)?(\d+)/i)
-        if (vimeoMatch && vimeoMatch[1]) {
+        const vimeoId = getVimeoId(videoUrl)
+        if (vimeoId) {
             fetch(`https://vimeo.com/api/oembed.json?url=${encodeURIComponent(videoUrl)}`)
                 .then(res => res.json())
                 .then(data => {
@@ -58,30 +58,45 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
             return
         }
 
-        // Check if it's Adobe CCV (Behance)
-        if (videoUrl.includes('adobe.io/v1/player/ccv/')) {
-            setIsVideo(false)
-            setThumbnailUrl(null) // No public thumbnail available for CCV embeds
-            return
-        }
-
-        // Check if it's direct video file
-        const isDirectVideo = /\.(mp4|webm|ogg|mov)$/i.test(videoUrl) || videoUrl.includes('/uploads/')
-        if (isDirectVideo) {
+        if (checkIsDirectVideo(videoUrl)) {
             setIsVideo(true)
             return
         }
 
-        setIsVideo(true)
+        // If nothing matches, it's not a video we can preview
+        setIsVideo(false)
     }, [videoUrl, imageUrl])
+
+    const handleMouseEnter = () => {
+        if (videoRef.current) {
+            const playPromise = videoRef.current.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(err => {
+                    if (err.name !== "AbortError") {
+                        console.warn("Hover play blocked:", err);
+                    }
+                });
+            }
+        }
+    }
+
+    const handleMouseLeave = () => {
+        if (videoRef.current) {
+            videoRef.current.pause();
+        }
+    }
 
     if (isVideo) {
         return (
-            <div className="w-full h-full relative bg-neutral-900 overflow-hidden flex items-center justify-center">
+            <div
+                className="w-full h-full relative bg-neutral-900 overflow-hidden"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+            >
                 <video
+                    ref={videoRef}
                     src={videoUrl}
-                    className={`w-full h-full object-cover transition-all duration-1000 ${isLoaded ? 'opacity-60 group-hover:opacity-100' : 'opacity-0'}`}
-                    autoPlay
+                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-1000 ${isLoaded ? 'opacity-60 group-hover:opacity-100' : 'opacity-0'}`}
                     muted
                     loop
                     playsInline
@@ -125,10 +140,19 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
                 className="w-full h-full object-cover"
                 onError={() => {
                     // If maxres fails, try hqdefault
-                    if (thumbnailUrl.includes('maxresdefault')) {
+                    if (thumbnailUrl && thumbnailUrl.includes('maxresdefault')) {
                         setThumbnailUrl(thumbnailUrl.replace('maxresdefault', 'hqdefault'))
                     } else {
-                        setIsVideo(true) // Fallback to video attempt
+                        // If it's a known YouTube/Vimeo URL, don't try to play it as a direct video
+                        const ytId = getYouTubeId(videoUrl)
+                        const vimeoId = getVimeoId(videoUrl)
+
+                        if (ytId || vimeoId) {
+                            // Keep it as an image, but maybe set to a placeholder if even hqdefault failed
+                            setThumbnailUrl('/placeholder-project.jpg')
+                        } else {
+                            setIsVideo(true) // Fallback to video attempt only for potentially direct files
+                        }
                     }
                 }}
             />

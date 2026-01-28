@@ -102,14 +102,14 @@ export default function CatsoVideoPlayer({ src, title }: CatsoVideoPlayerProps) 
 
     return (
         <div
-            className="relative w-full h-full group bg-black rounded-lg overflow-hidden flex items-center justify-center"
+            className="relative w-full h-full group bg-black rounded-lg overflow-hidden"
             onMouseMove={handleMouseMove}
             onMouseLeave={() => isPlaying && setShowControls(false)}
         >
             <video
                 ref={videoRef}
                 src={src}
-                className="w-full h-full object-contain"
+                className="absolute inset-0 w-full h-full object-contain"
                 playsInline
                 autoPlay
                 muted
