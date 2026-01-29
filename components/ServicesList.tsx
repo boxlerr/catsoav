@@ -41,8 +41,8 @@ export default function ServicesList() {
 
     return (
         <section id="services" className="py-20 md:py-32 bg-black relative z-10">
-            <div className="max-w-7xl mx-auto px-4">
-                <div className="mb-16 border-b border-white/10 pb-8 flex items-end justify-between">
+            <div className="max-w-7xl mx-auto px-6">
+                <div className="mb-16 border-b border-white/10 pb-8 flex items-end justify-between px-4 md:px-0">
                     <h2 className="text-4xl md:text-5xl font-serif font-bold text-white">
                         Servicios
                         <span className="text-red-600">.</span>

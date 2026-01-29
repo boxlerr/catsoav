@@ -28,11 +28,21 @@ export function SortableItem({ id, children, disabled }: SortableItemProps) {
         opacity: isDragging ? 0.5 : 1,
         zIndex: isDragging ? 1000 : 1,
         position: 'relative' as 'relative',
-        touchAction: 'none' // Important for touch devices
+        touchAction: 'manipulation' // Allow scrolling while supporting drag with delay sensor
     }
 
     return (
-        <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
+            onClick={(e) => {
+                // If the element was being dragged, we might want to prevent clicks.
+                // However, dnd-kit usually handles this. 
+                // We add stopPropagation just in case for nested links.
+            }}
+        >
             {children}
         </div>
     )

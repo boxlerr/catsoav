@@ -55,8 +55,8 @@ export default function Workflow() {
             {/* Background Elements */}
             <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-red-900/5 to-transparent pointer-events-none" />
 
-            <div className="max-w-7xl mx-auto px-4 relative z-10">
-                <div className="mb-24 flex flex-col md:flex-row items-end justify-between gap-8">
+            <div className="max-w-7xl mx-auto px-6 relative z-10">
+                <div className="mb-24 flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
                     <div>
                         <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">
                             The Process
@@ -87,7 +87,7 @@ export default function Workflow() {
                             onMouseEnter={() => setActiveStep(index)}
                             onMouseLeave={() => setActiveStep(null)}
                             className={`
-                                group relative border-l border-white/10 p-10 min-h-[450px] flex flex-col justify-between
+                                group relative border-l border-white/10 p-8 md:p-10 min-h-[400px] md:min-h-[450px] flex flex-col justify-between
                                 transition-all duration-700 ease-out
                                 ${activeStep === index ? 'bg-red-950/20' : 'bg-transparent'}
                                 hover:z-20

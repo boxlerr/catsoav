@@ -32,7 +32,7 @@ export default function Manifesto() {
                 />
             </div>
 
-            <div className="container mx-auto px-4 relative z-10 max-w-5xl">
+            <div className="max-w-7xl mx-auto px-6 relative z-10">
                 <motion.div
                     style={{ opacity }}
                     className="flex flex-col gap-12"
