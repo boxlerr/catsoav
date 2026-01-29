@@ -375,11 +375,11 @@ function HomeContent() {
         )}
       </AnimatePresence>
 
-      <div className="fixed inset-0 z-0">
-        <div data-us-project="DmxX3AU5Ot4TeJbMP4tT" style={{ width: "100vw", height: "100vh" }} />
+      <div className="fixed inset-0 z-0" suppressHydrationWarning>
+        <div data-us-project="DmxX3AU5Ot4TeJbMP4tT" style={{ width: "100vw", height: "100vh" }} suppressHydrationWarning />
       </div>
 
-      <div className="relative z-10 w-full">
+      <div className="relative z-10 w-full" suppressHydrationWarning>
         <section className="relative h-screen flex flex-col items-center justify-center p-4">
           <motion.div
             style={{ opacity, y }}
