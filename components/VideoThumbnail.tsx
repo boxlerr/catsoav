@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import Image from "next/image"
 import { getYouTubeId, getVimeoId, isDirectVideo as checkIsDirectVideo } from "@/lib/video-utils"
 
 interface VideoThumbnailProps {
@@ -14,24 +15,35 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
     const [isVideo, setIsVideo] = useState(false)
     const [isLoaded, setIsLoaded] = useState(false)
     const [isAdobeCCV, setIsAdobeCCV] = useState(false)
+    const [isBehanceProject, setIsBehanceProject] = useState(false)
     const videoRef = useRef<HTMLVideoElement>(null)
 
     useEffect(() => {
         setIsLoaded(false)
         setIsAdobeCCV(false)
+        setIsBehanceProject(false)
+
         if (imageUrl) {
             setThumbnailUrl(imageUrl)
             setIsVideo(false)
-            return
+            // Continue checks to see if we should flag it as special type even if we have image
         }
 
         if (!videoUrl) return
 
-        // Check if it's Adobe CCV (Behance)
+        // 1. Check if it's Adobe CCV (Behance Player)
         if (videoUrl.includes('adobe.io/v1/player/ccv/')) {
             setIsVideo(false)
             setIsAdobeCCV(true)
             setThumbnailUrl(null)
+            return
+        }
+
+        // 2. Check if it's a Behance Project Link (Fallback)
+        if (videoUrl.includes('behance.net/gallery')) {
+            setIsVideo(false)
+            setIsBehanceProject(true)
+            // Keep existing thumbnailUrl (cover image)
             return
         }
 
@@ -59,7 +71,11 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
         }
 
         if (checkIsDirectVideo(videoUrl)) {
-            setIsVideo(true)
+            // Only switch to video element IF we don't have a thumbnail image.
+            // User prefers static rectangular thumbnails over auto-playing vertical crops.
+            if (!imageUrl) {
+                setIsVideo(true)
+            }
             return
         }
 
@@ -120,6 +136,29 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
     }
 
     if (isAdobeCCV) {
+        // Extract project ID from URL
+        // format: https://adobe.io/v1/player/ccv/ID
+        const match = videoUrl.match(/\/ccv\/([a-zA-Z0-9_-]+)/);
+        const videoId = match ? match[1] : null;
+
+        if (videoId) {
+            return (
+                <div className="w-full h-full bg-[#191919] relative group overflow-hidden">
+                    <iframe
+                        src={`https://www-ccv.adobe.io/v1/player/ccv/${videoId}/embed?api_key=${process.env.NEXT_PUBLIC_ADOBE_CCV_API_KEY || 'behance1'}&bgcolor=%23191919`}
+                        title="Adobe CCV Player"
+                        className="w-full h-full absolute inset-0 pointer-events-none group-hover:pointer-events-auto transition-all duration-300"
+                        frameBorder="0"
+                        allowFullScreen
+                        allow="encrypted-media; picture-in-picture"
+                        style={{ border: 0 }}
+                    />
+                    {/* Overlay to catch clicks and redirect to detail view if needed, or allow play */}
+                    <div className="absolute inset-0 bg-transparent pointer-events-none border border-white/5 group-hover:border-red-600/30 transition-colors duration-500"></div>
+                </div>
+            )
+        }
+
         return (
             <div className="w-full h-full flex flex-col items-center justify-center bg-[#191919] border border-white/5 group-hover:border-red-600/30 transition-all duration-500">
                 <div className="bg-red-600/10 p-4 rounded-full mb-3 group-hover:scale-110 transition-transform duration-500">
@@ -132,12 +171,40 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
         )
     }
 
+    if (isBehanceProject) {
+        return (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-[#191919] border border-white/5 group-hover:border-blue-500/30 transition-all duration-500 relative group overflow-hidden">
+                {/* If we have an image, show it as background */}
+                {thumbnailUrl && (
+                    <Image
+                        src={thumbnailUrl}
+                        alt={title}
+                        fill
+                        className="object-cover opacity-50 group-hover:opacity-30 transition-opacity duration-500"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                )}
+
+                <div className="z-10 flex flex-col items-center">
+                    <div className="bg-blue-600/10 p-4 rounded-full mb-3 group-hover:scale-110 transition-transform duration-500 border border-blue-500/20">
+                        <svg className="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                    </div>
+                    <span className="text-[9px] text-white/40 group-hover:text-blue-400 uppercase font-black tracking-[0.2em] transition-colors duration-300">View Project</span>
+                </div>
+            </div>
+        )
+    }
+
     if (thumbnailUrl) {
         return (
-            <img
+            <Image
                 src={thumbnailUrl}
                 alt={title}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 onError={() => {
                     // If maxres fails, try hqdefault
                     if (thumbnailUrl && thumbnailUrl.includes('maxresdefault')) {

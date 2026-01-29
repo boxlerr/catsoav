@@ -147,6 +147,18 @@ export default function RootLayout({
         <Providers>
           {children}
         </Providers>
+
+        {/* Global SVG Filters */}
+        <svg style={{ width: 0, height: 0, position: 'absolute', pointerEvents: 'none' }} aria-hidden="true">
+          <defs>
+            <filter id="burning-paper" x="-20%" y="-20%" width="140%" height="140%">
+              <feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" result="noise" seed="1">
+                <animate attributeName="seed" from="1" to="100" dur="0.8s" repeatCount="indefinite" />
+              </feTurbulence>
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="35" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+          </defs>
+        </svg>
       </body>
     </html>
   );

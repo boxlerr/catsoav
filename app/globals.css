@@ -72,6 +72,7 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
+/* Tailwind CSS v4 directives - warnings can be safely ignored */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -151,4 +152,32 @@ body {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(220, 38, 38, 1);
+}
+
+/* Burning Paper Effect - Border Only */
+.hover-burn {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.hover-burn::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border: 10px solid #dc2626;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 40;
+  border-radius: inherit;
+}
+
+.hover-burn:hover::after {
+  opacity: 1;
+  filter: url(#burning-paper) drop-shadow(0 0 10px #ef4444) drop-shadow(0 0 20px #991b1b);
+}
+
+.hover-burn:hover {
+  box-shadow: 0 0 40px 10px rgba(220, 38, 38, 0.2);
+  transform: scale(1.02);
 }

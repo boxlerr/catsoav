@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { prisma } from "@/lib/prisma"
-import { getBehanceProjects, getBehanceProjectVideo } from "@/lib/behance-sync"
+import { getBehanceProjects, getBehanceProjectDetails } from "@/lib/behance-sync"
 
 export async function POST() {
     try {
@@ -43,12 +43,20 @@ export async function POST() {
                 }
             })
 
+            const details = await getBehanceProjectDetails(bp.url);
+            let videoUrl = details.videoUrl;
+            const images = details.images;
+
+            // FALLBACK: Si no se encuentra video (null), usar el link del proyecto
+            if (!videoUrl) {
+                console.log(`[SyncRoute] Fallback: Usando URL del proyecto para "${bp.title}"`);
+                videoUrl = bp.url;
+            }
+
             if (!existing) {
                 console.log(`[SyncRoute] Agregando nuevo proyecto: ${bp.title}`);
-                const videoUrl = await getBehanceProjectVideo(bp.url)
-
                 const finalCategory = videoUrl
-                    ? 'videoclips'
+                    ? 'videoclips' // Default logic
                     : (bp.title.toLowerCase().includes('video') ? 'videoclips' : 'commercial');
 
                 await prisma.project.create({
@@ -57,7 +65,8 @@ export async function POST() {
                         description: "Sincronizado desde Behance",
                         category: finalCategory,
                         imageUrl: bp.cover || '/placeholder-project.jpg',
-                        videoUrl: videoUrl, // YA NO USAMOS bp.url COMO FALLBACK!
+                        images: JSON.stringify(images), // Store images as JSON
+                        videoUrl: videoUrl,
                         authorId: user.id,
                         published: true,
                         order: 0
@@ -65,7 +74,16 @@ export async function POST() {
                 })
                 syncedCount++
             } else {
-                skippedCount.push(bp.title)
+                console.log(`[SyncRoute] Actualizando proyecto existente: ${bp.title}`);
+                await prisma.project.update({
+                    where: { id: existing.id },
+                    data: {
+                        imageUrl: bp.cover, // Refresh cover
+                        images: JSON.stringify(images), // Update images
+                        videoUrl: videoUrl  // Refresh video/fallback
+                    }
+                });
+                syncedCount++; // Count updates as sync activity
             }
         }
 

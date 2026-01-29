@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
 import { SessionProvider, useSession } from "next-auth/react"
 import Link from "next/link"
+import Image from "next/image"
 import QuickProjectButton from "@/components/QuickProjectButton"
 import {
   DndContext,
@@ -49,7 +50,6 @@ function HomeContent() {
   const [mounted, setMounted] = useState(false)
   const [projects, setProjects] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
-  const [selectedProject, setSelectedProject] = useState<any>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -62,7 +62,7 @@ function HomeContent() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch('/api/categories', { cache: 'no-store' })
+      const res = await fetch('/api/categories', { next: { revalidate: 3600 } })
       if (res.ok) {
         const data = await res.json()
         setCategories(data)
@@ -74,7 +74,7 @@ function HomeContent() {
 
   const fetchProjects = async () => {
     try {
-      const res = await fetch('/api/projects', { cache: 'no-store' })
+      const res = await fetch('/api/projects', { next: { revalidate: 3600 } })
       if (res.ok) {
         const data = await res.json()
         setProjects(data)
@@ -114,52 +114,6 @@ function HomeContent() {
     }
   }
 
-  const renderVideo = (url: string, project: any) => {
-    if (checkIsDirectVideo(url)) {
-      return (
-        <CatsoVideoPlayer src={url} title={project.title} />
-      )
-    }
-
-    const ytId = getYouTubeId(url)
-    const vimeoId = getVimeoId(url)
-
-    if (ytId) {
-      const embedUrl = `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3`
-      return (
-        <iframe
-          src={embedUrl}
-          className="w-full aspect-video rounded-lg shadow-2xl bg-black"
-          allow="autoplay; fullscreen; picture-in-picture"
-          allowFullScreen
-        />
-      )
-    } else if (vimeoId) {
-      const embedUrl = `https://player.vimeo.com/video/${vimeoId}?autoplay=1&title=0&byline=0&portrait=0`
-      return (
-        <iframe
-          src={embedUrl}
-          className="w-full aspect-video rounded-lg shadow-2xl bg-black"
-          allow="autoplay; fullscreen; picture-in-picture"
-          allowFullScreen
-        />
-      )
-    }
-
-    // Fallback: Si no es un video válido, mostrar la imagen de portada grande
-    return (
-      <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-white/10 group">
-        <img
-          src={project.imageUrl || '/placeholder-project.jpg'}
-          alt={project.title}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-          <p className="text-white/60 text-sm font-medium tracking-widest uppercase">Visualizaciones de Behance</p>
-        </div>
-      </div>
-    )
-  }
   // Helper: Get projects for a specific category, sorted by order
   const getCategoryProjects = (catName: string) => {
     return projects
@@ -377,7 +331,7 @@ function HomeContent() {
             />
             <div className="relative w-full max-w-7xl mx-auto px-4 flex items-center justify-between">
               <a href="#" onClick={(e) => scrollToSection(e, "top")} className="group">
-                <img src="/logo-white.png" alt="CATSO AV" className="h-30 md:h-35 w-auto" />
+                <Image src="/logo-white.png" alt="CATSO AV" width={140} height={60} className="h-auto w-auto" priority />
               </a>
 
               <div className="hidden md:flex gap-8">
@@ -432,10 +386,13 @@ function HomeContent() {
             className={`transition-all duration-1000 relative z-20 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
           >
             <div className="relative flex flex-col items-center">
-              <img
+              <Image
                 src="/logo-white.png"
                 alt="CATSO AV"
-                className="h-64 md:h-[500px] lg:h-[650px] w-auto drop-shadow-[0_0_50px_rgba(255,255,255,0.1)]"
+                width={800}
+                height={400}
+                className="h-auto w-auto max-w-full drop-shadow-[0_0_50px_rgba(255,255,255,0.1)]"
+                priority
               />
               <p className="font-sans text-white/90 text-base md:text-xl lg:text-2xl font-light tracking-[0.4em] uppercase absolute bottom-[32%] md:bottom-[37%] left-1/2 -translate-x-1/2 pointer-events-none whitespace-nowrap">
                 Video production company
@@ -498,76 +455,79 @@ function HomeContent() {
                           {catProjects.length > 0 ? (
                             catProjects.map((project) => (
                               <SortableItem key={project.id} id={project.id} disabled={session?.user?.role !== "admin"}>
-                                <div
-                                  onClick={() => setSelectedProject(project)}
-                                  className={`group relative aspect-video bg-neutral-900/50 overflow-hidden border border-white/5 hover:border-red-600/50 transition-all duration-500 hover:shadow-2xl hover:shadow-red-900/20 w-full h-full cursor-pointer ${!project.published ? "opacity-40 grayscale" : ""}`}
+                                <Link
+                                  href={`/project/${project.id}`}
+                                  className={`hover-burn group relative block aspect-video bg-neutral-900/50 border border-white/5 hover:border-red-600/50 transition-all duration-500 hover:shadow-2xl hover:shadow-red-900/20 w-full h-full cursor-pointer ${!project.published ? "opacity-40 grayscale" : ""}`}
                                 >
-                                  {/* Animated Visibility Switch (Admin Only) */}
-                                  {session?.user?.role === "admin" && (
-                                    <div
-                                      onClick={(e) => toggleVisibility(e, project)}
-                                      className="absolute top-3 left-3 z-40 flex items-center gap-2 group/switch cursor-pointer"
-                                    >
-                                      <div className={`w-9 h-5 rounded-full relative transition-colors duration-500 backdrop-blur-md border border-white/20 flex items-center px-1 ${project.published ? "bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.3)]" : "bg-black/60"}`}>
-                                        <motion.div
-                                          animate={{ x: project.published ? 16 : 0 }}
-                                          transition={{ type: "spring", stiffness: 600, damping: 35 }}
-                                          className="w-3 h-3 bg-white rounded-full shadow-md"
-                                        />
-                                      </div>
-                                      <span className={`text-[8px] uppercase font-black tracking-widest transition-opacity duration-300 ${project.published ? "text-white opacity-0 group-hover/switch:opacity-100" : "text-white/40"}`}>
-                                        {project.published ? "On" : "Off"}
-                                      </span>
-                                    </div>
-                                  )}
-                                  {/* Deletion & Edit Buttons (Admin Only) */}
-                                  {session?.user?.role === "admin" && (
-                                    <div className="absolute top-2 right-2 z-30 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          window.dispatchEvent(new CustomEvent('editProject', { detail: project }))
-                                        }}
-                                        className="bg-black/60 hover:bg-white text-white/40 hover:text-black p-1.5 rounded-md transition-all duration-300"
-                                        title="Editar Proyecto"
-                                      >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                        </svg>
-                                      </button>
-                                      <button
-                                        onClick={(e) => handleDelete(e, project.id)}
-                                        className="bg-black/60 hover:bg-red-600 text-white/40 hover:text-white p-1.5 rounded-md transition-all duration-300"
-                                        title="Eliminar Proyecto"
-                                      >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                      </button>
-                                    </div>
-                                  )}
-
-                                  {/* Thumbnail */}
-                                  <div className="absolute inset-0 flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
-                                    <VideoThumbnail
-                                      videoUrl={project.videoUrl}
-                                      imageUrl={project.imageUrl}
-                                      title={project.title}
-                                    />
-                                  </div>
-
-                                  {/* Overlay Info */}
-                                  <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                                    <p className="text-white font-serif font-bold text-lg mb-0.5 tracking-tight">{project.title}</p>
-                                    <p className="text-white/40 text-xs uppercase tracking-[0.2em] font-medium">{(project as any).clientName || 'Producción'}</p>
+                                  {/* Media Container (Clipped) */}
+                                  <div className="absolute inset-0 overflow-hidden rounded-[inherit] z-0">
+                                    {/* Animated Visibility Switch (Admin Only) */}
                                     {session?.user?.role === "admin" && (
-                                      <div className="mt-3 pt-3 border-t border-white/10 flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
-                                        <span className="text-red-500 text-[9px] uppercase tracking-[0.2em] font-bold">Admin: Drag to Reorder</span>
+                                      <div
+                                        onClick={(e) => toggleVisibility(e, project)}
+                                        className="absolute top-3 left-3 z-40 flex items-center gap-2 group/switch cursor-pointer"
+                                      >
+                                        <div className={`w-9 h-5 rounded-full relative transition-colors duration-500 backdrop-blur-md border border-white/20 flex items-center px-1 ${project.published ? "bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.3)]" : "bg-black/60"}`}>
+                                          <motion.div
+                                            animate={{ x: project.published ? 16 : 0 }}
+                                            transition={{ type: "spring", stiffness: 600, damping: 35 }}
+                                            className="w-3 h-3 bg-white rounded-full shadow-md"
+                                          />
+                                        </div>
+                                        <span className={`text-[8px] uppercase font-black tracking-widest transition-opacity duration-300 ${project.published ? "text-white opacity-0 group-hover/switch:opacity-100" : "text-white/40"}`}>
+                                          {project.published ? "On" : "Off"}
+                                        </span>
                                       </div>
                                     )}
+                                    {/* Deletion & Edit Buttons (Admin Only) */}
+                                    {session?.user?.role === "admin" && (
+                                      <div className="absolute top-2 right-2 z-30 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            window.dispatchEvent(new CustomEvent('editProject', { detail: project }))
+                                          }}
+                                          className="bg-black/60 hover:bg-white text-white/40 hover:text-black p-1.5 rounded-md transition-all duration-300"
+                                          title="Editar Proyecto"
+                                        >
+                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                          </svg>
+                                        </button>
+                                        <button
+                                          onClick={(e) => handleDelete(e, project.id)}
+                                          className="bg-black/60 hover:bg-red-600 text-white/40 hover:text-white p-1.5 rounded-md transition-all duration-300"
+                                          title="Eliminar Proyecto"
+                                        >
+                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                          </svg>
+                                        </button>
+                                      </div>
+                                    )}
+
+                                    {/* Thumbnail */}
+                                    <div className="absolute inset-0 flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
+                                      <VideoThumbnail
+                                        videoUrl={project.videoUrl}
+                                        imageUrl={project.imageUrl}
+                                        title={project.title}
+                                      />
+                                    </div>
+
+                                    {/* Overlay Info */}
+                                    <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20">
+                                      <p className="text-white font-serif font-bold text-lg mb-0.5 tracking-tight">{project.title}</p>
+                                      <p className="text-white/40 text-xs uppercase tracking-[0.2em] font-medium">{(project as any).clientName || 'Producción'}</p>
+                                      {session?.user?.role === "admin" && (
+                                        <div className="mt-3 pt-3 border-t border-white/10 flex items-center gap-2">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
+                                          <span className="text-red-500 text-[9px] uppercase tracking-[0.2em] font-bold">Admin: Drag to Reorder</span>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
+                                </Link>
                               </SortableItem>
                             ))
                           ) : (
@@ -636,7 +596,7 @@ function HomeContent() {
                 {/* Brand Column */}
                 <div className="col-span-1">
                   <div className="mb-6">
-                    <img src="/logo-white.png" alt="CATSO AV" className="h-30 md:h-35 w-auto" />
+                    <Image src="/logo-white.png" alt="CATSO AV" width={140} height={60} className="h-auto w-auto opacity-50" />
                   </div>
                   <p className="text-white/40 text-sm max-w-sm leading-relaxed">
                     Productora audiovisual especializada en la creación de contenido de alto impacto. Transformamos ideas en experiencias visuales únicas.
@@ -761,54 +721,6 @@ function HomeContent() {
             </div>
           </footer>
 
-          {/* Video Modal */}
-          <AnimatePresence>
-            {selectedProject && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[110] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 md:p-10"
-                onClick={() => setSelectedProject(null)}
-              >
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                  className="relative w-full max-w-6xl aspect-video bg-neutral-900 shadow-2xl overflow-hidden rounded-2xl"
-                  onClick={e => e.stopPropagation()}
-                >
-                  <button
-                    onClick={() => setSelectedProject(null)}
-                    className="absolute top-4 right-4 z-50 bg-black/50 hover:bg-red-600 text-white p-2 rounded-full transition-all group"
-                  >
-                    <svg className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-
-                  <div className="w-full h-full flex flex-col">
-                    <div className="flex-1 bg-black overflow-hidden relative">
-                      {renderVideo(selectedProject.videoUrl, selectedProject)}
-                    </div>
-
-                    <div className="p-6 md:p-8 bg-black/40 border-t border-white/5 backdrop-blur-md">
-                      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                        <div>
-                          <span className="text-red-600 text-[10px] uppercase tracking-[0.3em] font-bold mb-2 block">{selectedProject.category}</span>
-                          <h3 className="text-2xl md:text-3xl font-serif font-bold text-white mb-1 tracking-tight">{selectedProject.title}</h3>
-                          <p className="text-white/40 text-sm uppercase tracking-widest leading-relaxed">{(selectedProject as any).clientName}</p>
-                        </div>
-                        <div className="max-w-md text-right">
-                          <p className="text-white/60 text-sm italic font-light">"{selectedProject.description}"</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
         <QuickProjectButton />

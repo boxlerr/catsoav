@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import Image from "next/image"
 
 // Placeholder data - Replacing with real info later
 const crewEffectivo = [
@@ -58,10 +59,12 @@ export default function Crew() {
                                 {/* Grayscale Filter Layer - Reduced intensity */}
                                 <div className="absolute inset-0 bg-neutral-900/20 z-10 group-hover:opacity-0 transition-opacity duration-700 pointer-events-none" />
 
-                                <img
+                                <Image
                                     src={member.image}
                                     alt={member.name}
-                                    className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-700"
+                                    fill
+                                    className="object-cover filter grayscale group-hover:grayscale-0 transition-all duration-700"
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 25vw, 20vw"
                                 />
                                 {/* Red Overlay on Hover */}
                                 <div className="absolute inset-0 bg-gradient-to-t from-red-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

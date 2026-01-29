@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import Image from "next/image"
 
 interface CatsoVideoPlayerProps {
     src: string
@@ -19,9 +20,34 @@ export default function CatsoVideoPlayer({ src, title }: CatsoVideoPlayerProps) 
     const [showControls, setShowControls] = useState(true)
     const controlsTimeoutRef = useRef<any>(null)
 
+    // PLATFORM DETECTION
+    const isYouTube = src.includes('youtube.com') || src.includes('youtu.be')
+    const isVimeo = src.includes('vimeo.com')
+    const isAdobeCCV = src.includes('adobe.io/v1/player/ccv/')
+    const isBehanceGallery = src.includes('behance.net/gallery')
+
+    // Check if it's a direct video file (mp4, webm, etc.)
+    const isVideoFile = src.match(/\.(mp4|webm|ogg|mov)$|^blob:|^data:video/i) || src.startsWith('/uploads/')
+
+    // HELPERS
+    const getYouTubeId = (url: string) => {
+        const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+        return match ? match[1] : null;
+    }
+
+    const getVimeoId = (url: string) => {
+        const match = url.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+        return match ? match[1] : null;
+    }
+
+    const getAdobeId = (url: string) => {
+        const match = url.match(/\/ccv\/([a-zA-Z0-9_-]+)/);
+        return match ? match[1] : null;
+    }
+
     useEffect(() => {
         const video = videoRef.current
-        if (!video) return
+        if (!video || !isVideoFile) return
 
         const updateTime = () => setCurrentTime(video.currentTime)
         const updateDuration = () => setDuration(video.duration)
@@ -39,9 +65,11 @@ export default function CatsoVideoPlayer({ src, title }: CatsoVideoPlayerProps) 
             video.removeEventListener("play", handlePlay)
             video.removeEventListener("pause", handlePause)
         }
-    }, [])
+    }, [isVideoFile])
 
     const togglePlay = () => {
+        if (!isVideoFile) return
+
         if (videoRef.current) {
             if (isPlaying) {
                 videoRef.current.pause()
@@ -77,8 +105,9 @@ export default function CatsoVideoPlayer({ src, title }: CatsoVideoPlayerProps) 
     }
 
     const toggleFullscreen = () => {
-        if (!document.fullscreenElement) {
-            videoRef.current?.parentElement?.requestFullscreen()
+        const container = document.getElementById('catso-player-container');
+        if (!document.fullscreenElement && container) {
+            container.requestFullscreen()
             setIsFullscreen(true)
         } else {
             document.exitFullscreen()
@@ -100,8 +129,96 @@ export default function CatsoVideoPlayer({ src, title }: CatsoVideoPlayerProps) 
         }, 3000)
     }
 
+    // --- RENDER PLATFORMS ---
+
+    // 1. BEHANCE GALLERY (Non-embeddable fallback)
+    if (isBehanceGallery) {
+        return (
+            <div id="catso-player-container" className="relative w-full h-full group bg-[#191919] rounded-lg overflow-hidden flex flex-col items-center justify-center p-8 text-center">
+                <div className="bg-blue-600/10 p-6 rounded-full mb-6 border border-blue-500/20 group-hover:scale-110 transition-transform duration-500">
+                    <svg className="w-12 h-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2 tracking-tight">Interactive Content</h3>
+                <p className="text-white/40 text-sm max-w-md mb-8">This project contains content hosted directly on Behance.</p>
+                <a href={src} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold transition-all transform hover:scale-105">
+                    <span>Watch on Behance</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                </a>
+            </div>
+        )
+    }
+
+    // 2. ADOBE CCV
+    if (isAdobeCCV) {
+        const videoId = getAdobeId(src);
+        return (
+            <div id="catso-player-container" className="relative w-full h-full group bg-black rounded-lg overflow-hidden">
+                {videoId && (
+                    <iframe
+                        src={`https://www-ccv.adobe.io/v1/player/ccv/${videoId}/embed?api_key=${process.env.NEXT_PUBLIC_ADOBE_CCV_API_KEY || 'behance1'}&bgcolor=%23191919`}
+                        title={title}
+                        className="w-full h-full absolute inset-0"
+                        frameBorder="0"
+                        allowFullScreen
+                        allow="encrypted-media; picture-in-picture"
+                    />
+                )}
+            </div>
+        )
+    }
+
+    // 3. YOUTUBE
+    if (isYouTube) {
+        const videoId = getYouTubeId(src);
+        return (
+            <div id="catso-player-container" className="relative w-full h-full group bg-black rounded-lg overflow-hidden">
+                {videoId && (
+                    <iframe
+                        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}`}
+                        title={title}
+                        className="w-full h-full absolute inset-0"
+                        frameBorder="0"
+                        allowFullScreen
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    />
+                )}
+            </div>
+        )
+    }
+
+    // 4. VIMEO
+    if (isVimeo) {
+        const videoId = getVimeoId(src);
+        return (
+            <div id="catso-player-container" className="relative w-full h-full group bg-black rounded-lg overflow-hidden">
+                {videoId && (
+                    <iframe
+                        src={`https://player.vimeo.com/video/${videoId}?autoplay=1&muted=1&loop=1`}
+                        title={title}
+                        className="w-full h-full absolute inset-0"
+                        frameBorder="0"
+                        allowFullScreen
+                        allow="autoplay; fullscreen; picture-in-picture"
+                    />
+                )}
+            </div>
+        )
+    }
+
+    // 5. NATIVE VIDEO FILE (Or final fallback to image)
+    if (!isVideoFile) {
+        return (
+            <div className="w-full h-full flex items-center justify-center bg-neutral-900 rounded-lg relative overflow-hidden">
+                <Image src={src} alt={title} fill className="object-contain opacity-50" />
+            </div>
+        )
+    }
+
     return (
         <div
+            id="catso-player-container"
             className="relative w-full h-full group bg-black rounded-lg overflow-hidden"
             onMouseMove={handleMouseMove}
             onMouseLeave={() => isPlaying && setShowControls(false)}
@@ -115,7 +232,6 @@ export default function CatsoVideoPlayer({ src, title }: CatsoVideoPlayerProps) 
                 muted
                 loop
                 onClick={togglePlay}
-                onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
             />
 
             {/* Big Play Overlay (if not playing) */}
@@ -204,7 +320,7 @@ export default function CatsoVideoPlayer({ src, title }: CatsoVideoPlayerProps) 
                                 <div className="hidden lg:block">
                                     <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
                                         <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
-                                        <span className="text-[9px] uppercase tracking-[0.2em] text-white/60 font-black">Catso High-Bitrate Player</span>
+                                        <span className="text-[9px] uppercase tracking-[0.2em] text-white/60 font-black">Catso Player</span>
                                     </div>
                                 </div>
 

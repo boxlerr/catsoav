@@ -24,6 +24,7 @@ model Project {
   description String?
   category    String
   imageUrl    String?
+  images      String?  // JSON string of array of image URLs
   videoUrl    String?
   clientName  String?
   featured    Boolean  @default(false)
