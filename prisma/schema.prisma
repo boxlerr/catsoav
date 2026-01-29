@@ -26,6 +26,7 @@ model Project {
   imageUrl    String?
   images      String?  // JSON string of array of image URLs
   videoUrl    String?
+  extraVideos String?  // JSON string of array of additional video URLs
   clientName  String?
   featured    Boolean  @default(false)
   published   Boolean  @default(true)

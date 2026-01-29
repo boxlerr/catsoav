@@ -115,8 +115,11 @@ export async function getBehanceProjects(profileUrl: string) {
 export async function getBehanceProjectDetails(projectUrl: string) {
     const result = {
         videoUrl: null as string | null,
+        extraVideos: [] as string[],
         images: [] as string[]
     };
+
+    const foundVideos: string[] = [];
 
     try {
         console.log(`[BehanceSync] Analizando detalles de: ${projectUrl}`);
@@ -137,17 +140,32 @@ export async function getBehanceProjectDetails(projectUrl: string) {
                         for (const m of data.project.modules) {
                             // Video / Embed
                             if (m.type === 'video' || m.type === 'embed') {
-                                if (m.src && m.src.includes('youtube')) result.videoUrl = m.src;
-                                else if (m.src && m.src.includes('vimeo')) result.videoUrl = m.src;
+                                let vUrl = null;
+                                if (m.src && m.src.includes('youtube')) vUrl = m.src;
+                                else if (m.src && m.src.includes('vimeo')) vUrl = m.src;
                                 else if (m.embed) {
+                                    // Handle Adobe CCV
                                     if (m.embed.includes('adobe.io')) {
                                         const adobeMatch = m.embed.match(/adobe\.io\/v1\/player\/ccv\/([a-zA-Z0-9_-]+)/);
                                         if (adobeMatch) {
                                             const apiKey = process.env.BEHANCE_API_KEY || 'behance1';
-                                            result.videoUrl = `https://www-ccv.adobe.io/v1/player/ccv/${adobeMatch[1]}/embed?api_key=${apiKey}&bgcolor=%23191919`;
+                                            vUrl = `https://www-ccv.adobe.io/v1/player/ccv/${adobeMatch[1]}/embed?api_key=${apiKey}&bgcolor=%23191919`;
                                         }
                                     }
+                                    // Handle YouTube Embeds
+                                    const ytMatch = m.embed.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/) ||
+                                        m.embed.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+                                    if (ytMatch) {
+                                        vUrl = `https://www.youtube.com/watch?v=${ytMatch[1]}`;
+                                    }
+                                    // Handle Vimeo Embeds
+                                    const vimeoMatch = m.embed.match(/player\.vimeo\.com\/video\/(\d+)/);
+                                    if (vimeoMatch) {
+                                        vUrl = `https://vimeo.com/${vimeoMatch[1]}`;
+                                    }
                                 }
+
+                                if (vUrl) foundVideos.push(vUrl);
                             }
                             // Images
                             if (m.type === 'image' && m.src) {
@@ -156,25 +174,51 @@ export async function getBehanceProjectDetails(projectUrl: string) {
                             // Media Collection (Grid)
                             if (m.type === 'media_collection' && m.components) {
                                 for (const c of m.components) {
+                                    // Check for images
                                     if (c.type === 'image' && c.src) {
                                         result.images.push(c.src);
+                                    }
+                                    // Check for videos in grid
+                                    if (c.type === 'video' || c.type === 'embed') {
+                                        let vUrl = null;
+                                        if (c.src && c.src.includes('youtube')) vUrl = c.src;
+                                        else if (c.src && c.src.includes('vimeo')) vUrl = c.src;
+                                        else if (c.embed) {
+                                            // Adobe CCV in grid
+                                            if (c.embed.includes('adobe.io')) {
+                                                const adobeMatch = c.embed.match(/adobe\.io\/v1\/player\/ccv\/([a-zA-Z0-9_-]+)/);
+                                                if (adobeMatch) {
+                                                    const apiKey = process.env.BEHANCE_API_KEY || 'behance1';
+                                                    vUrl = `https://www-ccv.adobe.io/v1/player/ccv/${adobeMatch[1]}/embed?api_key=${apiKey}&bgcolor=%23191919`;
+                                                }
+                                            }
+                                            // YouTube in grid
+                                            const ytMatch = c.embed.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/) ||
+                                                c.embed.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+                                            if (ytMatch) {
+                                                vUrl = `https://www.youtube.com/watch?v=${ytMatch[1]}`;
+                                            }
+                                            // Vimeo in grid
+                                            const vimeoMatch = c.embed.match(/player\.vimeo\.com\/video\/(\d+)/);
+                                            if (vimeoMatch) {
+                                                vUrl = `https://vimeo.com/${vimeoMatch[1]}`;
+                                            }
+                                        }
+                                        if (vUrl) foundVideos.push(vUrl);
                                     }
                                 }
                             }
 
                             // CCV Hidden in JSON
                             const mStr = JSON.stringify(m);
-                            if (!result.videoUrl && mStr.includes('adobe.io/v1/player/ccv')) {
+                            if (mStr.includes('adobe.io/v1/player/ccv')) {
                                 const adobeMatch = mStr.match(/adobe\.io\/v1\/player\/ccv\/([a-zA-Z0-9_-]+)/);
                                 if (adobeMatch) {
                                     const apiKey = process.env.BEHANCE_API_KEY || 'behance1';
-                                    result.videoUrl = `https://www-ccv.adobe.io/v1/player/ccv/${adobeMatch[1]}/embed?api_key=${apiKey}&bgcolor=%23191919`;
+                                    const ccvUrl = `https://www-ccv.adobe.io/v1/player/ccv/${adobeMatch[1]}/embed?api_key=${apiKey}&bgcolor=%23191919`;
+                                    if (!foundVideos.includes(ccvUrl)) foundVideos.push(ccvUrl);
                                 }
                             }
-                        }
-                        // If we found data via API, return early (preferred)
-                        if (result.videoUrl || result.images.length > 0) {
-                            return result;
                         }
                     }
                 }
@@ -183,49 +227,70 @@ export async function getBehanceProjectDetails(projectUrl: string) {
             }
         }
 
-        // 2. Fallback: Scraping HTML
-        const response = await fetch(projectUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-                // Add robust headers here if needed, reused from getBehanceProjects
-            },
-            cache: 'no-store'
-        });
-        const html = await response.text();
+        // 2. Fallback: Scraping HTML (Only if API failed effectively or we want to double check?)
+        // Actually, let's always check HTML if we found nothing, OR if we want to be thorough.
+        // For simplicity, if we found videos via API, we trust it.
+        if (foundVideos.length === 0 || result.images.length === 0) { // Added condition for images
+            const response = await fetch(projectUrl, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+                },
+                cache: 'no-store'
+            });
+            const html = await response.text();
 
-        // Extract Video (Same logic as before)
-        if (!result.videoUrl) {
-            const ytMatch = html.match(/youtube\.com(?:\\\/|\/)embed(?:\\\/|\/)([a-zA-Z0-9_-]{11})/) ||
-                html.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/)
-            if (ytMatch && !ytMatch[1].includes('{')) result.videoUrl = `https://www.youtube.com/watch?v=${ytMatch[1]}`;
-
-            const ytLinkMatch = html.match(/youtu\.be(?:\\\/|\/)([a-zA-Z0-9_-]{11})/) ||
-                html.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/)
-            if (ytLinkMatch && !ytLinkMatch[1].includes('{')) result.videoUrl = `https://www.youtube.com/watch?v=${ytLinkMatch[1]}`;
-
-            const vimeoMatch = html.match(/vimeo\.com(?:\\\/|\/)video(?:\\\/|\/)(\d{5,15})/) ||
-                html.match(/vimeo\.com\/video\/(\d{5,15})/)
-            if (vimeoMatch) result.videoUrl = `https://vimeo.com/${vimeoMatch[1]}`;
-
-            const adobeCCVMatch = html.match(/adobe\.io\/v1\/player\/ccv\/([a-zA-Z0-9_-]+)/);
-            if (adobeCCVMatch) {
-                const apiKey = process.env.BEHANCE_API_KEY || 'behance1';
-                result.videoUrl = `https://www-ccv.adobe.io/v1/player/ccv/${adobeCCVMatch[1]}/embed?api_key=${apiKey}&bgcolor=%23191919`;
+            // Extract Video (Accumulate)
+            // Removed if (!result.videoUrl) condition
+            const ytMatch = html.matchAll(/youtube\.com(?:\\\/|\/)embed(?:\\\/|\/)([a-zA-Z0-9_-]{11})/g);
+            for (const m of ytMatch) {
+                if (m[1] && !m[1].includes('{')) foundVideos.push(`https://www.youtube.com/watch?v=${m[1]}`);
             }
 
-            const directVideoMatch = html.match(/(https?:\/\/[^"'\s]+\.behance\.net\/[^"'\s]+\.(mp4|webm|mov))/i);
-            if (directVideoMatch) result.videoUrl = directVideoMatch[1];
+            const ytLinkMatch = html.matchAll(/youtu\.be(?:\\\/|\/)([a-zA-Z0-9_-]{11})/g);
+            for (const m of ytLinkMatch) {
+                if (m[1] && !m[1].includes('{')) foundVideos.push(`https://www.youtube.com/watch?v=${m[1]}`);
+            }
+
+            const vimeoMatch = html.matchAll(/vimeo\.com(?:\\\/|\/)video(?:\\\/|\/)(\d{5,15})/g);
+            for (const m of vimeoMatch) {
+                if (m[1]) foundVideos.push(`https://vimeo.com/${m[1]}`);
+            }
+
+            const adobeCCVMatch = html.matchAll(/adobe\.io\/v1\/player\/ccv\/([a-zA-Z0-9_-]+)/g);
+            for (const m of adobeCCVMatch) {
+                if (m[1]) {
+                    const apiKey = process.env.BEHANCE_API_KEY || 'behance1';
+                    foundVideos.push(`https://www-ccv.adobe.io/v1/player/ccv/${m[1]}/embed?api_key=${apiKey}&bgcolor=%23191919`);
+                }
+            }
+
+            const directVideoMatch = html.matchAll(/(https?:\/\/[^"'\s]+\.behance\.net\/[^"'\s]+\.(mp4|webm|mov))/gi);
+            for (const m of directVideoMatch) foundVideos.push(m[1]);
+
+            // Extract Images (New HTML Scraping)
+            if (result.images.length === 0) {
+                // Find all img tags inside project modules or generally large images
+                // Look for typical Behance image CDN URLs: mir-s3-cdn-cf.behance.net/project_modules/...
+                const imgRegex = /https?:\/\/[^"']+\.behance\.net\/project_modules\/(?:fs|max_1200|1400|disp|source)\/[^"']+\.(?:jpg|png|webp|jpeg)/gi;
+                const foundImages = html.match(imgRegex);
+                if (foundImages) {
+                    // Deduplicate and filter
+                    const uniqueImages = Array.from(new Set(foundImages));
+                    result.images = uniqueImages;
+                }
+            }
         }
 
-        // Extract Images (New HTML Scraping)
-        // Find all img tags inside project modules or generally large images
-        // Look for typical Behance image CDN URLs: mir-s3-cdn-cf.behance.net/project_modules/...
-        const imgRegex = /https?:\/\/[^"']+\.behance\.net\/project_modules\/(?:fs|max_1200|1400|disp|source)\/[^"']+\.(?:jpg|png|webp|jpeg)/gi;
-        const foundImages = html.match(imgRegex);
-        if (foundImages) {
-            // Deduplicate and filter
-            const uniqueImages = Array.from(new Set(foundImages));
-            result.images = uniqueImages;
+        // Assign found videos
+        if (foundVideos.length > 0) {
+            // Deduplicate
+            const uniqueVideos = Array.from(new Set(foundVideos));
+            console.log(`[BehanceSync] Found ${uniqueVideos.length} video(s) for project: ${projectUrl}`);
+            console.log(`[BehanceSync] Videos: ${uniqueVideos.join(', ')}`);
+            result.videoUrl = uniqueVideos[0];
+            result.extraVideos = uniqueVideos.slice(1);
+        } else {
+            console.log(`[BehanceSync] No videos found for project: ${projectUrl}`);
         }
 
         return result;

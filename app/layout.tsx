@@ -100,7 +100,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`${faustina.variable} ${chivo.variable}`}>
-      <body className="antialiased font-sans">
+      <body className="antialiased font-sans" suppressHydrationWarning={true}>
         {/* Schema WebSite */}
         <script
           type="application/ld+json"

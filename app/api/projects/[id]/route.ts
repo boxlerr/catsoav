@@ -7,7 +7,7 @@ import { join } from "path"
 
 export async function PATCH(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await getServerSession(authOptions)
 
@@ -16,9 +16,10 @@ export async function PATCH(
     }
 
     try {
+        const { id } = await params
         const json = await request.json()
         const project = await prisma.project.update({
-            where: { id: params.id },
+            where: { id },
             data: json
         })
         return NextResponse.json(project)
@@ -30,7 +31,7 @@ export async function PATCH(
 
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await getServerSession(authOptions)
 
@@ -39,7 +40,7 @@ export async function DELETE(
     }
 
     try {
-        const id = params.id
+        const { id } = await params
 
         // Find project to check if it has a local file to delete
         const project = await prisma.project.findUnique({

@@ -45,6 +45,7 @@ export async function POST() {
 
             const details = await getBehanceProjectDetails(bp.url);
             let videoUrl = details.videoUrl;
+            const extraVideos = details.extraVideos;
             const images = details.images;
 
             // FALLBACK: Si no se encuentra video (null), usar el link del proyecto
@@ -55,18 +56,38 @@ export async function POST() {
 
             if (!existing) {
                 console.log(`[SyncRoute] Agregando nuevo proyecto: ${bp.title}`);
-                const finalCategory = videoUrl
-                    ? 'videoclips' // Default logic
-                    : (bp.title.toLowerCase().includes('video') ? 'videoclips' : 'commercial');
+                // Determine category based on keywords
+                const titleLower = bp.title.toLowerCase();
+                let finalCategory = 'commercial'; // Default
+
+                if (titleLower.includes('music video') ||
+                    titleLower.includes('official video') ||
+                    titleLower.includes('videoclip') ||
+                    titleLower.includes(' mv ')) {
+                    finalCategory = 'videoclips';
+                } else if (titleLower.includes('commercial') ||
+                    titleLower.includes('campaign') ||
+                    titleLower.includes('spot') ||
+                    titleLower.includes('fashion') ||
+                    titleLower.includes('brand')) {
+                    finalCategory = 'commercial';
+                } else if (videoUrl) {
+                    // Fallback: If it has video but no clear keywords, lean towards commercial for high-end work, 
+                    // or videoclips if it looks like an artist name. 
+                    // Let's default to commercial as it's safer for a "Production Company".
+                    finalCategory = 'commercial';
+                }
 
                 await prisma.project.create({
                     data: {
                         title: bp.title,
-                        description: "Sincronizado desde Behance",
+                        description: "",
                         category: finalCategory,
                         imageUrl: bp.cover || '/placeholder-project.jpg',
                         images: JSON.stringify(images), // Store images as JSON
                         videoUrl: videoUrl,
+                        // @ts-ignore
+                        extraVideos: JSON.stringify(extraVideos),
                         authorId: user.id,
                         published: true,
                         order: 0
@@ -80,7 +101,9 @@ export async function POST() {
                     data: {
                         imageUrl: bp.cover, // Refresh cover
                         images: JSON.stringify(images), // Update images
-                        videoUrl: videoUrl  // Refresh video/fallback
+                        videoUrl: videoUrl,  // Refresh video/fallback
+                        // @ts-ignore
+                        extraVideos: JSON.stringify(extraVideos) // Update videos
                     }
                 });
                 syncedCount++; // Count updates as sync activity

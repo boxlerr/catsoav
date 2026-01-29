@@ -34,8 +34,12 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
         // 1. Check if it's Adobe CCV (Behance Player)
         if (videoUrl.includes('adobe.io/v1/player/ccv/')) {
             setIsVideo(false)
-            setIsAdobeCCV(true)
-            setThumbnailUrl(null)
+            if (!imageUrl) {
+                setIsAdobeCCV(true)
+                setThumbnailUrl(null)
+            } else {
+                setIsAdobeCCV(false)
+            }
             return
         }
 
@@ -112,7 +116,8 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
                 <video
                     ref={videoRef}
                     src={videoUrl}
-                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-1000 ${isLoaded ? 'opacity-60 group-hover:opacity-100' : 'opacity-0'}`}
+                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    style={{ objectFit: 'cover' }}
                     muted
                     loop
                     playsInline
@@ -180,7 +185,7 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
                         src={thumbnailUrl}
                         alt={title}
                         fill
-                        className="object-cover opacity-50 group-hover:opacity-30 transition-opacity duration-500"
+                        className="object-cover transition-opacity duration-500"
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                 )}

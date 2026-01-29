@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth"
 
 export async function PATCH(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await getServerSession(authOptions)
 
@@ -14,9 +14,10 @@ export async function PATCH(
     }
 
     try {
+        const { id } = await params
         const json = await request.json()
         const category = await prisma.category.update({
-            where: { id: params.id },
+            where: { id },
             data: json
         })
         return NextResponse.json(category)
@@ -27,7 +28,7 @@ export async function PATCH(
 
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await getServerSession(authOptions)
 
@@ -36,8 +37,9 @@ export async function DELETE(
     }
 
     try {
+        const { id } = await params
         await prisma.category.delete({
-            where: { id: params.id }
+            where: { id }
         })
         return NextResponse.json({ success: true })
     } catch (error) {
