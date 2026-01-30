@@ -90,7 +90,7 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
 
         // If nothing matches, it's not a video we can preview
         setIsVideo(false)
-    }, [videoUrl, imageUrl])
+    }, [videoUrl, imageUrl, isInView])
 
     const handleMouseEnter = () => {
         if (videoRef.current) {

@@ -77,8 +77,11 @@ export const metadata: Metadata = {
   },
   category: "business",
   icons: {
-    icon: "/catsoav.png",
-    shortcut: "/catsoav.png",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/catsoav.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
     apple: "/catsoav.png",
   },
   alternates: {

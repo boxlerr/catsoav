@@ -4,7 +4,7 @@ import Script from "next/script"
 import { useEffect, useState, memo, useMemo } from "react"
 import dynamic from "next/dynamic"
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent } from "framer-motion"
-import { SessionProvider, useSession } from "next-auth/react"
+import { SessionProvider, useSession, signOut } from "next-auth/react"
 import Link from "next/link"
 import Image from "next/image"
 import QuickProjectButton from "@/components/QuickProjectButton"
@@ -385,7 +385,23 @@ function HomeContent() {
                   Equipo
                 </a> */}
                 {session && (
-                  <span className="text-white/40 text-xs px-2 cursor-default font-medium uppercase tracking-wider">Hola, {session.user?.name || 'Usuario'}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-white/40 text-[10px] uppercase tracking-wider">Hola, {session.user?.name?.split(' ')[0] || 'Admin'}</span>
+                    {session.user.role === "admin" && (
+                      <Link
+                        href="/admin"
+                        className="text-white/80 hover:text-white text-[9px] uppercase tracking-widest font-bold border-r border-white/20 pr-3 mr-1 transition-colors"
+                      >
+                        Panel
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => signOut({ callbackUrl: "/" })}
+                      className="bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white text-[9px] uppercase tracking-widest font-bold py-1.5 px-3 rounded border border-red-600/20 transition-all"
+                    >
+                      Salir
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -499,6 +515,16 @@ function HomeContent() {
                     <span>Equipo</span>
                     <span className="h-0.5 w-0 bg-red-600 transition-all duration-300 group-hover:w-8" />
                   </a> */}
+                  {session?.user?.role === "admin" && (
+                    <a
+                      href="/admin"
+                      className="text-2xl font-serif font-bold text-red-500 hover:text-red-400 transition-colors flex items-center justify-between group"
+                    >
+                      <span>Panel Admin</span>
+                      <span className="h-0.5 w-8 bg-red-600" />
+                    </a>
+                  )}
+
                   <a
                     href="#"
                     onClick={(e) => { scrollToSection(e, "contact"); setIsMobileMenuOpen(false); }}
@@ -507,6 +533,15 @@ function HomeContent() {
                     <span>Contacto</span>
                     <span className="h-0.5 w-0 bg-red-600 transition-all duration-300 group-hover:w-8" />
                   </a>
+
+                  {session && (
+                    <button
+                      onClick={() => signOut({ callbackUrl: "/" })}
+                      className="w-full mt-6 bg-red-600/10 border border-red-600/30 text-red-500 py-4 font-bold uppercase tracking-widest text-sm hover:bg-red-600 hover:text-white transition-all"
+                    >
+                      Cerrar Sesión
+                    </button>
+                  )}
                 </nav>
               </div>
 
@@ -542,7 +577,7 @@ function HomeContent() {
                 alt="CATSO AV"
                 width={1600}
                 height={800}
-                className="h-auto w-[300px] md:w-[650px] lg:w-[950px] max-w-full drop-shadow-[0_0_50px_rgba(255,255,255,0.1)] mb-0"
+                className={`h-auto w-[300px] md:w-[650px] lg:w-[950px] max-w-full drop-shadow-[0_0_50px_rgba(255,255,255,0.1)] mb-0 ${isLoaded ? "hero-logo-entrance" : "opacity-0"}`}
                 priority
               />
               <p className="absolute bottom-[22%] md:bottom-[28%] lg:bottom-[32%] left-1/2 -translate-x-1/2 font-sans text-white/70 text-[10px] md:text-sm lg:text-lg font-extralight tracking-[0.5em] uppercase text-center leading-none w-full">

@@ -37,7 +37,6 @@ const services = [
 ]
 
 export default function ServicesList() {
-    const [hoveredService, setHoveredService] = useState<number | null>(null)
 
     return (
         <section id="services" className="py-20 md:py-32 bg-black relative z-10">
@@ -58,8 +57,8 @@ export default function ServicesList() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true, margin: "-50px" }}
                             transition={{ duration: 0.5 }}
-                            onMouseEnter={() => setHoveredService(service.id)}
-                            onMouseLeave={() => setHoveredService(null)}
+                            onMouseEnter={() => { }}
+                            onMouseLeave={() => { }}
                             className="group relative border-b border-white/20 py-12 cursor-pointer transition-colors hover:bg-neutral-900/50"
                         >
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10 px-4">

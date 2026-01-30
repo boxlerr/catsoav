@@ -4,7 +4,14 @@ export async function getBehanceProjects(profileUrl: string) {
     try {
         console.log(`[BehanceSync] Iniciando fetch de proyectos para: ${profileUrl}`);
 
-        const projects: any[] = [];
+        const projects: {
+            behanceId: string;
+            title: string;
+            url: string;
+            cover: string | null;
+            category: string;
+            publishedOn: number;
+        }[] = [];
         const seenIds = new Set<string>();
 
         // 1. ESTRATEGIA 1: Behance V2 API (Mucho más fiable)
@@ -93,7 +100,7 @@ export async function getBehanceProjects(profileUrl: string) {
 
         // Limpiar resultados (Misma lógica de limpieza anterior)
         return projects.filter(p => p.title && p.title.length > 3).map(p => {
-            let cleanTitle = p.title.replace(/\\u([0-9a-fA-F]{4})/g, (_: string, m: string) =>
+            const cleanTitle = p.title.replace(/\\u([0-9a-fA-F]{4})/g, (_: string, m: string) =>
                 String.fromCharCode(parseInt(m, 16)));
 
             let cleanCover = p.cover;
@@ -121,6 +128,7 @@ export async function getBehanceProjectDetails(projectUrl: string) {
 
     const foundVideos: string[] = [];
 
+    const apiKey = process.env.BEHANCE_API_KEY || 'behance1';
     try {
         console.log(`[BehanceSync] Analizando detalles de: ${projectUrl}`);
 
@@ -128,7 +136,6 @@ export async function getBehanceProjectDetails(projectUrl: string) {
         const idMatch = projectUrl.match(/gallery\/(\d+)/);
         if (idMatch) {
             const projectId = idMatch[1];
-            const apiKey = process.env.BEHANCE_API_KEY || 'behance1';
             const apiUrl = `https://www.behance.net/v2/projects/${projectId}?api_key=${apiKey}`;
 
             try {
@@ -137,7 +144,7 @@ export async function getBehanceProjectDetails(projectUrl: string) {
                 if (apiRes.ok) {
                     const data = await apiRes.json();
                     if (data.project && data.project.modules) {
-                        for (const m of data.project.modules) {
+                        for (const m of (data.project.modules as any[])) {
                             // Video / Embed
                             if (m.type === 'video' || m.type === 'embed') {
                                 let vUrl = null;
@@ -148,7 +155,6 @@ export async function getBehanceProjectDetails(projectUrl: string) {
                                     if (m.embed.includes('adobe.io')) {
                                         const adobeMatch = m.embed.match(/adobe\.io\/v1\/player\/ccv\/([a-zA-Z0-9_-]+)/);
                                         if (adobeMatch) {
-                                            const apiKey = process.env.BEHANCE_API_KEY || 'behance1';
                                             vUrl = `https://www-ccv.adobe.io/v1/player/ccv/${adobeMatch[1]}/embed?api_key=${apiKey}&bgcolor=%23191919`;
                                         }
                                     }
@@ -172,8 +178,8 @@ export async function getBehanceProjectDetails(projectUrl: string) {
                                 result.images.push(m.src);
                             }
                             // Media Collection (Grid)
-                            if (m.type === 'media_collection' && m.components) {
-                                for (const c of m.components) {
+                            if (m.type === 'media_collection' && (m as any).components) {
+                                for (const c of ((m as any).components as any[])) {
                                     // Check for images
                                     if (c.type === 'image' && c.src) {
                                         result.images.push(c.src);
@@ -188,7 +194,6 @@ export async function getBehanceProjectDetails(projectUrl: string) {
                                             if (c.embed.includes('adobe.io')) {
                                                 const adobeMatch = c.embed.match(/adobe\.io\/v1\/player\/ccv\/([a-zA-Z0-9_-]+)/);
                                                 if (adobeMatch) {
-                                                    const apiKey = process.env.BEHANCE_API_KEY || 'behance1';
                                                     vUrl = `https://www-ccv.adobe.io/v1/player/ccv/${adobeMatch[1]}/embed?api_key=${apiKey}&bgcolor=%23191919`;
                                                 }
                                             }
@@ -214,7 +219,6 @@ export async function getBehanceProjectDetails(projectUrl: string) {
                             if (mStr.includes('adobe.io/v1/player/ccv')) {
                                 const adobeMatch = mStr.match(/adobe\.io\/v1\/player\/ccv\/([a-zA-Z0-9_-]+)/);
                                 if (adobeMatch) {
-                                    const apiKey = process.env.BEHANCE_API_KEY || 'behance1';
                                     const ccvUrl = `https://www-ccv.adobe.io/v1/player/ccv/${adobeMatch[1]}/embed?api_key=${apiKey}&bgcolor=%23191919`;
                                     if (!foundVideos.includes(ccvUrl)) foundVideos.push(ccvUrl);
                                 }
@@ -259,7 +263,6 @@ export async function getBehanceProjectDetails(projectUrl: string) {
             const adobeCCVMatch = html.matchAll(/adobe\.io\/v1\/player\/ccv\/([a-zA-Z0-9_-]+)/g);
             for (const m of adobeCCVMatch) {
                 if (m[1]) {
-                    const apiKey = process.env.BEHANCE_API_KEY || 'behance1';
                     foundVideos.push(`https://www-ccv.adobe.io/v1/player/ccv/${m[1]}/embed?api_key=${apiKey}&bgcolor=%23191919`);
                 }
             }

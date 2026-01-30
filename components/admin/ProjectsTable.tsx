@@ -120,7 +120,12 @@ export default function ProjectsTable({ projects }: ProjectsTableProps) {
                                     <td className="px-6 py-4 text-white/60 capitalize">{project.category}</td>
                                     <td className="px-6 py-4 text-white/60">{new Date(project.createdAt).toLocaleDateString()}</td>
                                     <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                                        <a href={`/admin/projects/${project.id}/edit`} className="text-white/60 hover:text-white mr-4 transition-colors">Editar</a>
+                                        <button
+                                            onClick={() => window.dispatchEvent(new CustomEvent('editProject', { detail: project }))}
+                                            className="text-white/60 hover:text-white mr-4 transition-colors"
+                                        >
+                                            Editar
+                                        </button>
                                         <DeleteProjectButton projectId={project.id} projectTitle={project.title} />
                                     </td>
                                 </tr>

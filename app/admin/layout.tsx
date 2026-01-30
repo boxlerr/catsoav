@@ -1,3 +1,8 @@
+"use client"
+
+import { signOut } from "next-auth/react"
+import QuickProjectButton from "@/components/QuickProjectButton"
+
 export default function AdminLayout({
     children,
 }: {
@@ -21,7 +26,10 @@ export default function AdminLayout({
                         </div>
                         <div>
                             <a href="/" className="text-sm text-white/60 hover:text-white mr-4">Ver Sitio</a>
-                            <button className="bg-red-600/10 hover:bg-red-600/20 text-red-500 text-xs uppercase tracking-wider font-bold py-2 px-4 rounded border border-red-600/20 transition-all">
+                            <button
+                                onClick={() => signOut({ callbackUrl: "/" })}
+                                className="bg-red-600/10 hover:bg-red-600/20 text-red-500 text-xs uppercase tracking-wider font-bold py-2 px-4 rounded border border-red-600/20 transition-all"
+                            >
                                 Cerrar Sesión
                             </button>
                         </div>
@@ -31,6 +39,7 @@ export default function AdminLayout({
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {children}
             </main>
+            <QuickProjectButton />
         </div>
     )
 }

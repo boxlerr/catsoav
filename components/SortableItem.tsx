@@ -27,7 +27,7 @@ export function SortableItem({ id, children, disabled }: SortableItemProps) {
         transition,
         opacity: isDragging ? 0.5 : 1,
         zIndex: isDragging ? 1000 : 1,
-        position: 'relative' as 'relative',
+        position: 'relative' as const,
         touchAction: 'manipulation' // Allow scrolling while supporting drag with delay sensor
     }
 
@@ -37,7 +37,7 @@ export function SortableItem({ id, children, disabled }: SortableItemProps) {
             style={style}
             {...attributes}
             {...listeners}
-            onClick={(e) => {
+            onClick={() => {
                 // If the element was being dragged, we might want to prevent clicks.
                 // However, dnd-kit usually handles this. 
                 // We add stopPropagation just in case for nested links.

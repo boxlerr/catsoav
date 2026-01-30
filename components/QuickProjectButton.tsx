@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
 
 export default function QuickProjectButton() {
     const { data: session } = useSession()
@@ -10,7 +11,7 @@ export default function QuickProjectButton() {
     const [isOpen, setIsOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [view, setView] = useState<'project' | 'categories'>('project')
-    const [categories, setCategories] = useState<any[]>([])
+    const [categories, setCategories] = useState<{ id: string, name: string, title: string, description?: string }[]>([])
     const [activeTab, setActiveTab] = useState({ image: 'url', video: 'url' })
     const [formData, setFormData] = useState({
         title: "",
@@ -30,8 +31,25 @@ export default function QuickProjectButton() {
     // Project Editor state
     const [editingProjectId, setEditingProjectId] = useState<string | null>(null)
 
+    const fetchCategories = async () => {
+        try {
+            const res = await fetch('/api/categories', { cache: 'no-store' })
+            if (res.ok) {
+                const data = await res.json()
+                setCategories(data)
+                if (data.length > 0 && !formData.category) {
+                    setFormData(prev => ({ ...prev, category: data[0].name }))
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching categories:", error)
+        }
+    }
+
     useEffect(() => {
-        if (isOpen) fetchCategories()
+        if (isOpen) {
+            fetchCategories()
+        }
     }, [isOpen])
 
     useEffect(() => {
@@ -50,24 +68,29 @@ export default function QuickProjectButton() {
             setIsOpen(true)
             setView('project')
         }
-        window.addEventListener('editProject' as any, handleEdit)
-        return () => window.removeEventListener('editProject' as any, handleEdit)
-    }, [])
 
-    const fetchCategories = async () => {
-        try {
-            const res = await fetch('/api/categories', { cache: 'no-store' })
-            if (res.ok) {
-                const data = await res.json()
-                setCategories(data)
-                if (data.length > 0 && !formData.category) {
-                    setFormData(prev => ({ ...prev, category: data[0].name }))
-                }
-            }
-        } catch (error) {
-            console.error("Error fetching categories:", error)
+        const handleNew = () => {
+            setEditingProjectId(null)
+            setFormData({
+                title: "",
+                category: categories.length > 0 ? categories[0].name : "",
+                description: "",
+                imageUrl: "",
+                videoUrl: "",
+                clientName: "",
+                published: true
+            })
+            setIsOpen(true)
+            setView('project')
         }
-    }
+
+        window.addEventListener('editProject' as any, handleEdit as any)
+        window.addEventListener('newProject' as any, handleNew as any)
+        return () => {
+            window.removeEventListener('editProject' as any, handleEdit as any)
+            window.removeEventListener('newProject' as any, handleNew as any)
+        }
+    }, [categories])
 
     if (session?.user?.role !== "admin") return null
 
@@ -177,24 +200,35 @@ export default function QuickProjectButton() {
         }
     }
 
+    // Hide floating button on admin pages
+    const isPageAdmin = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
+
     return (
         <>
-            <button
-                onClick={() => setIsOpen(true)}
-                className="fixed bottom-8 right-8 z-50 bg-white hover:bg-red-600 text-black hover:text-white px-8 py-5 rounded-full shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-500 hover:scale-105 flex items-center gap-4 group border border-white/10"
-            >
-                <div className="bg-black/5 p-1 rounded-full group-hover:rotate-180 transition-transform duration-700">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                </div>
-                <span className="font-serif font-black tracking-[0.2em] uppercase text-xs">Terminal Admin</span>
-            </button>
+            {!isPageAdmin && (
+                <button
+                    onClick={() => setIsOpen(true)}
+                    className="fixed bottom-8 right-8 z-50 bg-white hover:bg-red-600 text-black hover:text-white px-8 py-5 rounded-full shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-500 hover:scale-105 flex items-center gap-4 group border border-white/10"
+                >
+                    <div className="bg-black/5 p-1 rounded-full group-hover:rotate-180 transition-transform duration-700">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                    <span className="font-serif font-black tracking-[0.2em] uppercase text-xs">Terminal Admin</span>
+                </button>
+            )}
 
             {isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-[20px] p-4 animate-in fade-in zoom-in-95 duration-500">
-                    <div className="bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] w-full max-w-5xl shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col md:flex-row h-[85vh] border-t-white/10">
+                <div
+                    onClick={() => setIsOpen(false)}
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-[20px] p-4 animate-in fade-in zoom-in-95 duration-500 cursor-pointer"
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] w-full max-w-5xl shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col md:flex-row h-[85vh] border-t-white/10 cursor-default"
+                    >
                         {/* Sidebar */}
                         <div className="w-full md:w-64 bg-black/40 border-r border-white/5 p-8 flex flex-col justify-between">
                             <div>

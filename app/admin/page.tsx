@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import SyncBehanceButton from "@/components/admin/SyncBehanceButton"
+import NewProjectButton from "@/components/admin/NewProjectButton"
 import ProjectsTable from "@/components/admin/ProjectsTable"
 
 async function getAdminData() {
@@ -82,9 +83,7 @@ export default async function AdminDashboard() {
                 <h2 className="text-2xl font-bold">Proyectos Recientes</h2>
                 <div className="flex items-center gap-4">
                     <SyncBehanceButton />
-                    <a href="/admin/projects/new" className="bg-white text-black hover:bg-white/90 px-4 py-2 rounded font-medium text-sm transition-colors">
-                        + Nuevo Proyecto
-                    </a>
+                    <NewProjectButton />
                 </div>
             </div>
 

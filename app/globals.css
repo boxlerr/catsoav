@@ -362,3 +362,35 @@ html {
 .stagger-6 {
   animation-delay: 0.3s;
 }
+
+/* Custom transitions */
+.transition-slow {
+  transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero-logo-entrance {
+  animation: hero-entrance 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes hero-entrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+    filter: blur(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 const steps = [
     {
@@ -48,16 +48,25 @@ const steps = [
 ]
 
 export default function Workflow() {
-    const [activeStep, setActiveStep] = useState<number | null>(null)
+    const [hoveredCard, setHoveredCard] = useState<number | null>(null)
+    const [isMounted, setIsMounted] = useState(false)
+
+    useEffect(() => {
+        setIsMounted(true)
+    }, [])
 
     return (
         <section id="process" className="py-32 bg-neutral-950 relative overflow-hidden">
-            {/* Background Elements */}
-            <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-red-900/5 to-transparent pointer-events-none" />
+            {/* Subtle ambient glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle,rgba(153,27,27,0.05)_0%,transparent_70%)] pointer-events-none" />
 
             <div className="max-w-7xl mx-auto px-6 relative z-10">
                 <div className="mb-24 flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
-                    <div>
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                    >
                         <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">
                             The Process
                             <span className="text-red-600">.</span>
@@ -65,90 +74,87 @@ export default function Workflow() {
                         <p className="text-white/40 max-w-sm uppercase tracking-wider text-xs">
                             De la idea al master final. Sin atajos.
                         </p>
-                    </div>
+                    </motion.div>
 
-                    <div className="hidden md:block text-white/20 font-mono text-xs">
-            // WORFLOW_V0.1
+                    <div className="hidden md:block text-white/20 font-mono text-[10px] tracking-[0.3em] uppercase">
+                        {"// WORKFLOW_v9.0_STOCKED"}
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-0 border-t border-white/10 group/container">
-                    {steps.map((step, index) => (
-                        <motion.div
-                            key={step.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{
-                                duration: 0.8,
-                                delay: index * 0.2,
-                                ease: [0.215, 0.61, 0.355, 1]
-                            }}
-                            onMouseEnter={() => setActiveStep(index)}
-                            onMouseLeave={() => setActiveStep(null)}
-                            className={`
-                                group relative border-l border-white/10 p-8 md:p-10 min-h-[400px] md:min-h-[450px] flex flex-col justify-between
-                                transition-all duration-700 ease-out
-                                ${activeStep === index ? 'bg-red-950/20' : 'bg-transparent'}
-                                hover:z-20
-                            `}
-                        >
-                            {/* Animated Background Line */}
+                <div className="relative grid grid-cols-2 md:flex md:flex-row items-center md:justify-center gap-0 h-auto min-h-[550px] md:h-[650px] px-4 md:px-0">
+                    {isMounted && steps.map((step, index) => {
+                        const isHovered = hoveredCard === index;
+
+                        return (
                             <motion.div
-                                className="absolute top-0 left-0 w-[2px] h-0 bg-red-600 z-30"
-                                animate={{ height: activeStep === index ? "100%" : "0%" }}
-                                transition={{ duration: 0.5 }}
-                            />
+                                key={step.id}
+                                onMouseEnter={() => setHoveredCard(index)}
+                                onMouseLeave={() => setHoveredCard(null)}
+                                onClick={() => setHoveredCard(hoveredCard === index ? null : index)}
+                                initial={{ opacity: 0, x: 50 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                                transition={{
+                                    duration: 0.8,
+                                    delay: index * 0.1,
+                                    ease: "easeOut"
+                                }}
+                                layout
+                                style={{
+                                    zIndex: isHovered ? 50 : 10 + index,
+                                }}
+                                className={`relative flex-shrink-0 w-full md:w-[320px] aspect-[4/5] md:h-[550px] bg-neutral-900/40 backdrop-blur-2xl border border-white/5 rounded-[2.5rem] p-6 md:p-10 flex flex-col items-center text-center cursor-default transition-all duration-700 
+                                    ${index % 2 !== 0 ? 'ml-[-30px]' : 'ml-0'} 
+                                    ${index >= 2 ? 'mt-[-80px]' : 'mt-0'} 
+                                    md:ml-[-100px] md:mt-0 md:first:ml-0 
+                                    ${isHovered ? 'border-red-600/40 ring-1 ring-red-600/20' : 'hover:border-white/10'} shadow-2xl`}
+                                animate={{
+                                    scale: isHovered ? 1.05 : 1,
+                                    y: isHovered ? -20 : 0,
+                                    boxShadow: isHovered ? "0 25px 50px -12px rgba(220, 38, 38, 0.2)" : "0 25px 50px -12px rgba(0, 0, 0, 0.5)"
+                                }}
+                                whileTap={{ scale: 0.98 }}
+                            >
+                                {/* Glowing Red Content */}
+                                <div className="mb-4 md:mb-6 font-sans">
+                                    <motion.span
+                                        animate={isHovered ? {
+                                            opacity: [0.4, 1, 0.4],
+                                            scale: [1, 1.02, 1],
+                                        } : {}}
+                                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                                        className={`text-6xl md:text-8xl font-bold transition-all duration-700 ${isHovered ? 'text-red-600 drop-shadow-[0_0_35px_rgba(220,38,38,0.6)]' : 'text-red-800/20'}`}
+                                    >
+                                        {step.id}
+                                    </motion.span>
+                                </div>
 
-                            <div className="relative">
-                                <motion.div
-                                    className="text-white/10 group-hover:text-red-600/20 transition-colors duration-700"
-                                    animate={{
-                                        scale: activeStep === index ? 1.1 : 1,
-                                        y: activeStep === index ? -10 : 0
-                                    }}
-                                >
-                                    <span className="text-8xl font-black font-sans tracking-tighter select-none">{step.id}</span>
-                                </motion.div>
-                            </div>
-
-                            <div className="relative z-10 mt-auto">
-                                <motion.div
-                                    className="mb-8 text-white/40 group-hover:text-red-600 transition-all duration-500"
-                                    animate={{
-                                        scale: activeStep === index ? 1.2 : 1,
-                                        rotate: activeStep === index ? [0, -10, 10, 0] : 0
-                                    }}
-                                    transition={{ duration: 0.5 }}
+                                <div
+                                    className={`mb-6 md:mb-10 transition-all duration-700 ${isHovered ? 'text-red-600 scale-110 drop-shadow-[0_0_15px_rgba(220,38,38,0.4)]' : 'text-red-900/40'}`}
                                 >
                                     {step.icon}
-                                </motion.div>
+                                </div>
 
-                                <h3 className="text-2xl font-serif font-bold text-white mb-4 group-hover:text-red-500 transition-colors duration-500">
+                                <h3 className={`text-lg md:text-3xl font-serif font-bold mb-3 md:mb-6 leading-tight transition-colors duration-500 ${isHovered ? 'text-white' : 'text-white/60'}`}>
                                     {step.title}
                                 </h3>
 
-                                <div className="overflow-hidden">
-                                    <motion.p
-                                        className="text-white/40 text-sm leading-relaxed"
-                                        animate={{
-                                            opacity: activeStep === index ? 1 : 0.4,
-                                            y: activeStep === index ? 0 : 5
-                                        }}
-                                    >
-                                        {step.description}
-                                    </motion.p>
-                                </div>
-                            </div>
+                                <p className={`text-[10px] md:text-sm leading-relaxed max-w-[240px] font-sans font-light transition-colors duration-500 ${isHovered ? 'text-white/70' : 'text-white/30'}`}>
+                                    {step.description}
+                                </p>
 
-                            {/* Corner Accents */}
-                            <div className="absolute top-4 right-4 w-2 h-2 border-t border-r border-white/0 group-hover:border-red-600/50 transition-all duration-500" />
-                            <div className="absolute bottom-4 left-4 w-2 h-2 border-b border-l border-white/0 group-hover:border-red-600/50 transition-all duration-500" />
-
-                            {/* Hover Glow Gradient */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-red-600/0 via-transparent to-red-600/0 opacity-0 group-hover:opacity-10 transition-opacity duration-700 pointer-events-none" />
-                        </motion.div>
-                    ))}
+                                {/* Bottom Glow Accent */}
+                                {isHovered && (
+                                    <motion.div
+                                        layoutId="bottomGlow"
+                                        initial={{ opacity: 0, width: 0 }}
+                                        animate={{ opacity: 1, width: "60%" }}
+                                        className="absolute bottom-4 left-1/2 -translate-x-1/2 h-0.5 bg-red-600 rounded-full blur-[1px]"
+                                    />
+                                )}
+                            </motion.div>
+                        )
+                    })}
                 </div>
             </div>
         </section>
