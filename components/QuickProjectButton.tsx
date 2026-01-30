@@ -84,11 +84,11 @@ export default function QuickProjectButton() {
             setView('project')
         }
 
-        window.addEventListener('editProject' as any, handleEdit as any)
-        window.addEventListener('newProject' as any, handleNew as any)
+        window.addEventListener('editProject' as string, handleEdit as EventListener)
+        window.addEventListener('newProject' as string, handleNew as EventListener)
         return () => {
-            window.removeEventListener('editProject' as any, handleEdit as any)
-            window.removeEventListener('newProject' as any, handleNew as any)
+            window.removeEventListener('editProject' as string, handleEdit as EventListener)
+            window.removeEventListener('newProject' as string, handleNew as EventListener)
         }
     }, [categories])
 
@@ -302,7 +302,7 @@ export default function QuickProjectButton() {
                                                     <label className="text-white/30 text-[10px] uppercase tracking-[0.2em] font-black ml-1">Miniatura (Preview)</label>
                                                     <div className="flex bg-white/5 rounded-lg p-1">
                                                         {['url', 'file'].map(t => (
-                                                            <button key={t} type="button" onClick={() => setActiveTab({ ...activeTab, image: t as any })} className={`px-3 py-1 text-[9px] uppercase font-bold rounded-md transition-all ${activeTab.image === t ? 'bg-white text-black' : 'text-white/30 hover:text-white'}`}>{t}</button>
+                                                            <button key={t} type="button" onClick={() => setActiveTab({ ...activeTab, image: t as 'url' | 'file' })} className={`px-3 py-1 text-[9px] uppercase font-bold rounded-md transition-all ${activeTab.image === t ? 'bg-white text-black' : 'text-white/30 hover:text-white'}`}>{t}</button>
                                                         ))}
                                                     </div>
                                                 </div>
@@ -322,7 +322,7 @@ export default function QuickProjectButton() {
                                                     <label className="text-white/30 text-[10px] uppercase tracking-[0.2em] font-black ml-1">Video (Master Copy)</label>
                                                     <div className="flex bg-white/5 rounded-lg p-1">
                                                         {['url', 'file'].map(t => (
-                                                            <button key={t} type="button" onClick={() => setActiveTab({ ...activeTab, video: t as any })} className={`px-3 py-1 text-[9px] uppercase font-bold rounded-md transition-all ${activeTab.video === t ? 'bg-white text-black' : 'text-white/30 hover:text-white'}`}>{t}</button>
+                                                            <button key={t} type="button" onClick={() => setActiveTab({ ...activeTab, video: t as 'url' | 'file' })} className={`px-3 py-1 text-[9px] uppercase font-bold rounded-md transition-all ${activeTab.video === t ? 'bg-white text-black' : 'text-white/30 hover:text-white'}`}>{t}</button>
                                                         ))}
                                                     </div>
                                                 </div>

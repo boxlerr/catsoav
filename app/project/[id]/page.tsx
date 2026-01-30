@@ -39,9 +39,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         notFound()
     }
 
-    // Hide default sync message
     if (project.description === "Sincronizado desde Behance") {
-        // @ts-ignore
         project.description = ""
     }
 
@@ -49,11 +47,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     let galleryImages: string[] = []
     let extraVideos: string[] = []
     try {
-        if ((project as any).images) {
-            galleryImages = JSON.parse((project as any).images)
+        if (project.images) {
+            galleryImages = JSON.parse(project.images)
         }
-        if ((project as any).extraVideos) {
-            extraVideos = JSON.parse((project as any).extraVideos)
+        if (project.extraVideos) {
+            extraVideos = JSON.parse(project.extraVideos)
         }
     } catch (e) {
         console.error("Error parsing project media:", e)
@@ -65,7 +63,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         title: project.title,
         category: project.category,
         videoUrl: project.videoUrl,
-        images: (project as any).images,
+        images: project.images,
     })
 
     const themeCSS = generateThemeCSS(theme)
@@ -78,12 +76,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         <main
             className="min-h-screen bg-[#0a0a0a] text-white selection:bg-[var(--theme-primary)]/30 overflow-x-hidden"
             style={{
-                // @ts-ignore
-                [themeCSS.split('\n').reduce((acc, line) => {
-                    const [key, value] = line.split(':').map(s => s.trim())
-                    if (key && value) acc[key] = value.replace(';', '')
-                    return acc
-                }, {} as Record<string, string>)]: undefined,
                 ...themeCSS.split('\n').reduce((acc, line) => {
                     const [key, value] = line.split(':').map(s => s.trim())
                     if (key && value) acc[key] = value.replace(';', '')
@@ -109,7 +101,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                         <div
                             className="p-2 rounded-full bg-white/5 border border-white/10 group-hover:border-[var(--theme-primary)] transition-all backdrop-blur-sm"
                             style={{
-                                // @ts-ignore
+                                // @ts-expect-error - custom property
                                 '--tw-shadow-color': 'var(--theme-primary)',
                                 boxShadow: '0 0 0 0 var(--tw-shadow-color)',
                             }}

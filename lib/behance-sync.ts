@@ -119,6 +119,19 @@ export async function getBehanceProjects(profileUrl: string) {
     }
 }
 
+interface BehanceModule {
+    type: string;
+    src?: string;
+    embed?: string;
+    components?: BehanceModuleComponent[];
+}
+
+interface BehanceModuleComponent {
+    type: string;
+    src?: string;
+    embed?: string;
+}
+
 export async function getBehanceProjectDetails(projectUrl: string) {
     const result = {
         videoUrl: null as string | null,
@@ -144,7 +157,7 @@ export async function getBehanceProjectDetails(projectUrl: string) {
                 if (apiRes.ok) {
                     const data = await apiRes.json();
                     if (data.project && data.project.modules) {
-                        for (const m of (data.project.modules as any[])) {
+                        for (const m of (data.project.modules as BehanceModule[])) {
                             // Video / Embed
                             if (m.type === 'video' || m.type === 'embed') {
                                 let vUrl = null;
@@ -178,8 +191,8 @@ export async function getBehanceProjectDetails(projectUrl: string) {
                                 result.images.push(m.src);
                             }
                             // Media Collection (Grid)
-                            if (m.type === 'media_collection' && (m as any).components) {
-                                for (const c of ((m as any).components as any[])) {
+                            if (m.type === 'media_collection' && m.components) {
+                                for (const c of m.components) {
                                     // Check for images
                                     if (c.type === 'image' && c.src) {
                                         result.images.push(c.src);

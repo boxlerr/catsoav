@@ -9,7 +9,7 @@ export async function GET() {
             orderBy: { order: 'asc' }
         })
         return NextResponse.json(categories)
-    } catch (error) {
+    } catch {
         return NextResponse.json({ error: "Error fetching categories" }, { status: 500 })
     }
 }
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
             }
         })
         return NextResponse.json(category, { status: 201 })
-    } catch (error) {
+    } catch {
         return NextResponse.json({ error: "Error creating category" }, { status: 500 })
     }
 }

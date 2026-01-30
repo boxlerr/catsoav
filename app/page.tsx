@@ -17,8 +17,7 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-  closestCorners,
-  rectIntersection
+  closestCorners
 } from '@dnd-kit/core'
 import {
   arrayMove,
@@ -26,10 +25,10 @@ import {
   sortableKeyboardCoordinates,
   rectSortingStrategy
 } from '@dnd-kit/sortable'
-import { SortableItem } from "@/components/SortableItem"
 import VideoThumbnail from "@/components/VideoThumbnail"
-import CatsoVideoPlayer from "@/components/CatsoVideoPlayer"
+// import CatsoVideoPlayer from "@/components/CatsoVideoPlayer"
 import { CategoryDroppable } from "@/components/CategoryDroppable"
+import { SortableItem } from "@/components/SortableItem"
 // Dynamic imports for heavy sections
 const Manifesto = dynamic(() => import("@/components/Manifesto"), { ssr: true })
 const Workflow = dynamic(() => import("@/components/Workflow"), { ssr: true })
@@ -40,10 +39,42 @@ const Clients = dynamic(() => import("@/components/Clients"), { ssr: true })
 const MemoizedManifesto = memo(Manifesto)
 const MemoizedWorkflow = memo(Workflow)
 const MemoizedServicesList = memo(ServicesList)
-const MemoizedCrew = memo(Crew)
-const MemoizedClients = memo(Clients)
+// const MemoizedCrew = memo(Crew)
+// const MemoizedClients = memo(Clients)
 
-import { getYouTubeId, getVimeoId, isDirectVideo as checkIsDirectVideo } from "@/lib/video-utils"
+interface Project {
+  id: string;
+  title: string;
+  description: string | null;
+  category: string;
+  imageUrl: string | null;
+  videoUrl: string | null;
+  extraVideos: string | null;
+  clientName: string | null;
+  published: boolean;
+  order: number;
+}
+
+interface ExtendedUser {
+  name?: string | null
+  email?: string | null
+  image?: string | null
+  role?: string
+  id?: string
+}
+
+interface ExtendedSession {
+  user?: ExtendedUser
+}
+
+interface Category {
+  id: string;
+  name: string;
+  title: string;
+  description: string | null;
+}
+
+// import { getYouTubeId, getVimeoId, isDirectVideo as checkIsDirectVideo } from "@/lib/video-utils"
 
 
 
@@ -58,13 +89,16 @@ function HomeContent() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [projects, setProjects] = useState<any[]>([])
-  const [categories, setCategories] = useState<any[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isSorting, setIsSorting] = useState(false)
 
   useEffect(() => {
     setMounted(true)
+    const fetchInitialData = async () => {
+      await Promise.all([fetchProjects(), fetchCategories()])
+    }
     fetchInitialData()
   }, [])
 
@@ -122,11 +156,11 @@ function HomeContent() {
     }
   }
 
-  const toggleVisibility = async (e: React.MouseEvent, project: any) => {
+  const toggleVisibility = async (e: React.MouseEvent, project: Project) => {
     e.stopPropagation()
     e.preventDefault()
     const newStatus = !project.published
-    setProjects((prev: any[]) => prev.map(p => p.id === project.id ? { ...p, published: newStatus } : p))
+    setProjects((prev) => prev.map(p => p.id === project.id ? { ...p, published: newStatus } : p))
     try {
       const res = await fetch(`/api/projects/${project.id}`, {
         method: 'PATCH',
@@ -135,17 +169,17 @@ function HomeContent() {
       })
       if (!res.ok) throw new Error()
     } catch (err) {
-      setProjects((prev: any[]) => prev.map(p => p.id === project.id ? { ...p, published: !newStatus } : p))
+      setProjects((prev) => prev.map(p => p.id === project.id ? { ...p, published: !newStatus } : p))
     }
   }
 
   // Memoized: Projects filtered by category and sorted
   const projectsByCategory = useMemo(() => {
-    const map: Record<string, any[]> = {}
+    const map: Record<string, Project[]> = {}
     categories.forEach(cat => {
       map[cat.name] = projects
-        .filter((p: any) => p.category === cat.name)
-        .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+        .filter((p) => p.category === cat.name)
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
     })
     return map
   }, [projects, categories])
@@ -161,7 +195,7 @@ function HomeContent() {
     setIsSorting(true)
   }
 
-  const handleDragOver = (event: any) => {
+  const handleDragOver = (event: { active: { id: string | number }; over: { id: string | number } | null }) => {
     const { active, over } = event
     if (!over || active.id === over.id) return
     if (session?.user?.role !== "admin") return
@@ -206,7 +240,7 @@ function HomeContent() {
     })
   }
 
-  const handleDragEnd = async (event: any) => {
+  const handleDragEnd = async (event: { active: { id: string | number }; over: { id: string | number } | null }) => {
     const { active, over } = event
 
     if (session?.user?.role !== "admin" || !over) return
@@ -371,7 +405,7 @@ function HomeContent() {
                 <a href="#" onClick={(e) => scrollToSection(e, "process")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider">
                   Proceso
                 </a>
-                {categories.filter(cat => (session as any)?.user?.role === "admin" || (projectsByCategory[cat.name]?.length || 0) > 0).map((category) => (
+                {categories.filter(cat => (session as ExtendedSession)?.user?.role === "admin" || (projectsByCategory[cat.name]?.length || 0) > 0).map((category) => (
                   <a
                     key={category.id}
                     href={`#${category.name}`}
@@ -493,7 +527,7 @@ function HomeContent() {
                   <div className="my-4 h-px bg-white/5" />
                   <p className="text-[10px] uppercase tracking-[0.3em] font-black text-white/20 mb-4">Categorías</p>
 
-                  {categories.filter(cat => (session as any)?.user?.role === "admin" || (projectsByCategory[cat.name]?.length || 0) > 0).map((category) => (
+                  {categories.filter(cat => (session as ExtendedSession)?.user?.role === "admin" || (projectsByCategory[cat.name]?.length || 0) > 0).map((category) => (
                     <a
                       key={category.id}
                       href={`#${category.name}`}
@@ -515,7 +549,7 @@ function HomeContent() {
                     <span>Equipo</span>
                     <span className="h-0.5 w-0 bg-red-600 transition-all duration-300 group-hover:w-8" />
                   </a> */}
-                  {session?.user?.role === "admin" && (
+                  {((session as ExtendedSession)?.user?.role === "admin") && (
                     <a
                       href="/admin"
                       className="text-2xl font-serif font-bold text-red-500 hover:text-red-400 transition-colors flex items-center justify-between group"
@@ -618,7 +652,7 @@ function HomeContent() {
               >
                 {categories.map((category) => {
                   const catProjects = projectsByCategory[category.name] || []
-                  if ((session as any)?.user?.role !== "admin" && catProjects.length === 0) return null;
+                  if ((session as ExtendedSession)?.user?.role !== "admin" && catProjects.length === 0) return null;
 
                   return (
                     <CategoryDroppable
@@ -708,7 +742,7 @@ function HomeContent() {
                                     {/* Thumbnail */}
                                     <div className="absolute inset-0 flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
                                       <VideoThumbnail
-                                        videoUrl={project.videoUrl}
+                                        videoUrl={project.videoUrl || ""}
                                         imageUrl={project.imageUrl}
                                         title={project.title}
                                       />
@@ -717,7 +751,7 @@ function HomeContent() {
                                     {/* Overlay Info */}
                                     <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent translate-y-full lg:group-hover:translate-y-0 transition-transform duration-500 z-20">
                                       <p className="text-white font-serif font-bold text-lg mb-0.5 tracking-tight">{project.title}</p>
-                                      <p className="text-white/40 text-xs uppercase tracking-[0.2em] font-medium">{(project as any).clientName || 'Producción'}</p>
+                                      <p className="text-white/40 text-xs uppercase tracking-[0.2em] font-medium">{project.clientName || 'Producción'}</p>
                                       {session?.user?.role === "admin" && (
                                         <div className="mt-3 pt-3 border-t border-white/10 flex items-center gap-2">
                                           <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
@@ -760,7 +794,7 @@ function HomeContent() {
           <section id="contact" className="py-20 border-t border-neutral-900 bg-black">
             <div className="max-w-3xl mx-auto px-4 text-center">
               <h2 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4">
-                Let's Work Together
+                Let&apos;s Work Together
                 <span className="text-red-600">.</span>
               </h2>
               <p className="text-white/60 text-lg mb-12">

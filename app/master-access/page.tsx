@@ -4,6 +4,7 @@ import { useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 
 export default function LoginPage() {
     const router = useRouter()
@@ -30,7 +31,7 @@ export default function LoginPage() {
                 router.push("/admin")
                 router.refresh()
             }
-        } catch (error) {
+        } catch {
             setError("Error al iniciar sesión")
         } finally {
             setLoading(false)
@@ -42,7 +43,7 @@ export default function LoginPage() {
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
                     <div className="flex justify-center mb-2">
-                        <img src="/logo-white.png" alt="CATSO AV" className="h-12 w-auto" />
+                        <Image src="/logo-white.png" alt="CATSO AV" width={200} height={48} className="h-12 w-auto" />
                     </div>
                     <p className="text-white/60">Panel de Administración</p>
                 </div>

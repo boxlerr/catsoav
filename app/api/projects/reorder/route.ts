@@ -13,9 +13,13 @@ export async function PUT(request: Request) {
     try {
         const { items } = await request.json()
 
-        // Update items efficiently
-        // We expect an array of { id: string, order: number, category: string }
-        const transaction = items.map((item: any) =>
+        interface ReorderItem {
+            id: string;
+            order: number;
+            category: string;
+        }
+
+        const transaction = items.map((item: ReorderItem) =>
             prisma.project.update({
                 where: { id: item.id },
                 data: {

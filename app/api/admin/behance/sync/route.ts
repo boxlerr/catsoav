@@ -30,7 +30,6 @@ export async function POST() {
         console.log(`[SyncRoute] Procesando ${behanceProjects.length} proyectos encontrados en Behance.`);
 
         let syncedCount = 0
-        const skippedCount = []
 
         for (const bp of behanceProjects) {
             // Check if project already exists
@@ -86,7 +85,6 @@ export async function POST() {
                         imageUrl: bp.cover || '/placeholder-project.jpg',
                         images: JSON.stringify(images), // Store images as JSON
                         videoUrl: videoUrl,
-                        // @ts-ignore
                         extraVideos: JSON.stringify(extraVideos),
                         authorId: user.id,
                         published: true,
@@ -102,7 +100,6 @@ export async function POST() {
                         imageUrl: bp.cover, // Refresh cover
                         images: JSON.stringify(images), // Update images
                         videoUrl: videoUrl,  // Refresh video/fallback
-                        // @ts-ignore
                         extraVideos: JSON.stringify(extraVideos) // Update videos
                     }
                 });
@@ -114,12 +111,13 @@ export async function POST() {
             success: true,
             message: syncedCount > 0
                 ? `Sincronización completada. ${syncedCount} proyectos nuevos agregados.`
-                : `Todo al día. No se encontraron proyectos nuevos (${skippedCount.length} ya existen).`,
+                : `Todo al día. No se encontraron proyectos nuevos.`,
             count: syncedCount
         })
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
         console.error("Sync error:", error)
-        return NextResponse.json({ error: "Error interno: " + error.message }, { status: 500 })
+        return NextResponse.json({ error: "Error interno: " + message }, { status: 500 })
     }
 }

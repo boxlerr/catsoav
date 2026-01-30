@@ -18,7 +18,7 @@ export default function CatsoVideoPlayer({ src, title }: CatsoVideoPlayerProps) 
     const [isMuted, setIsMuted] = useState(false)
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [showControls, setShowControls] = useState(true)
-    const controlsTimeoutRef = useRef<any>(null)
+    const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     // PLATFORM DETECTION
     const isYouTube = src.includes('youtube.com') || src.includes('youtu.be')

@@ -23,8 +23,7 @@ export async function PATCH(
             data: json
         })
         return NextResponse.json(project)
-    } catch (error) {
-        console.error("Update error:", error)
+    } catch {
         return NextResponse.json({ error: "Error updating project" }, { status: 500 })
     }
 }
@@ -71,8 +70,7 @@ export async function DELETE(
         })
 
         return NextResponse.json({ success: true })
-    } catch (error) {
-        console.error("Delete error:", error)
+    } catch {
         return NextResponse.json({ error: "Error deleting project" }, { status: 500 })
     }
 }
