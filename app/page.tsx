@@ -530,7 +530,7 @@ function HomeContent() {
         <div data-us-project="DmxX3AU5Ot4TeJbMP4tT" style={{ width: "100vw", height: "100vh" }} />
       </div>
 
-      <div className="relative z-10 w-full">
+      <div className="relative z-10 w-full" suppressHydrationWarning>
         <section className="relative h-screen flex flex-col items-center justify-center p-4">
           <motion.div
             style={{ opacity, y }}
@@ -540,13 +540,14 @@ function HomeContent() {
               <Image
                 src="/logo-white.png"
                 alt="CATSO AV"
-                width={800}
-                height={400}
-                className="h-auto w-auto max-w-full drop-shadow-[0_0_50px_rgba(255,255,255,0.1)]"
+                width={1600}
+                height={800}
+                className="h-auto w-[300px] md:w-[650px] lg:w-[950px] max-w-full drop-shadow-[0_0_50px_rgba(255,255,255,0.1)] mb-0"
                 priority
               />
-              <p className="font-sans text-white/90 text-base md:text-xl lg:text-2xl font-light tracking-[0.4em] uppercase absolute bottom-[32%] md:bottom-[37%] left-1/2 -translate-x-1/2 pointer-events-none whitespace-nowrap">
-                Video production company
+              <p className="absolute bottom-[22%] md:bottom-[28%] lg:bottom-[32%] left-1/2 -translate-x-1/2 font-sans text-white/70 text-[10px] md:text-sm lg:text-lg font-extralight tracking-[0.5em] uppercase text-center leading-none w-full">
+                <span className="inline md:hidden leading-relaxed">Video Production<br />Company</span>
+                <span className="hidden md:inline text-nowrap">Video Production Company</span>
               </p>
             </div>
           </motion.div>
@@ -887,7 +888,7 @@ function HomeContent() {
         </div>
 
         <QuickProjectButton />
-      </div>
+      </div >
     </>
   )
 }
