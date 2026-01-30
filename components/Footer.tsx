@@ -39,7 +39,7 @@ export default function Footer() {
                     {/* Brand Section */}
                     <div className="flex flex-col items-center max-w-lg">
                         <div className="mb-6">
-                            <Image src="/logo-white.png" alt="CATSO AV" width={180} height={80} className="h-24 w-auto opacity-80 object-contain" />
+                            <Image src="/logo-white.png" alt="CATSO AV" width={180} height={80} className="h-24 w-auto opacity-80 object-contain" unoptimized />
                         </div>
                         <p className="text-white/40 text-sm leading-relaxed">
                             Productora audiovisual especializada en la creación de contenido de alto impacto. Transformamos ideas en experiencias visuales únicas.

@@ -390,7 +390,7 @@ function HomeContent() {
             />
             <div className="relative w-full px-6 md:px-10 flex items-center justify-between">
               <a href="#" onClick={(e) => scrollToSection(e, "top")} className="group flex-shrink-0">
-                <Image src="/logo-white.png" alt="CATSO AV" width={140} height={60} className="h-28 w-auto object-contain" priority />
+                <Image src="/logo-white.png" alt="CATSO AV" width={140} height={60} className="h-28 w-auto object-contain" priority unoptimized />
               </a>
 
               <div className="hidden md:flex gap-4 lg:gap-8 items-center">
@@ -479,7 +479,7 @@ function HomeContent() {
               className="fixed top-0 right-0 bottom-0 w-[85%] max-w-sm z-[110] bg-neutral-950 border-l border-white/10 shadow-2xl md:hidden overflow-hidden flex flex-col"
             >
               <div className="p-6 flex items-center justify-between border-b border-white/5 bg-black/50 backdrop-blur-md sticky top-0 z-10">
-                <Image src="/logo-white.png" alt="CATSO AV" width={100} height={40} className="h-14 w-auto opacity-80 object-contain" priority />
+                <Image src="/logo-white.png" alt="CATSO AV" width={100} height={40} className="h-14 w-auto opacity-80 object-contain" priority unoptimized />
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="p-2 -mr-2 text-white/60 hover:text-white transition-colors"
