@@ -1,8 +1,9 @@
 "use client"
 
 import Script from "next/script"
-import { useEffect, useState } from "react"
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
+import { useEffect, useState, memo, useMemo } from "react"
+import dynamic from "next/dynamic"
+import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent } from "framer-motion"
 import { SessionProvider, useSession } from "next-auth/react"
 import Link from "next/link"
 import Image from "next/image"
@@ -29,11 +30,19 @@ import { SortableItem } from "@/components/SortableItem"
 import VideoThumbnail from "@/components/VideoThumbnail"
 import CatsoVideoPlayer from "@/components/CatsoVideoPlayer"
 import { CategoryDroppable } from "@/components/CategoryDroppable"
-import Manifesto from "@/components/Manifesto"
-import Workflow from "@/components/Workflow"
-import ServicesList from "@/components/ServicesList"
-import Crew from "@/components/Crew"
-import Clients from "@/components/Clients"
+// Dynamic imports for heavy sections
+const Manifesto = dynamic(() => import("@/components/Manifesto"), { ssr: true })
+const Workflow = dynamic(() => import("@/components/Workflow"), { ssr: true })
+const ServicesList = dynamic(() => import("@/components/ServicesList"), { ssr: true })
+const Crew = dynamic(() => import("@/components/Crew"), { ssr: true })
+const Clients = dynamic(() => import("@/components/Clients"), { ssr: true })
+
+const MemoizedManifesto = memo(Manifesto)
+const MemoizedWorkflow = memo(Workflow)
+const MemoizedServicesList = memo(ServicesList)
+const MemoizedCrew = memo(Crew)
+const MemoizedClients = memo(Clients)
+
 import { getYouTubeId, getVimeoId, isDirectVideo as checkIsDirectVideo } from "@/lib/video-utils"
 
 
@@ -130,29 +139,22 @@ function HomeContent() {
     }
   }
 
-  // Helper: Get projects for a specific category, sorted by order
-  const getCategoryProjects = (catName: string) => {
-    return projects
-      .filter((p: any) => p.category === catName)
-      .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
-  }
+  // Memoized: Projects filtered by category and sorted
+  const projectsByCategory = useMemo(() => {
+    const map: Record<string, any[]> = {}
+    categories.forEach(cat => {
+      map[cat.name] = projects
+        .filter((p: any) => p.category === cat.name)
+        .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+    })
+    return map
+  }, [projects, categories])
 
   // DnD Sensors
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 250,
-        tolerance: 5,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
 
   const handleDragStart = () => {
@@ -273,18 +275,13 @@ function HomeContent() {
     return () => clearTimeout(timer)
   }, [])
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > window.innerHeight - 150) {
-        setIsScrolled(true)
-      } else {
-        setIsScrolled(false)
-      }
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    if (latest > window.innerHeight - 150) {
+      if (!isScrolled) setIsScrolled(true)
+    } else {
+      if (isScrolled) setIsScrolled(false)
     }
-
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+  })
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault()
@@ -318,7 +315,7 @@ function HomeContent() {
     <>
       <Script
         id="unicorn-studio"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         dangerouslySetInnerHTML={{
           __html: `
             !function(){
@@ -374,7 +371,7 @@ function HomeContent() {
                 <a href="#" onClick={(e) => scrollToSection(e, "process")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider">
                   Proceso
                 </a>
-                {categories.filter(cat => (session as any)?.user?.role === "admin" || getCategoryProjects(cat.name).length > 0).map((category) => (
+                {categories.filter(cat => (session as any)?.user?.role === "admin" || (projectsByCategory[cat.name]?.length || 0) > 0).map((category) => (
                   <a
                     key={category.id}
                     href={`#${category.name}`}
@@ -384,9 +381,9 @@ function HomeContent() {
                     {category.title.split(" ")[0]}
                   </a>
                 ))}
-                <a href="#" onClick={(e) => scrollToSection(e, "crew")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider">
+                {/* <a href="#" onClick={(e) => scrollToSection(e, "crew")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider">
                   Equipo
-                </a>
+                </a> */}
                 {session && (
                   <span className="text-white/40 text-xs px-2 cursor-default font-medium uppercase tracking-wider">Hola, {session.user?.name || 'Usuario'}</span>
                 )}
@@ -480,7 +477,7 @@ function HomeContent() {
                   <div className="my-4 h-px bg-white/5" />
                   <p className="text-[10px] uppercase tracking-[0.3em] font-black text-white/20 mb-4">Categorías</p>
 
-                  {categories.filter(cat => (session as any)?.user?.role === "admin" || getCategoryProjects(cat.name).length > 0).map((category) => (
+                  {categories.filter(cat => (session as any)?.user?.role === "admin" || (projectsByCategory[cat.name]?.length || 0) > 0).map((category) => (
                     <a
                       key={category.id}
                       href={`#${category.name}`}
@@ -494,14 +491,14 @@ function HomeContent() {
 
                   <div className="my-4 h-px bg-white/5" />
 
-                  <a
+                  {/* <a
                     href="#"
                     onClick={(e) => { scrollToSection(e, "crew"); setIsMobileMenuOpen(false); }}
                     className="text-2xl font-serif font-bold text-white hover:text-red-600 transition-colors flex items-center justify-between group"
                   >
                     <span>Equipo</span>
                     <span className="h-0.5 w-0 bg-red-600 transition-all duration-300 group-hover:w-8" />
-                  </a>
+                  </a> */}
                   <a
                     href="#"
                     onClick={(e) => { scrollToSection(e, "contact"); setIsMobileMenuOpen(false); }}
@@ -569,9 +566,9 @@ function HomeContent() {
           <div className="absolute bottom-0 left-0 right-0 h-3/4 bg-gradient-to-b from-transparent via-black/40 to-black pointer-events-none z-10" />
         </section>
 
-        <Manifesto />
-        <ServicesList />
-        <Workflow />
+        <MemoizedManifesto />
+        <MemoizedServicesList />
+        <MemoizedWorkflow />
 
         <div className="w-full bg-black relative z-20">
           <div className="max-w-7xl mx-auto px-6 pb-20">
@@ -584,7 +581,7 @@ function HomeContent() {
                 onDragEnd={handleDragEnd}
               >
                 {categories.map((category) => {
-                  const catProjects = getCategoryProjects(category.name)
+                  const catProjects = projectsByCategory[category.name] || []
                   if ((session as any)?.user?.role !== "admin" && catProjects.length === 0) return null;
 
                   return (
@@ -721,8 +718,8 @@ function HomeContent() {
             )}
           </div>
 
-          <Clients />
-          <Crew />
+          {/* <Clients />
+          <Crew /> */}
 
           <section id="contact" className="py-20 border-t border-neutral-900 bg-black">
             <div className="max-w-3xl mx-auto px-4 text-center">
@@ -774,8 +771,8 @@ function HomeContent() {
                   <h4 className="text-white font-bold mb-6 uppercase tracking-widest text-xs">Empresa</h4>
                   <ul className="space-y-4">
                     <li><a href="#" onClick={(e) => scrollToSection(e, "manifesto")} className="text-white/40 hover:text-white transition-colors text-sm">Sobre Nosotros</a></li>
-                    <li><a href="#" onClick={(e) => scrollToSection(e, "crew")} className="text-white/40 hover:text-white transition-colors text-sm">Nuestro Equipo</a></li>
-                    <li><a href="#" onClick={(e) => scrollToSection(e, "clients")} className="text-white/40 hover:text-white transition-colors text-sm">Clientes</a></li>
+                    {/* <li><a href="#" onClick={(e) => scrollToSection(e, "crew")} className="text-white/40 hover:text-white transition-colors text-sm">Nuestro Equipo</a></li>
+                    <li><a href="#" onClick={(e) => scrollToSection(e, "clients")} className="text-white/40 hover:text-white transition-colors text-sm">Clientes</a></li> */}
                   </ul>
                 </div>
 

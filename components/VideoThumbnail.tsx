@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
+import { useInView } from "framer-motion"
 import { getYouTubeId, getVimeoId, isDirectVideo as checkIsDirectVideo } from "@/lib/video-utils"
 
 interface VideoThumbnailProps {
@@ -17,8 +18,12 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
     const [isAdobeCCV, setIsAdobeCCV] = useState(false)
     const [isBehanceProject, setIsBehanceProject] = useState(false)
     const videoRef = useRef<HTMLVideoElement>(null)
+    const containerRef = useRef<HTMLDivElement>(null)
+    const isInView = useInView(containerRef, { once: true, margin: "200px" })
 
     useEffect(() => {
+        if (!isInView) return
+
         setIsLoaded(false)
         setIsAdobeCCV(false)
         setIsBehanceProject(false)
@@ -109,6 +114,7 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
     if (isVideo) {
         return (
             <div
+                ref={containerRef}
                 className="w-full h-full relative bg-neutral-900 overflow-hidden"
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
@@ -121,7 +127,7 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
                     muted
                     loop
                     playsInline
-                    preload="auto"
+                    preload="none"
                     onLoadedData={() => setIsLoaded(true)}
                     onError={() => {
                         console.error("Video preview failed to load:", videoUrl)
@@ -148,7 +154,7 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
 
         if (videoId) {
             return (
-                <div className="w-full h-full bg-[#191919] relative group overflow-hidden">
+                <div ref={containerRef} className="w-full h-full bg-[#191919] relative group overflow-hidden">
                     <iframe
                         src={`https://www-ccv.adobe.io/v1/player/ccv/${videoId}/embed?api_key=${process.env.NEXT_PUBLIC_ADOBE_CCV_API_KEY || 'behance1'}&bgcolor=%23191919`}
                         title="Adobe CCV Player"
@@ -165,7 +171,7 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
         }
 
         return (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-[#191919] border border-white/5 group-hover:border-red-600/30 transition-all duration-500">
+            <div ref={containerRef} className="w-full h-full flex flex-col items-center justify-center bg-[#191919] border border-white/5 group-hover:border-red-600/30 transition-all duration-500">
                 <div className="bg-red-600/10 p-4 rounded-full mb-3 group-hover:scale-110 transition-transform duration-500">
                     <svg className="w-8 h-8 text-red-600" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M14.58 2H22v15.38L14.58 2zm-3.16 11.53L14.58 23H7.13l4.29-9.47zm-1.84-4.06L3.11 23H2V2h3.11l6.47 7.47z" />
@@ -178,7 +184,7 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
 
     if (isBehanceProject) {
         return (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-[#191919] border border-white/5 group-hover:border-blue-500/30 transition-all duration-500 relative group overflow-hidden">
+            <div ref={containerRef} className="w-full h-full flex flex-col items-center justify-center bg-[#191919] border border-white/5 group-hover:border-blue-500/30 transition-all duration-500 relative group overflow-hidden">
                 {/* If we have an image, show it as background */}
                 {thumbnailUrl && (
                     <Image
@@ -191,12 +197,12 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
                 )}
 
                 <div className="z-10 flex flex-col items-center">
-                    <div className="bg-blue-600/10 p-4 rounded-full mb-3 group-hover:scale-110 transition-transform duration-500 border border-blue-500/20">
-                        <svg className="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="bg-red-600/10 p-4 rounded-full mb-3 group-hover:scale-110 transition-transform duration-500 border border-red-500/20">
+                        <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
                     </div>
-                    <span className="text-[9px] text-white/40 group-hover:text-blue-400 uppercase font-black tracking-[0.2em] transition-colors duration-300">View Project</span>
+                    <span className="text-[9px] text-white/40 group-hover:text-red-400 uppercase font-black tracking-[0.2em] transition-colors duration-300">View Project</span>
                 </div>
             </div>
         )
@@ -204,35 +210,37 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
 
     if (thumbnailUrl) {
         return (
-            <Image
-                src={thumbnailUrl}
-                alt={title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                onError={() => {
-                    // If maxres fails, try hqdefault
-                    if (thumbnailUrl && thumbnailUrl.includes('maxresdefault')) {
-                        setThumbnailUrl(thumbnailUrl.replace('maxresdefault', 'hqdefault'))
-                    } else {
-                        // If it's a known YouTube/Vimeo URL, don't try to play it as a direct video
-                        const ytId = getYouTubeId(videoUrl)
-                        const vimeoId = getVimeoId(videoUrl)
-
-                        if (ytId || vimeoId) {
-                            // Keep it as an image, but maybe set to a placeholder if even hqdefault failed
-                            setThumbnailUrl('/placeholder-project.jpg')
+            <div ref={containerRef} className="w-full h-full relative">
+                <Image
+                    src={thumbnailUrl}
+                    alt={title}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    onError={() => {
+                        // If maxres fails, try hqdefault
+                        if (thumbnailUrl && thumbnailUrl.includes('maxresdefault')) {
+                            setThumbnailUrl(thumbnailUrl.replace('maxresdefault', 'hqdefault'))
                         } else {
-                            setIsVideo(true) // Fallback to video attempt only for potentially direct files
+                            // If it's a known YouTube/Vimeo URL, don't try to play it as a direct video
+                            const ytId = getYouTubeId(videoUrl)
+                            const vimeoId = getVimeoId(videoUrl)
+
+                            if (ytId || vimeoId) {
+                                // Keep it as an image, but maybe set to a placeholder if even hqdefault failed
+                                setThumbnailUrl('/placeholder-project.jpg')
+                            } else {
+                                setIsVideo(true) // Fallback to video attempt only for potentially direct files
+                            }
                         }
-                    }
-                }}
-            />
+                    }}
+                />
+            </div>
         )
     }
 
     return (
-        <div className="w-full h-full flex items-center justify-center bg-neutral-900">
+        <div ref={containerRef} className="w-full h-full flex items-center justify-center bg-neutral-900">
             <svg className="w-12 h-12 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>

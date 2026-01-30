@@ -40,8 +40,8 @@ export default function SyncBehanceButton() {
                 onClick={handleSync}
                 disabled={isSyncing}
                 className={`flex items-center gap-2 px-4 py-2 rounded font-medium text-sm transition-all ${isSyncing
-                        ? "bg-neutral-800 text-white/40 cursor-not-allowed border border-white/10"
-                        : "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/40"
+                    ? "bg-neutral-800 text-white/40 cursor-not-allowed border border-white/10"
+                    : "bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-900/40"
                     }`}
             >
                 {isSyncing ? (

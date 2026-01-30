@@ -25,9 +25,9 @@ export default function Manifesto() {
                 <div
                     className="absolute inset-0 opacity-[0.05] pointer-events-none"
                     style={{
-                        backgroundImage: `url("https://grainy-gradients.vercel.app/noise.svg")`,
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
                         backgroundRepeat: 'repeat',
-                        backgroundSize: '100px 100px'
+                        backgroundSize: '200px 200px'
                     }}
                 />
             </div>
@@ -40,6 +40,7 @@ export default function Manifesto() {
                     <motion.h2
                         initial={{ opacity: 0, y: 50 }}
                         whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
                         transition={{ duration: 0.8 }}
                         className="text-4xl md:text-7xl lg:text-8xl font-serif font-bold text-white leading-[0.9] tracking-tighter"
                     >
@@ -61,6 +62,7 @@ export default function Manifesto() {
                         <motion.p
                             initial={{ opacity: 0 }}
                             whileInView={{ opacity: 1 }}
+                            viewport={{ once: true }}
                             transition={{ duration: 0.8, delay: 0.2 }}
                             className="md:w-2/3 text-xl md:text-2xl lg:text-3xl text-white font-light leading-relaxed"
                         >

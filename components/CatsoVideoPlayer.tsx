@@ -135,14 +135,14 @@ export default function CatsoVideoPlayer({ src, title }: CatsoVideoPlayerProps) 
     if (isBehanceGallery) {
         return (
             <div id="catso-player-container" className="relative w-full h-full group bg-[#191919] rounded-lg overflow-hidden flex flex-col items-center justify-center p-8 text-center">
-                <div className="bg-blue-600/10 p-6 rounded-full mb-6 border border-blue-500/20 group-hover:scale-110 transition-transform duration-500">
-                    <svg className="w-12 h-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="bg-red-600/10 p-6 rounded-full mb-6 border border-red-500/20 group-hover:scale-110 transition-transform duration-500">
+                    <svg className="w-12 h-12 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2 tracking-tight">Interactive Content</h3>
                 <p className="text-white/40 text-sm max-w-md mb-8">This project contains content hosted directly on Behance.</p>
-                <a href={src} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold transition-all transform hover:scale-105">
+                <a href={src} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-500 text-white rounded-full font-bold transition-all transform hover:scale-105">
                     <span>Watch on Behance</span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                 </a>

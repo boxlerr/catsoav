@@ -85,7 +85,7 @@ export default function ProjectsTable({ projects }: ProjectsTableProps) {
                                     type="checkbox"
                                     checked={selectedIds.length === projects.length && projects.length > 0}
                                     onChange={toggleAll}
-                                    className="w-4 h-4 rounded border-white/10 bg-black/20 text-blue-600 focus:ring-blue-600/20 transition-all cursor-pointer"
+                                    className="w-4 h-4 rounded border-white/10 bg-black/20 text-red-600 focus:ring-red-600/20 transition-all cursor-pointer"
                                 />
                             </th>
                             <th className="px-6 py-4 text-xs font-bold text-white/60 uppercase tracking-wider">Título</th>
@@ -105,7 +105,7 @@ export default function ProjectsTable({ projects }: ProjectsTableProps) {
                             projects.map((project) => (
                                 <tr
                                     key={project.id}
-                                    className={`transition-colors cursor-pointer ${selectedIds.includes(project.id) ? 'bg-blue-600/5 hover:bg-blue-600/10' : 'hover:bg-white/5'}`}
+                                    className={`transition-colors cursor-pointer ${selectedIds.includes(project.id) ? 'bg-red-600/5 hover:bg-red-600/10' : 'hover:bg-white/5'}`}
                                     onClick={() => toggleProject(project.id)}
                                 >
                                     <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
