@@ -222,11 +222,13 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
                         if (thumbnailUrl && thumbnailUrl.includes('maxresdefault')) {
                             setThumbnailUrl(thumbnailUrl.replace('maxresdefault', 'hqdefault'))
                         } else {
-                            // If it's a known YouTube/Vimeo URL, don't try to play it as a direct video
+                            // If it's a known YouTube/Vimeo/Adobe/Behance URL, don't try to play it as a direct video
                             const ytId = getYouTubeId(videoUrl)
                             const vimeoId = getVimeoId(videoUrl)
+                            const isAdobe = videoUrl.includes('adobe.io/v1/player/ccv/')
+                            const isBehance = videoUrl.includes('behance.net/gallery')
 
-                            if (ytId || vimeoId) {
+                            if (ytId || vimeoId || isAdobe || isBehance) {
                                 // Keep it as an image, but maybe set to a placeholder if even hqdefault failed
                                 setThumbnailUrl('/placeholder-project.jpg')
                             } else {
