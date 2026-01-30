@@ -1,7 +1,8 @@
 import type React from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Faustina, Chivo } from "next/font/google";
 import "./globals.css";
+import { Providers } from "./providers";
 
 const faustina = Faustina({
   subsets: ["latin"],
@@ -18,6 +19,7 @@ const chivo = Chivo({
 export const metadata: Metadata = {
   title:
     "CATSO AV - Productora de Video Profesional | Videoclips, Fotografía y Contenido Digital",
+  metadataBase: new URL("https://catsoav.com"),
   description:
     "CATSO AV es una productora de video profesional especializada en videoclips musicales, fotografía de productos, contenido para redes sociales, aftermovies de discotecas y DJ sets. Servicios audiovisuales de alta calidad.",
   keywords: [
@@ -70,15 +72,28 @@ export const metadata: Metadata = {
       "Servicios audiovisuales profesionales: videoclips, fotografía, contenido digital y más.",
     images: ["/og-image.jpg"],
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-  },
   verification: {
     google: "your-google-verification-code",
   },
   category: "business",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/catsoav.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/catsoav.png",
+  },
+  alternates: {
+    canonical: "https://catsoav.com",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: "#dc2626",
 };
 
 export default function RootLayout({
@@ -87,11 +102,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className={`${faustina.variable} ${chivo.variable}`}>
-      <head>
-        {/* Site Name para Google */}
-        <meta property="og:site_name" content="CATSO AV" />
-
+    <html lang="es" className={`${faustina.variable} ${chivo.variable}`} suppressHydrationWarning>
+      <body className="antialiased font-sans" suppressHydrationWarning={true}>
         {/* Schema WebSite */}
         <script
           type="application/ld+json"
@@ -135,14 +147,22 @@ export default function RootLayout({
             }),
           }}
         />
+        <Providers>
+          {children}
+        </Providers>
 
-        {/* Meta básicos */}
-        <link rel="canonical" href="https://catsoav.com" />
-        <meta name="theme-color" content="#dc2626" />
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-      </head>
-      <body className="antialiased font-sans">{children}</body>
+        {/* Global SVG Filters */}
+        <svg style={{ width: 0, height: 0, position: 'absolute', pointerEvents: 'none' }} aria-hidden="true">
+          <defs>
+            <filter id="burning-paper" x="-20%" y="-20%" width="140%" height="140%">
+              <feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" result="noise" seed="1">
+                <animate attributeName="seed" from="1" to="100" dur="0.8s" repeatCount="indefinite" />
+              </feTurbulence>
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="35" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+          </defs>
+        </svg>
+      </body>
     </html>
   );
 }
