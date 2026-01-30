@@ -32,13 +32,13 @@ import { CategoryDroppable } from "@/components/CategoryDroppable"
 import { SortableItem } from "@/components/SortableItem"
 // Dynamic imports for heavy sections
 const Manifesto = dynamic(() => import("@/components/Manifesto"), { ssr: true })
-const Workflow = dynamic(() => import("@/components/Workflow"), { ssr: true })
+
 const ServicesList = dynamic(() => import("@/components/ServicesList"), { ssr: true })
 const Crew = dynamic(() => import("@/components/Crew"), { ssr: true })
 const Clients = dynamic(() => import("@/components/Clients"), { ssr: true })
 
 const MemoizedManifesto = memo(Manifesto)
-const MemoizedWorkflow = memo(Workflow)
+
 const MemoizedServicesList = memo(ServicesList)
 // const MemoizedCrew = memo(Crew)
 // const MemoizedClients = memo(Clients)
@@ -94,6 +94,7 @@ function HomeContent() {
   const [categories, setCategories] = useState<Category[]>([])
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isSorting, setIsSorting] = useState(false)
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     setMounted(true)
@@ -403,9 +404,7 @@ function HomeContent() {
                 <a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider">
                   Servicios
                 </a>
-                <a href="#" onClick={(e) => scrollToSection(e, "process")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider">
-                  Proceso
-                </a>
+
                 {categories.filter(cat => (session as ExtendedSession)?.user?.role === "admin" || (projectsByCategory[cat.name]?.length || 0) > 0).map((category) => (
                   <a
                     key={category.id}
@@ -516,14 +515,7 @@ function HomeContent() {
                     <span>Servicios</span>
                     <span className="h-0.5 w-0 bg-red-600 transition-all duration-300 group-hover:w-8" />
                   </a>
-                  <a
-                    href="#"
-                    onClick={(e) => { scrollToSection(e, "process"); setIsMobileMenuOpen(false); }}
-                    className="text-2xl font-serif font-bold text-white hover:text-red-600 transition-colors flex items-center justify-between group"
-                  >
-                    <span>Proceso</span>
-                    <span className="h-0.5 w-0 bg-red-600 transition-all duration-300 group-hover:w-8" />
-                  </a>
+
 
                   <div className="my-4 h-px bg-white/5" />
                   <p className="text-[10px] uppercase tracking-[0.3em] font-black text-white/20 mb-4">Categorías</p>
@@ -639,7 +631,7 @@ function HomeContent() {
 
         <MemoizedManifesto />
         <MemoizedServicesList />
-        <MemoizedWorkflow />
+
 
         <div className="w-full bg-black relative z-20">
           <div className="max-w-7xl mx-auto px-6 pb-20">
@@ -654,6 +646,12 @@ function HomeContent() {
                 {categories.map((category) => {
                   const catProjects = projectsByCategory[category.name] || []
                   if ((session as ExtendedSession)?.user?.role !== "admin" && catProjects.length === 0) return null;
+
+                  // Unified logic: Everyone sees 3 items initially, unless expanded
+                  const isExpanded = expandedCategories.has(category.name)
+                  const visibleProjects = isExpanded
+                    ? catProjects
+                    : catProjects.slice(0, 3)
 
                   return (
                     <CategoryDroppable
@@ -670,13 +668,13 @@ function HomeContent() {
                       </div>
 
                       <SortableContext
-                        items={catProjects.map(p => p.id)}
+                        items={visibleProjects.map(p => p.id)}
                         strategy={rectSortingStrategy}
                         disabled={session?.user?.role !== "admin"}
                       >
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                          {catProjects.length > 0 ? (
-                            catProjects.map((project) => (
+                          {visibleProjects.length > 0 ? (
+                            visibleProjects.map((project) => (
                               <SortableItem key={project.id} id={project.id} disabled={session?.user?.role !== "admin"}>
                                 <Link
                                   href={`/project/${project.id}`}
@@ -771,6 +769,28 @@ function HomeContent() {
                           )}
                         </div>
                       </SortableContext>
+
+                      {((catProjects.length > 3) || isExpanded) && (
+                        <div className="flex justify-center mt-12">
+                          <button
+                            onClick={() => setExpandedCategories(prev => {
+                              const next = new Set(prev)
+                              if (isExpanded) {
+                                next.delete(category.name)
+                              } else {
+                                next.add(category.name)
+                              }
+                              return next
+                            })}
+                            className="group flex flex-col items-center gap-4 py-4"
+                          >
+                            <span className="text-xs font-serif text-white/50 tracking-[0.3em] uppercase group-hover:text-white transition-colors duration-500">
+                              {isExpanded ? "Ver Menos" : "Ver Más"}
+                            </span>
+                            <div className={`w-px bg-gradient-to-b from-white/20 to-transparent transition-all duration-500 ${isExpanded ? "h-12 from-red-600 to-red-600/20 group-hover:h-8 group-hover:from-white/20" : "h-8 group-hover:h-12 group-hover:from-red-600 group-hover:to-red-600/20"}`} />
+                          </button>
+                        </div>
+                      )}
                     </CategoryDroppable>
                   )
                 })}
