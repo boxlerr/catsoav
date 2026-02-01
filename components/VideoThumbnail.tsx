@@ -57,7 +57,7 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
         }
 
         const ytId = getYouTubeId(videoUrl)
-        if (ytId) {
+        if (ytId && !imageUrl) { // Only force YouTube thumbnail if we didn't have one
             setThumbnailUrl(`https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`)
             setIsVideo(false)
             return

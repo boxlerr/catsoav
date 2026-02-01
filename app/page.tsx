@@ -1,9 +1,9 @@
 "use client"
 
 import Script from "next/script"
-import { useEffect, useState, memo, useMemo } from "react"
+import { useEffect, useState, memo, useMemo, useRef } from "react"
 import dynamic from "next/dynamic"
-import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent } from "framer-motion"
+import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent, useInView } from "framer-motion"
 import { SessionProvider, useSession, signOut } from "next-auth/react"
 import Link from "next/link"
 import Image from "next/image"
@@ -78,6 +78,188 @@ interface Category {
 // import { getYouTubeId, getVimeoId, isDirectVideo as checkIsDirectVideo } from "@/lib/video-utils"
 
 
+
+interface CategorySectionProps {
+  category: Category;
+  catProjects: Project[];
+  isExpanded: boolean;
+  setExpandedCategories: React.Dispatch<React.SetStateAction<Set<string>>>;
+  session: any;
+  isSorting: boolean;
+  toggleVisibility: (e: React.MouseEvent, project: Project) => Promise<void>;
+  handleDelete: (e: React.MouseEvent, id: string) => Promise<void>;
+}
+
+const CategorySection = memo(({
+  category,
+  catProjects,
+  isExpanded,
+  setExpandedCategories,
+  session,
+  isSorting,
+  toggleVisibility,
+  handleDelete
+}: CategorySectionProps) => {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(sectionRef, { amount: 0 }); // 0 means even 1px visible is "in view"
+
+  useEffect(() => {
+    // If it's expanded but no longer in view, collapse it
+    if (!isInView && isExpanded) {
+      setExpandedCategories(prev => {
+        const next = new Set(prev);
+        if (next.has(category.name)) {
+          next.delete(category.name);
+          return next;
+        }
+        return prev;
+      });
+    }
+  }, [isInView, isExpanded, category.name, setExpandedCategories]);
+
+  const visibleProjects = isExpanded
+    ? catProjects
+    : catProjects.slice(0, 3);
+
+  return (
+    <div ref={sectionRef}>
+      <CategoryDroppable
+        id={category.name}
+        className="min-h-[80vh] flex flex-col justify-center py-20 border-t border-neutral-900 first:border-none"
+      >
+        <div className="mb-12 md:mb-16">
+          <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">
+            {category.title}
+            <span className="text-red-600">.</span>
+          </h2>
+          <p className="text-white/60 text-lg md:text-xl font-light max-w-xl">{category.description}</p>
+        </div>
+
+        <SortableContext
+          items={visibleProjects.map(p => p.id)}
+          strategy={rectSortingStrategy}
+          disabled={session?.user?.role !== "admin"}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {visibleProjects.length > 0 ? (
+              visibleProjects.map((project) => (
+                <SortableItem key={project.id} id={project.id} disabled={session?.user?.role !== "admin"}>
+                  <Link
+                    href={`/project/${project.id}`}
+                    onClick={(e) => {
+                      if (isSorting) {
+                        e.preventDefault()
+                        return
+                      }
+                    }}
+                    className={`hover-burn group relative block aspect-video bg-neutral-900/50 border border-white/5 lg:hover:border-red-600/50 transition-all duration-500 lg:hover:shadow-2xl lg:hover:shadow-red-900/20 w-full h-full cursor-pointer ${!project.published ? "opacity-40 grayscale" : ""}`}
+                  >
+                    <div className="absolute inset-0 overflow-hidden rounded-[inherit] z-0">
+                      {session?.user?.role === "admin" && (
+                        <div
+                          onClick={(e) => toggleVisibility(e, project)}
+                          className="absolute top-3 left-3 z-40 flex items-center gap-2 group/switch cursor-pointer"
+                        >
+                          <div className={`w-9 h-5 rounded-full relative transition-colors duration-500 backdrop-blur-md border border-white/20 flex items-center px-1 ${project.published ? "bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.3)]" : "bg-black/60"}`}>
+                            <motion.div
+                              animate={{ x: project.published ? 16 : 0 }}
+                              transition={{ type: "spring", stiffness: 600, damping: 35 }}
+                              className="w-3 h-3 bg-white rounded-full shadow-md"
+                            />
+                          </div>
+                          <span className={`text-[8px] uppercase font-black tracking-widest transition-opacity duration-300 ${project.published ? "text-white opacity-0 group-hover/switch:opacity-100" : "text-white/40"}`}>
+                            {project.published ? "On" : "Off"}
+                          </span>
+                        </div>
+                      )}
+                      {session?.user?.role === "admin" && (
+                        <div className="absolute top-2 right-2 z-30 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              e.preventDefault()
+                              window.dispatchEvent(new CustomEvent('editProject', { detail: project }))
+                            }}
+                            className="bg-black/60 hover:bg-white text-white/40 hover:text-black p-1.5 rounded-md transition-all duration-300"
+                            title="Editar Proyecto"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              e.preventDefault()
+                              handleDelete(e, project.id)
+                            }}
+                            className="bg-black/60 hover:bg-red-600 text-white/40 hover:text-white p-1.5 rounded-md transition-all duration-300"
+                            title="Eliminar Proyecto"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="absolute inset-0 flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
+                        <VideoThumbnail
+                          videoUrl={project.videoUrl || ""}
+                          imageUrl={project.imageUrl}
+                          title={project.title}
+                        />
+                      </div>
+
+                      <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent translate-y-full lg:group-hover:translate-y-0 transition-transform duration-500 z-20">
+                        <p className="text-white font-serif font-bold text-lg mb-0.5 tracking-tight">{project.title}</p>
+                        <p className="text-white/40 text-xs uppercase tracking-[0.2em] font-medium">{project.clientName || 'Producción'}</p>
+                        {session?.user?.role === "admin" && (
+                          <div className="mt-3 pt-3 border-t border-white/10 flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
+                            <span className="text-red-500 text-[9px] uppercase tracking-[0.2em] font-bold">Admin: Drag to Reorder</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                </SortableItem>
+              ))
+            ) : (
+              <div className="col-span-full py-12 text-center text-white/30 border border-white/5 border-dashed rounded-lg">
+                No hay proyectos en esta categoría. {session?.user?.role === "admin" && "Usa el botón + para agregar uno."}
+              </div>
+            )}
+          </div>
+        </SortableContext>
+
+        {(catProjects.length > 3 || isExpanded) && (
+          <div className="flex justify-center mt-12">
+            <button
+              onClick={() => setExpandedCategories(prev => {
+                const next = new Set(prev)
+                if (isExpanded) {
+                  next.delete(category.name)
+                } else {
+                  next.add(category.name)
+                }
+                return next
+              })}
+              className="group flex flex-col items-center gap-4 py-4"
+            >
+              <span className="text-xs font-serif text-white/50 tracking-[0.3em] uppercase group-hover:text-white transition-colors duration-500">
+                {isExpanded ? "Ver Menos" : "Ver Más"}
+              </span>
+              <div className={`w-px bg-gradient-to-b from-white/20 to-transparent transition-all duration-500 ${isExpanded ? "h-12 from-red-600 to-red-600/20 group-hover:h-8 group-hover:from-white/20" : "h-8 group-hover:h-12 group-hover:from-red-600 group-hover:to-red-600/20"}`} />
+            </button>
+          </div>
+        )}
+      </CategoryDroppable>
+    </div>
+  );
+});
+
+CategorySection.displayName = 'CategorySection';
 
 export default function Home() {
   return (
@@ -631,7 +813,6 @@ function HomeContent() {
         </section>
 
         <MemoizedManifesto />
-        <MemoizedServicesList />
 
 
         <div className="w-full bg-black relative z-20">
@@ -648,151 +829,18 @@ function HomeContent() {
                   const catProjects = projectsByCategory[category.name] || []
                   if ((session as ExtendedSession)?.user?.role !== "admin" && catProjects.length === 0) return null;
 
-                  // Unified logic: Everyone sees 3 items initially, unless expanded
-                  const isExpanded = expandedCategories.has(category.name)
-                  const visibleProjects = isExpanded
-                    ? catProjects
-                    : catProjects.slice(0, 3)
-
                   return (
-                    <CategoryDroppable
+                    <CategorySection
                       key={category.id}
-                      id={category.name}
-                      className="min-h-[80vh] flex flex-col justify-center py-20 border-t border-neutral-900 first:border-none"
-                    >
-                      <div className="mb-12 md:mb-16">
-                        <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">
-                          {category.title}
-                          <span className="text-red-600">.</span>
-                        </h2>
-                        <p className="text-white/60 text-lg md:text-xl font-light max-w-xl">{category.description}</p>
-                      </div>
-
-                      <SortableContext
-                        items={visibleProjects.map(p => p.id)}
-                        strategy={rectSortingStrategy}
-                        disabled={session?.user?.role !== "admin"}
-                      >
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                          {visibleProjects.length > 0 ? (
-                            visibleProjects.map((project) => (
-                              <SortableItem key={project.id} id={project.id} disabled={session?.user?.role !== "admin"}>
-                                <Link
-                                  href={`/project/${project.id}`}
-                                  onClick={(e) => {
-                                    if (isSorting) {
-                                      e.preventDefault()
-                                      return
-                                    }
-                                  }}
-                                  className={`hover-burn group relative block aspect-video bg-neutral-900/50 border border-white/5 lg:hover:border-red-600/50 transition-all duration-500 lg:hover:shadow-2xl lg:hover:shadow-red-900/20 w-full h-full cursor-pointer ${!project.published ? "opacity-40 grayscale" : ""}`}
-                                >
-                                  {/* Media Container (Clipped) */}
-                                  <div className="absolute inset-0 overflow-hidden rounded-[inherit] z-0">
-                                    {/* Animated Visibility Switch (Admin Only) */}
-                                    {session?.user?.role === "admin" && (
-                                      <div
-                                        onClick={(e) => toggleVisibility(e, project)}
-                                        className="absolute top-3 left-3 z-40 flex items-center gap-2 group/switch cursor-pointer"
-                                      >
-                                        <div className={`w-9 h-5 rounded-full relative transition-colors duration-500 backdrop-blur-md border border-white/20 flex items-center px-1 ${project.published ? "bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.3)]" : "bg-black/60"}`}>
-                                          <motion.div
-                                            animate={{ x: project.published ? 16 : 0 }}
-                                            transition={{ type: "spring", stiffness: 600, damping: 35 }}
-                                            className="w-3 h-3 bg-white rounded-full shadow-md"
-                                          />
-                                        </div>
-                                        <span className={`text-[8px] uppercase font-black tracking-widest transition-opacity duration-300 ${project.published ? "text-white opacity-0 group-hover/switch:opacity-100" : "text-white/40"}`}>
-                                          {project.published ? "On" : "Off"}
-                                        </span>
-                                      </div>
-                                    )}
-                                    {/* Deletion & Edit Buttons (Admin Only) */}
-                                    {session?.user?.role === "admin" && (
-                                      <div className="absolute top-2 right-2 z-30 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation()
-                                            e.preventDefault()
-                                            window.dispatchEvent(new CustomEvent('editProject', { detail: project }))
-                                          }}
-                                          className="bg-black/60 hover:bg-white text-white/40 hover:text-black p-1.5 rounded-md transition-all duration-300"
-                                          title="Editar Proyecto"
-                                        >
-                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                          </svg>
-                                        </button>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation()
-                                            e.preventDefault()
-                                            handleDelete(e, project.id)
-                                          }}
-                                          className="bg-black/60 hover:bg-red-600 text-white/40 hover:text-white p-1.5 rounded-md transition-all duration-300"
-                                          title="Eliminar Proyecto"
-                                        >
-                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                          </svg>
-                                        </button>
-                                      </div>
-                                    )}
-
-                                    {/* Thumbnail */}
-                                    <div className="absolute inset-0 flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
-                                      <VideoThumbnail
-                                        videoUrl={project.videoUrl || ""}
-                                        imageUrl={project.imageUrl}
-                                        title={project.title}
-                                      />
-                                    </div>
-
-                                    {/* Overlay Info */}
-                                    <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent translate-y-full lg:group-hover:translate-y-0 transition-transform duration-500 z-20">
-                                      <p className="text-white font-serif font-bold text-lg mb-0.5 tracking-tight">{project.title}</p>
-                                      <p className="text-white/40 text-xs uppercase tracking-[0.2em] font-medium">{project.clientName || 'Producción'}</p>
-                                      {session?.user?.role === "admin" && (
-                                        <div className="mt-3 pt-3 border-t border-white/10 flex items-center gap-2">
-                                          <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
-                                          <span className="text-red-500 text-[9px] uppercase tracking-[0.2em] font-bold">Admin: Drag to Reorder</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </Link>
-                              </SortableItem>
-                            ))
-                          ) : (
-                            <div className="col-span-full py-12 text-center text-white/30 border border-white/5 border-dashed rounded-lg">
-                              No hay proyectos en esta categoría. {session?.user?.role === "admin" && "Usa el botón + para agregar uno."}
-                            </div>
-                          )}
-                        </div>
-                      </SortableContext>
-
-                      {((catProjects.length > 3) || isExpanded) && (
-                        <div className="flex justify-center mt-12">
-                          <button
-                            onClick={() => setExpandedCategories(prev => {
-                              const next = new Set(prev)
-                              if (isExpanded) {
-                                next.delete(category.name)
-                              } else {
-                                next.add(category.name)
-                              }
-                              return next
-                            })}
-                            className="group flex flex-col items-center gap-4 py-4"
-                          >
-                            <span className="text-xs font-serif text-white/50 tracking-[0.3em] uppercase group-hover:text-white transition-colors duration-500">
-                              {isExpanded ? "Ver Menos" : "Ver Más"}
-                            </span>
-                            <div className={`w-px bg-gradient-to-b from-white/20 to-transparent transition-all duration-500 ${isExpanded ? "h-12 from-red-600 to-red-600/20 group-hover:h-8 group-hover:from-white/20" : "h-8 group-hover:h-12 group-hover:from-red-600 group-hover:to-red-600/20"}`} />
-                          </button>
-                        </div>
-                      )}
-                    </CategoryDroppable>
+                      category={category}
+                      catProjects={catProjects}
+                      isExpanded={expandedCategories.has(category.name)}
+                      setExpandedCategories={setExpandedCategories}
+                      session={session}
+                      isSorting={isSorting}
+                      toggleVisibility={toggleVisibility}
+                      handleDelete={handleDelete}
+                    />
                   )
                 })}
               </DndContext>
@@ -809,6 +857,8 @@ function HomeContent() {
               ))
             )}
           </div>
+
+          <MemoizedServicesList />
 
           {/* <Clients />
           <Crew /> */}
