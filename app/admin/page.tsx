@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import SyncBehanceButton from "@/components/admin/SyncBehanceButton"
 import NewProjectButton from "@/components/admin/NewProjectButton"
-import ProjectsTable from "@/components/admin/ProjectsTable"
+import AdminContent from "@/components/admin/AdminContent"
 
 async function getAdminData() {
     const session = await getServerSession(authOptions)
@@ -16,13 +16,16 @@ async function getAdminData() {
     const [
         projectsCount,
         usersCount,
-        projects
+        projects,
+        categories
     ] = await Promise.all([
         prisma.project.count(),
         prisma.user.count(),
         prisma.project.findMany({
-            orderBy: { createdAt: 'desc' },
-            take: 50
+            orderBy: [{ category: 'asc' }, { order: 'asc' }]
+        }),
+        prisma.category.findMany({
+            orderBy: { order: 'asc' }
         })
     ])
 
@@ -33,24 +36,23 @@ async function getAdminData() {
         updatedAt: p.updatedAt.toISOString()
     }))
 
-    // Count unique categories
-    const categories = await prisma.project.groupBy({
-        by: ['category'],
-        _count: {
-            category: true
-        }
-    })
+    const serializedCategories = categories.map(c => ({
+        ...c,
+        createdAt: c.createdAt.toISOString(),
+        updatedAt: c.updatedAt.toISOString()
+    }))
 
     return {
         projectsCount,
         categoriesCount: categories.length,
         usersCount,
-        projects: serializedProjects
+        projects: serializedProjects,
+        categories: serializedCategories
     }
 }
 
 export default async function AdminDashboard() {
-    const { projectsCount, categoriesCount, usersCount, projects } = await getAdminData()
+    const { projectsCount, categoriesCount, usersCount, projects, categories } = await getAdminData()
 
     return (
         <div>
@@ -80,14 +82,14 @@ export default async function AdminDashboard() {
             </div>
 
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">Proyectos Recientes</h2>
+                <h2 className="text-2xl font-bold">Gestión de Contenido</h2>
                 <div className="flex items-center gap-4">
                     <SyncBehanceButton />
                     <NewProjectButton />
                 </div>
             </div>
 
-            <ProjectsTable projects={projects} />
+            <AdminContent initialProjects={projects} initialCategories={categories} />
         </div>
     )
 }

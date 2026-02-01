@@ -18,14 +18,21 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragOverEvent,
+  DragStartEvent,
   closestCorners
 } from '@dnd-kit/core'
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  rectSortingStrategy
+  rectSortingStrategy,
+  verticalListSortingStrategy,
+  useSortable
 } from '@dnd-kit/sortable'
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
+import { CSS } from "@dnd-kit/utilities"
+import { useRouter } from "next/navigation"
 import VideoThumbnail from "@/components/VideoThumbnail"
 // import CatsoVideoPlayer from "@/components/CatsoVideoPlayer"
 import { CategoryDroppable } from "@/components/CategoryDroppable"
@@ -103,6 +110,24 @@ const CategorySection = memo(({
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { amount: 0 }); // 0 means even 1px visible is "in view"
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({
+    id: category.id,
+    disabled: session?.user?.role !== "admin"
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   useEffect(() => {
     // If it's expanded but no longer in view, collapse it
     if (!isInView && isExpanded) {
@@ -122,17 +147,33 @@ const CategorySection = memo(({
     : catProjects.slice(0, 3);
 
   return (
-    <div ref={sectionRef}>
+    <div ref={setNodeRef} style={style}>
       <CategoryDroppable
         id={category.name}
         className="min-h-[80vh] flex flex-col justify-center py-20 border-t border-neutral-900 first:border-none"
       >
-        <div className="mb-12 md:mb-16">
-          <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">
-            {category.title}
-            <span className="text-red-600">.</span>
-          </h2>
-          <p className="text-white/60 text-lg md:text-xl font-light max-w-xl">{category.description}</p>
+        <div className="mb-12 md:mb-16 flex items-start justify-between">
+          <div
+            className={session?.user?.role === "admin" ? "cursor-move" : ""}
+            {...(session?.user?.role === "admin" ? { ...attributes, ...listeners } : {})}
+          >
+            <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">
+              {category.title}
+              <span className="text-red-600">.</span>
+            </h2>
+            <p className="text-white/60 text-lg md:text-xl font-light max-w-xl">{category.description}</p>
+          </div>
+
+          {session?.user?.role === "admin" && (
+            <div className="flex gap-4">
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent('newProject', { detail: { category: category.name } }))}
+                className="bg-white/5 hover:bg-white text-white hover:text-black px-4 py-2 rounded-full text-[10px] uppercase font-bold tracking-widest transition-all"
+              >
+                + Nuevo Proyecto
+              </button>
+            </div>
+          )}
         </div>
 
         <SortableContext
@@ -369,17 +410,24 @@ function HomeContent() {
   }, [projects, categories])
 
   // DnD Sensors
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const [activeType, setActiveType] = useState<'category' | 'project' | null>(null)
+  const router = useRouter()
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
 
-  const handleDragStart = () => {
+  const handleDragStart = (event: DragStartEvent) => {
     setIsSorting(true)
+    const { active } = event
+    setActiveId(active.id.toString())
+    const isCategory = categories.some(c => c.id === active.id)
+    setActiveType(isCategory ? 'category' : 'project')
   }
 
-  const handleDragOver = (event: { active: { id: string | number }; over: { id: string | number } | null }) => {
+  const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event
     if (!over || active.id === over.id) return
     if (session?.user?.role !== "admin") return
@@ -387,98 +435,120 @@ function HomeContent() {
     const activeId = active.id.toString()
     const overId = over.id.toString()
 
-    setProjects((prev) => {
-      const activeProject = prev.find((p) => p.id === activeId)
-      if (!activeProject) return prev
+    const isActiveProject = projects.some(p => p.id === activeId)
+    const isActiveCategory = categories.some(c => c.id === activeId)
+    const isOverProject = projects.some(p => p.id === overId)
+    const isOverCategory = categories.some(c => c.id === overId || c.name === overId)
 
-      // Find if we are over a project or a category section
-      const overProject = prev.find((p) => p.id === overId)
-      const isOverCategory = categories.some((c) => c.name === overId)
+    if (isActiveProject) {
+      setProjects((prev) => {
+        const activeProject = prev.find((p) => p.id === activeId)
+        if (!activeProject) return prev
 
-      if (overProject) {
-        // Dragging over another project
-        if (activeProject.category !== overProject.category) {
-          const activeIndex = prev.findIndex((p) => p.id === activeId)
-          const overIndex = prev.findIndex((p) => p.id === overId)
-          const newProjects = [...prev]
-          newProjects[activeIndex] = {
-            ...newProjects[activeIndex],
-            category: overProject.category
+        const overProject = prev.find((p) => p.id === overId)
+        const overCategory = categories.find((c) => c.id === overId || c.name === overId)
+
+        if (overProject) {
+          if (activeProject.category !== overProject.category) {
+            const activeIndex = prev.findIndex((p) => p.id === activeId)
+            const overIndex = prev.findIndex((p) => p.id === overId)
+            const newProjects = [...prev]
+            newProjects[activeIndex] = { ...newProjects[activeIndex], category: overProject.category }
+            return arrayMove(newProjects, activeIndex, overIndex)
           }
-          return arrayMove(newProjects, activeIndex, overIndex)
-        }
-      } else if (isOverCategory) {
-        // Dragging over an empty category section
-        if (activeProject.category !== overId) {
-          const activeIndex = prev.findIndex((p) => p.id === activeId)
-          const newProjects = [...prev]
-          newProjects[activeIndex] = {
-            ...newProjects[activeIndex],
-            category: overId
+        } else if (overCategory) {
+          if (activeProject.category !== overCategory.name) {
+            const activeIndex = prev.findIndex((p) => p.id === activeId)
+            const newProjects = [...prev]
+            newProjects[activeIndex] = { ...newProjects[activeIndex], category: overCategory.name }
+            return newProjects
           }
-          return newProjects
         }
+        return prev
+      })
+    } else if (isActiveCategory) {
+      // If it's a category, we might be over a project. If so, find that project's category.
+      let actualOverId = overId;
+      if (isOverProject) {
+        const overProj = projects.find(p => p.id === overId)!
+        const parentCat = categories.find(c => c.name === overProj.category)
+        if (parentCat) actualOverId = parentCat.id
       }
 
-      return prev
-    })
+      if (activeId !== actualOverId) {
+        const oldIndex = categories.findIndex(c => c.id === activeId)
+        const newIndex = categories.findIndex(c => c.id === actualOverId)
+        if (oldIndex !== -1 && newIndex !== -1) {
+          setCategories(prev => arrayMove(prev, oldIndex, newIndex))
+        }
+      }
+    }
   }
 
-  const handleDragEnd = async (event: { active: { id: string | number }; over: { id: string | number } | null }) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
+    setIsSorting(false)
+    setActiveId(null)
+    setActiveType(null)
 
     if (session?.user?.role !== "admin" || !over) return
 
     const activeId = active.id.toString()
     const overId = over.id.toString()
 
-    setProjects((prev) => {
-      const activeProject = prev.find(p => p.id === activeId)
-      const overProject = prev.find(p => p.id === overId)
-      const isOverCategory = categories.some((c) => c.name === overId)
+    const isActiveCategory = categories.some(c => c.id === activeId)
+    const isOverProject = projects.some(p => p.id === overId)
 
-      if (!activeProject) return prev
-
-      const activeIndex = prev.findIndex((p) => p.id === activeId)
-      let overIndex = prev.findIndex((p) => p.id === overId)
-
-      // If dropped over a category section, move to the end of that category
-      if (overIndex === -1 && isOverCategory) {
-        overIndex = prev.length - 1
-      }
-
-      if (overIndex === -1) return prev
-
-      let reordered = [...prev]
-      if (activeIndex !== overIndex) {
-        reordered = arrayMove(reordered, activeIndex, overIndex)
-      }
-
-      // Sync local order property
-      const finalProjects = reordered.map((p, index) => ({
-        ...p,
+    if (isActiveCategory) {
+      const reorderItems = categories.map((cat, index) => ({
+        id: cat.id,
         order: index
       }))
 
-      // Persist to DB
-      const updates = finalProjects.map((p) => ({
-        id: p.id,
-        order: p.order,
-        category: p.category
-      }))
+      await fetch("/api/categories/reorder", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: reorderItems })
+      })
+    } else {
+      const activeProj = projects.find(p => p.id === activeId)
+      if (!activeProj) return
 
-      fetch('/api/projects/reorder', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: updates })
-      }).catch(err => {
-        console.error("Error updating order:", err)
-        fetchProjects() // Revert on error
+      const overProj = projects.find(p => p.id === overId)
+      const overCat = categories.find(c => c.id === overId || c.name === overId)
+
+      let newCategory = activeProj.category
+      if (overProj) newCategory = overProj.category
+      else if (overCat) newCategory = overCat.name
+
+      const oldIndex = projects.findIndex(p => p.id === activeId)
+      let newIndex = projects.findIndex(p => p.id === overId)
+      if (newIndex === -1 && overCat) {
+        newIndex = projects.length - 1
+      }
+
+      const updatedProjects = [...projects]
+      updatedProjects[oldIndex] = { ...activeProj, category: newCategory }
+      const finalProjects = newIndex !== -1
+        ? arrayMove(updatedProjects, oldIndex, newIndex)
+        : updatedProjects
+
+      setProjects(finalProjects)
+
+      const projectsToSync: { id: string, order: number, category: string }[] = []
+      const counts: Record<string, number> = {}
+      finalProjects.forEach(p => {
+        if (!counts[p.category]) counts[p.category] = 0
+        projectsToSync.push({ id: p.id, order: counts[p.category], category: p.category })
+        counts[p.category]++
       })
 
-      setTimeout(() => setIsSorting(false), 100)
-      return finalProjects
-    })
+      await fetch("/api/projects/reorder", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: projectsToSync })
+      })
+    }
   }
 
   // Scroll hooks for Hero Fade
@@ -820,29 +890,38 @@ function HomeContent() {
             {mounted ? (
               <DndContext
                 sensors={sensors}
-                collisionDetection={closestCorners}
+                collisionDetection={closestCenter}
                 onDragStart={handleDragStart}
                 onDragOver={handleDragOver}
                 onDragEnd={handleDragEnd}
+                modifiers={activeType === 'category' ? [restrictToVerticalAxis] : []}
               >
-                {categories.map((category) => {
-                  const catProjects = projectsByCategory[category.name] || []
-                  if ((session as ExtendedSession)?.user?.role !== "admin" && catProjects.length === 0) return null;
+                <SortableContext
+                  items={categories.map(c => c.id)}
+                  strategy={verticalListSortingStrategy}
+                  disabled={session?.user?.role !== "admin"}
+                >
+                  <div className="flex flex-col">
+                    {categories.map((category) => {
+                      const catProjects = projectsByCategory[category.name] || []
+                      if ((session as ExtendedSession)?.user?.role !== "admin" && catProjects.length === 0) return null;
 
-                  return (
-                    <CategorySection
-                      key={category.id}
-                      category={category}
-                      catProjects={catProjects}
-                      isExpanded={expandedCategories.has(category.name)}
-                      setExpandedCategories={setExpandedCategories}
-                      session={session}
-                      isSorting={isSorting}
-                      toggleVisibility={toggleVisibility}
-                      handleDelete={handleDelete}
-                    />
-                  )
-                })}
+                      return (
+                        <CategorySection
+                          key={category.id}
+                          category={category}
+                          catProjects={catProjects}
+                          isExpanded={expandedCategories.has(category.name)}
+                          setExpandedCategories={setExpandedCategories}
+                          session={session}
+                          isSorting={isSorting}
+                          toggleVisibility={toggleVisibility}
+                          handleDelete={handleDelete}
+                        />
+                      )
+                    })}
+                  </div>
+                </SortableContext>
               </DndContext>
             ) : (
               /* SSR Hydration Match -> Render static list without DnD for initial paint */
