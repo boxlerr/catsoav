@@ -15,6 +15,7 @@ import {
     DragOverEvent,
     DragOverlay,
     defaultDropAnimationSideEffects,
+    closestCenter,
 } from '@dnd-kit/core'
 import {
     arrayMove,
@@ -24,6 +25,7 @@ import {
     useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 
 interface Category {
     id: string
@@ -33,48 +35,29 @@ interface Category {
     order: number
 }
 
-const SortableCategoryItem = memo(function SortableCategoryItem({ category, isOverlay = false }: { category: Category, isOverlay?: boolean }) {
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({
-        id: category.id,
-        disabled: isOverlay
-    })
+interface CategoryCardProps {
+    category: Category
+    isDragging?: boolean
+    isOverlay?: boolean
+}
 
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.3 : 1,
-        position: 'relative' as const,
-        zIndex: isDragging ? 50 : 1,
-        touchAction: 'none' as const,
-    }
-
+function CategoryCard({ category, isDragging, isOverlay }: CategoryCardProps) {
     return (
         <div
-            ref={setNodeRef}
-            style={style}
-            {...attributes}
-            {...listeners}
-            className={`bg-neutral-900 border border-white/10 rounded-xl p-6 transition-all select-none ${isOverlay
-                    ? 'shadow-2xl shadow-red-900/40 border-red-600/50 scale-105 bg-neutral-800 cursor-grabbing'
-                    : isDragging
-                        ? 'opacity-30'
-                        : 'hover:border-red-600/30 cursor-grab hover:bg-white/5'
+            className={`bg-neutral-900 border rounded-xl p-6 select-none w-full transition-[border-color,background-color,shadow,opacity,transform] duration-300 ${isOverlay
+                ? 'shadow-2xl shadow-red-600/40 border-red-600 bg-neutral-800 ring-2 ring-red-600/20 scale-[1.02]'
+                : isDragging
+                    ? 'opacity-0 border-white/5' // Make original invisible while dragging
+                    : 'border-white/10 hover:border-red-600/40 hover:bg-neutral-800/50'
                 }`}
         >
             <div className="flex items-center gap-6">
                 {/* Order Number */}
                 <div className={`flex-shrink-0 w-12 h-12 rounded-full border flex items-center justify-center transition-colors ${isOverlay || isDragging
-                        ? 'bg-red-600 border-red-500'
-                        : 'bg-red-600/10 border-red-600/20'
+                    ? 'bg-red-600 border-red-500'
+                    : 'bg-red-600/10 border-red-600/20'
                     }`}>
-                    <span className={`font-black text-lg transition-colors ${isOverlay || isDragging ? 'text-white' : 'text-red-500'
+                    <span className={`font-black text-lg ${isOverlay || isDragging ? 'text-white' : 'text-red-500'
                         }`}>
                         {String(category.order + 1).padStart(2, '0')}
                     </span>
@@ -89,35 +72,84 @@ const SortableCategoryItem = memo(function SortableCategoryItem({ category, isOv
                     )}
                 </div>
 
-                {/* Actions */}
-                {!isOverlay && (
-                    <div className="flex items-center gap-2 flex-shrink-0 z-10" onClick={(e) => e.stopPropagation()}>
-                        <button
-                            className="p-3 text-white/40 hover:text-white hover:bg-white/5 rounded-lg transition-all"
-                            title="Editar categoría"
-                            onClick={() => {
-                                console.log("Edit category", category.id)
-                            }}
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                            </svg>
-                        </button>
-                        <div className="text-white/20 ml-2">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-                            </svg>
-                        </div>
-                    </div>
-                )}
-                {isOverlay && (
-                    <div className="flex-shrink-0 text-white/40 ml-2">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                {/* Drag Handle & Actions */}
+                <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+                    {!isOverlay && !isDragging && (
+                        <>
+                            <button
+                                className="p-2 md:p-3 bg-white/5 hover:bg-white/10 text-white/40 hover:text-white rounded-lg transition-all border border-white/5 hover:border-red-600/30"
+                                title="Editar"
+                                onPointerDown={(e) => e.stopPropagation()} // Prevent drag start
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    console.log("Edit category", category.id);
+                                    window.dispatchEvent(new CustomEvent('editCategory', { detail: category }));
+                                }}
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                            </button>
+                            <button
+                                className="p-2 md:p-3 bg-white/5 hover:bg-red-600/10 text-white/40 hover:text-red-500 rounded-lg transition-all border border-white/5 hover:border-red-600/30"
+                                title="Eliminar"
+                                onPointerDown={(e) => e.stopPropagation()} // Prevent drag start
+                                onClick={async (e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    if (confirm(`¿Estás seguro de eliminar la categoría "${category.title}"? Todos los proyectos en esta categoría quedarán sin categoría.`)) {
+                                        window.dispatchEvent(new CustomEvent('deleteCategory', { detail: category.id }));
+                                    }
+                                }}
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </>
+                    )}
+                    <div className={`transition-colors ${isOverlay ? 'text-red-500' : 'text-white/20'}`}>
+                        <svg className="w-8 h-8 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 8h16M4 16h16" />
                         </svg>
                     </div>
-                )}
+                </div>
             </div>
+        </div>
+    )
+}
+
+const SortableCategoryItem = memo(function SortableCategoryItem({ category }: { category: Category }) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: category.id })
+
+    const style = {
+        transform: CSS.Translate.toString(transform),
+        transition,
+        zIndex: isDragging ? 10 : 1,
+        position: 'relative' as const,
+        touchAction: 'none' as const,
+    }
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
+            className={`cursor-grab active:cursor-grabbing outline-none`}
+        >
+            <CategoryCard
+                category={category}
+                isDragging={isDragging}
+            />
         </div>
     )
 })
@@ -154,23 +186,25 @@ export default function CategoriesPage() {
     }
 
     const handleDragStart = (event: DragStartEvent) => {
-        const { active } = event
-        setActiveId(active.id as string)
+        setActiveId(event.active.id as string)
     }
 
     const handleDragOver = (event: DragOverEvent) => {
         const { active, over } = event
         if (!over || active.id === over.id) return
 
-        const activeId = active.id.toString()
-        const overId = over.id.toString()
+        const activeIdStr = active.id.toString()
+        const overIdStr = over.id.toString()
 
-        const oldIndex = categories.findIndex((cat) => String(cat.id) === activeId)
-        const newIndex = categories.findIndex((cat) => String(cat.id) === overId)
+        setCategories((prev) => {
+            const oldIndex = prev.findIndex((cat) => String(cat.id) === activeIdStr)
+            const newIndex = prev.findIndex((cat) => String(cat.id) === overIdStr)
 
-        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-            setCategories((prev) => arrayMove(prev, oldIndex, newIndex))
-        }
+            if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                return arrayMove(prev, oldIndex, newIndex)
+            }
+            return prev
+        })
     }
 
     const handleDragEnd = async (event: DragEndEvent) => {
@@ -179,18 +213,38 @@ export default function CategoriesPage() {
 
         if (!over) return
 
-        // Final sync of order numbers
-        const updatedCategories = categories.map((cat, index) => ({
-            ...cat,
-            order: index
-        }))
+        const activeIdStr = active.id.toString()
+        const overIdStr = over.id.toString()
 
-        setCategories(updatedCategories)
+        let updatedCategories: Category[] = []
 
-        // Save to API
+        setCategories((prev) => {
+            const oldIndex = prev.findIndex((cat) => String(cat.id) === activeIdStr)
+            const newIndex = prev.findIndex((cat) => String(cat.id) === overIdStr)
+
+            let reordered = [...prev]
+            if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                reordered = arrayMove(reordered, oldIndex, newIndex)
+            }
+
+            updatedCategories = reordered.map((cat, index) => ({
+                ...cat,
+                order: index
+            }))
+
+            return updatedCategories
+        })
+
+        // Call saveOrder outside the state updater
+        if (updatedCategories.length > 0) {
+            saveOrder(updatedCategories)
+        }
+    }
+
+    const saveOrder = async (items: Category[]) => {
         setIsSaving(true)
         try {
-            const updates = updatedCategories.map((cat) => ({
+            const updates = items.map((cat) => ({
                 id: cat.id,
                 order: cat.order
             }))
@@ -201,9 +255,7 @@ export default function CategoriesPage() {
                 body: JSON.stringify({ items: updates })
             })
 
-            if (!res.ok) {
-                throw new Error('Failed to save order')
-            }
+            if (!res.ok) throw new Error('Failed to save order')
         } catch (error) {
             console.error("Error saving category order:", error)
             fetchCategories()
@@ -213,7 +265,30 @@ export default function CategoriesPage() {
         }
     }
 
-    const activeCategory = activeId ? categories.find(c => c.id === activeId) : null
+    const activeCategory = activeId ? categories.find(c => String(c.id) === String(activeId)) : null
+
+    const handleCategoryDelete = async (id: string) => {
+        setIsSaving(true)
+        try {
+            const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' })
+            if (res.ok) {
+                setCategories(prev => prev.filter(c => c.id !== id))
+            } else {
+                throw new Error('Failed to delete')
+            }
+        } catch (error) {
+            console.error("Error deleting category:", error)
+            alert("Error al eliminar la categoría.")
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
+    useEffect(() => {
+        const onDelete = (e: any) => handleCategoryDelete(e.detail)
+        window.addEventListener('deleteCategory', onDelete)
+        return () => window.removeEventListener('deleteCategory', onDelete)
+    }, [])
 
     if (isLoading) {
         return (
@@ -243,36 +318,34 @@ export default function CategoriesPage() {
                     <p className="text-white/40">No hay categorías creadas aún.</p>
                 </div>
             ) : (
-                <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCorners}
-                    onDragStart={handleDragStart}
-                    onDragOver={handleDragOver}
-                    onDragEnd={handleDragEnd}
-                >
-                    <SortableContext
-                        items={categories.map(cat => cat.id)}
-                        strategy={verticalListSortingStrategy}
+                <div className="relative min-h-[500px]">
+                    <DndContext
+                        id="categories-dnd"
+                        sensors={sensors}
+                        collisionDetection={closestCorners}
+                        onDragStart={handleDragStart}
+                        onDragOver={handleDragOver}
+                        onDragEnd={handleDragEnd}
+                        modifiers={[restrictToVerticalAxis]}
                     >
-                        <div className="space-y-4 relative min-h-[100px]">
-                            {categories.map((category) => (
-                                <SortableCategoryItem key={category.id} category={category} />
-                            ))}
-                        </div>
-                    </SortableContext>
+                        <SortableContext
+                            items={categories.map(cat => cat.id)}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            <div className="space-y-4 relative">
+                                {categories.map((category) => (
+                                    <SortableCategoryItem key={category.id} category={category} />
+                                ))}
+                            </div>
+                        </SortableContext>
 
-                    <DragOverlay dropAnimation={{
-                        sideEffects: defaultDropAnimationSideEffects({
-                            styles: {
-                                active: { opacity: '0.3' },
-                            },
-                        }),
-                    }}>
-                        {activeCategory ? (
-                            <SortableCategoryItem category={activeCategory} isOverlay />
-                        ) : null}
-                    </DragOverlay>
-                </DndContext>
+                        <DragOverlay adjustScale={false}>
+                            {activeCategory ? (
+                                <CategoryCard category={activeCategory} isOverlay />
+                            ) : null}
+                        </DragOverlay>
+                    </DndContext>
+                </div>
             )}
 
             <div className="mt-8 p-6 bg-neutral-900/50 border border-white/5 rounded-xl">
