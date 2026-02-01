@@ -45,6 +45,24 @@ export default function CatsoVideoPlayer({ src, title }: CatsoVideoPlayerProps) 
         return match ? match[1] : null;
     }
 
+    // Debug logging
+    if (typeof window !== 'undefined') {
+        console.log('[CatsoVideoPlayer] Video source:', src);
+        console.log('[CatsoVideoPlayer] Platform detection:', {
+            isYouTube,
+            isVimeo,
+            isAdobeCCV,
+            isBehanceGallery,
+            isVideoFile
+        });
+        if (isAdobeCCV) {
+            const adobeId = getAdobeId(src);
+            const apiKey = process.env.NEXT_PUBLIC_ADOBE_CCV_API_KEY || 'behance1';
+            console.log('[CatsoVideoPlayer] Adobe CCV ID:', adobeId);
+            console.log('[CatsoVideoPlayer] API Key configured:', apiKey ? 'Yes' : 'No');
+        }
+    }
+
     useEffect(() => {
         const video = videoRef.current
         if (!video || !isVideoFile) return

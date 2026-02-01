@@ -102,7 +102,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className={`${faustina.variable} ${chivo.variable}`} suppressHydrationWarning>
+    <html lang="es" className={`${faustina.variable} ${chivo.variable}`} suppressHydrationWarning data-scroll-behavior="smooth">
       <body className="antialiased font-sans" suppressHydrationWarning={true}>
         {/* Schema WebSite */}
         <script

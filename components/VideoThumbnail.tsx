@@ -218,22 +218,31 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     onError={() => {
-                        // If maxres fails, try hqdefault
-                        if (thumbnailUrl && thumbnailUrl.includes('maxresdefault')) {
-                            setThumbnailUrl(thumbnailUrl.replace('maxresdefault', 'hqdefault'))
-                        } else {
-                            // If it's a known YouTube/Vimeo/Adobe/Behance URL, don't try to play it as a direct video
-                            const ytId = getYouTubeId(videoUrl)
-                            const vimeoId = getVimeoId(videoUrl)
-                            const isAdobe = videoUrl.includes('adobe.io/v1/player/ccv/')
-                            const isBehance = videoUrl.includes('behance.net/gallery')
-
-                            if (ytId || vimeoId || isAdobe || isBehance) {
-                                // Keep it as an image, but maybe set to a placeholder if even hqdefault failed
-                                setThumbnailUrl('/placeholder-project.jpg')
-                            } else {
-                                setIsVideo(true) // Fallback to video attempt only for potentially direct files
+                        // Logic to degrade quality if high-res thumbnails are missing
+                        if (thumbnailUrl) {
+                            if (thumbnailUrl.includes('maxresdefault')) {
+                                setThumbnailUrl(thumbnailUrl.replace('maxresdefault', 'hqdefault'))
+                                return
+                            } else if (thumbnailUrl.includes('hqdefault')) {
+                                setThumbnailUrl(thumbnailUrl.replace('hqdefault', 'mqdefault'))
+                                return
                             }
+                        }
+
+                        // Final fallback logic
+                        const ytId = getYouTubeId(videoUrl)
+                        const vimeoId = getVimeoId(videoUrl)
+                        const isAdobe = videoUrl.includes('adobe.io/v1/player/ccv/')
+                        const isBehance = videoUrl.includes('behance.net/gallery')
+
+                        if (ytId || vimeoId || isAdobe || isBehance) {
+                            // Keep it as an image, but set to a placeholder if all qualities failed
+                            // To prevent infinite loop if placeholder also fails, we could use a state flag or check URL
+                            if (thumbnailUrl !== '/placeholder-project.jpg') {
+                                setThumbnailUrl('/placeholder-project.jpg')
+                            }
+                        } else {
+                            setIsVideo(true) // Fallback to video attempt only for potentially direct files
                         }
                     }}
                 />

@@ -320,9 +320,7 @@ body {
 }
 
 /* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
+
 
 /* Premium focus states */
 *:focus-visible {

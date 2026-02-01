@@ -391,7 +391,7 @@ function HomeContent() {
             />
             <div className="relative w-full px-6 md:px-10 flex items-center justify-between">
               <a href="#" onClick={(e) => scrollToSection(e, "top")} className="group flex-shrink-0">
-                <Image src="/logo-white.png" alt="CATSO AV" width={140} height={60} className="h-28 w-auto object-contain" priority unoptimized />
+                <Image src="/logo-white.png" alt="CATSO AV" width={140} height={60} className="h-28 w-auto object-contain" priority unoptimized style={{ width: "auto" }} />
               </a>
 
               <div className="hidden md:flex gap-4 lg:gap-8 items-center">
@@ -478,7 +478,7 @@ function HomeContent() {
               className="fixed top-0 right-0 bottom-0 w-[85%] max-w-sm z-[110] bg-neutral-950 border-l border-white/10 shadow-2xl md:hidden overflow-hidden flex flex-col"
             >
               <div className="p-6 flex items-center justify-between border-b border-white/5 bg-black/50 backdrop-blur-md sticky top-0 z-10">
-                <Image src="/logo-white.png" alt="CATSO AV" width={100} height={40} className="h-14 w-auto opacity-80 object-contain" priority unoptimized />
+                <Image src="/logo-white.png" alt="CATSO AV" width={100} height={40} className="h-14 w-auto opacity-80 object-contain" priority unoptimized style={{ width: "auto" }} />
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="p-2 -mr-2 text-white/60 hover:text-white transition-colors"
@@ -606,6 +606,7 @@ function HomeContent() {
                 height={800}
                 className={`h-auto w-[300px] md:w-[650px] lg:w-[950px] max-w-full drop-shadow-[0_0_50px_rgba(255,255,255,0.1)] mb-0 ${isLoaded ? "hero-logo-entrance" : "opacity-0"}`}
                 priority
+                style={{ height: "auto" }}
               />
               <p className="absolute bottom-[22%] md:bottom-[28%] lg:bottom-[32%] left-1/2 -translate-x-1/2 font-sans text-white/70 text-[10px] md:text-sm lg:text-lg font-extralight tracking-[0.5em] uppercase text-center leading-none w-full">
                 <span className="inline md:hidden leading-relaxed">Video Production<br />Company</span>

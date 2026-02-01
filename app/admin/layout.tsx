@@ -23,6 +23,7 @@ export default function AdminLayout({
                             <div className="hidden md:flex gap-6">
                                 <Link href="/admin" className="text-sm font-medium hover:text-red-600 transition-colors">Dashboard</Link>
                                 <Link href="/admin/projects" className="text-sm font-medium hover:text-red-600 transition-colors">Proyectos</Link>
+                                <Link href="/admin/categories" className="text-sm font-medium hover:text-red-600 transition-colors">Categorías</Link>
                                 <Link href="/admin/users" className="text-sm font-medium text-white/50 hover:text-white transition-colors">Usuarios</Link>
                             </div>
                         </div>
