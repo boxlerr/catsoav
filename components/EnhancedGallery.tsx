@@ -83,8 +83,8 @@ export default function EnhancedGallery({
                                 alt={`${title} - Image ${idx + 1}`}
                                 fill
                                 className="object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
-                                loading={idx < 6 ? 'eager' : 'lazy'}
-                                priority={idx < 6}
+                                loading={idx < 4 ? 'eager' : 'lazy'}
+                                priority={idx < 4}
                                 sizes={
                                     layout === 'showcase' && images.length === 1
                                         ? '100vw'

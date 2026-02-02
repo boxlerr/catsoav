@@ -172,8 +172,8 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
 
         return (
             <div ref={containerRef} className="w-full h-full flex flex-col items-center justify-center bg-[#191919] border border-white/5 group-hover:border-red-600/30 transition-all duration-500">
-                <div className="bg-red-600/10 p-4 rounded-full mb-3 group-hover:scale-110 transition-transform duration-500">
-                    <svg className="w-8 h-8 text-red-600" viewBox="0 0 24 24" fill="currentColor">
+                <div className="bg-red-600/10 p-2 md:p-4 rounded-full mb-2 md:mb-3 group-hover:scale-110 transition-transform duration-500">
+                    <svg className="w-5 h-5 md:w-8 md:h-8 text-red-600" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M14.58 2H22v15.38L14.58 2zm-3.16 11.53L14.58 23H7.13l4.29-9.47zm-1.84-4.06L3.11 23H2V2h3.11l6.47 7.47z" />
                     </svg>
                 </div>
@@ -197,8 +197,8 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
                 )}
 
                 <div className="z-10 flex flex-col items-center">
-                    <div className="bg-red-600/10 p-4 rounded-full mb-3 group-hover:scale-110 transition-transform duration-500 border border-red-500/20">
-                        <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="bg-red-600/10 p-2 md:p-4 rounded-full mb-2 md:mb-3 group-hover:scale-110 transition-transform duration-500 border border-red-500/20">
+                        <svg className="w-5 h-5 md:w-8 md:h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
                     </div>
@@ -216,7 +216,7 @@ export default function VideoThumbnail({ videoUrl, imageUrl, title }: VideoThumb
                     alt={title}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    sizes="(max-width: 1024px) 50vw, 33vw"
                     onError={() => {
                         // Logic to degrade quality if high-res thumbnails are missing
                         if (thumbnailUrl) {

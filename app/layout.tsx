@@ -8,12 +8,16 @@ const faustina = Faustina({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-faustina",
+  preload: true,
+  fallback: ['Georgia', 'serif'],
 });
 
 const chivo = Chivo({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-chivo",
+  preload: true,
+  fallback: ['system-ui', 'sans-serif'],
 });
 
 export const metadata: Metadata = {
@@ -103,6 +107,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`${faustina.variable} ${chivo.variable}`} suppressHydrationWarning data-scroll-behavior="smooth">
+      <head>
+        {/* Preconnect to critical third-party origins */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://img.youtube.com" />
+        <link rel="preconnect" href="https://i.vimeocdn.com" />
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+        {/* DNS prefetch for less critical resources */}
+        <link rel="dns-prefetch" href="https://www.youtube.com" />
+        <link rel="dns-prefetch" href="https://player.vimeo.com" />
+        <link rel="dns-prefetch" href="https://mir-s3-cdn-cf.behance.net" />
+      </head>
       <body className="antialiased font-sans" suppressHydrationWarning={true}>
         {/* Schema WebSite */}
         <script

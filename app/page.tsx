@@ -189,16 +189,15 @@ const CategorySection = memo(({
           strategy={rectSortingStrategy}
           disabled={session?.user?.role !== "admin"}
         >
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+          <div className="centered-grid gap-4 md:gap-8">
             {visibleProjects.length > 0 ? (
-              visibleProjects.map((project, index) => {
-                const isLastOddItem = visibleProjects.length % 2 !== 0 && index === visibleProjects.length - 1;
+              visibleProjects.map((project) => {
                 return (
                   <SortableItem
                     key={project.id}
                     id={project.id}
                     disabled={session?.user?.role !== "admin"}
-                    className={isLastOddItem ? "col-span-2 lg:col-span-1 flex lg:block justify-center" : "w-full h-full"}
+                    className="h-full"
                   >
                     <Link
                       href={`/project/${project.id}`}
@@ -208,10 +207,7 @@ const CategorySection = memo(({
                           return
                         }
                       }}
-                      className={`hover-burn group relative block aspect-video bg-neutral-900/50 border border-white/5 lg:hover:border-red-600/50 transition-all duration-500 lg:hover:shadow-2xl lg:hover:shadow-red-900/20 cursor-pointer ${!project.published ? "opacity-40 grayscale" : ""} ${isLastOddItem
-                        ? "w-full max-w-[calc(50%-8px)] md:max-w-[calc(50%-16px)] lg:max-w-none"
-                        : "w-full h-full"
-                        }`}
+                      className={`hover-burn group relative block aspect-video bg-neutral-900/50 border border-white/5 lg:hover:border-red-600/50 transition-all duration-500 lg:hover:shadow-2xl lg:hover:shadow-red-900/20 cursor-pointer ${!project.published ? "opacity-40 grayscale" : ""} w-full h-full`}
                     >
                       <div className="absolute inset-0 overflow-hidden rounded-[inherit] z-0">
                         <VideoThumbnail

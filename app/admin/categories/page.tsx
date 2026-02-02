@@ -14,8 +14,6 @@ import {
     DragStartEvent,
     DragOverEvent,
     DragOverlay,
-    defaultDropAnimationSideEffects,
-    closestCenter,
 } from '@dnd-kit/core'
 import {
     arrayMove,
@@ -155,7 +153,6 @@ const SortableCategoryItem = memo(function SortableCategoryItem({ category }: { 
 })
 
 export default function CategoriesPage() {
-    const router = useRouter()
     const [categories, setCategories] = useState<Category[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [isSaving, setIsSaving] = useState(false)
@@ -285,7 +282,7 @@ export default function CategoriesPage() {
     }
 
     useEffect(() => {
-        const onDelete = (e: any) => handleCategoryDelete(e.detail)
+        const onDelete = (e: Event) => handleCategoryDelete((e as CustomEvent).detail as string)
         window.addEventListener('deleteCategory', onDelete)
         return () => window.removeEventListener('deleteCategory', onDelete)
     }, [])

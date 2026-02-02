@@ -64,7 +64,7 @@ export default function Crew() {
                                     alt={member.name}
                                     fill
                                     className="object-cover filter grayscale group-hover:grayscale-0 transition-all duration-700"
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 25vw, 20vw"
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                                 />
                                 {/* Red Overlay on Hover */}
                                 <div className="absolute inset-0 bg-gradient-to-t from-red-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
