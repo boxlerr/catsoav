@@ -9,8 +9,12 @@ export async function GET() {
             orderBy: { order: 'asc' }
         })
         return NextResponse.json(categories)
-    } catch {
-        return NextResponse.json({ error: "Error fetching categories" }, { status: 500 })
+    } catch (error: any) {
+        console.error("Error fetching categories:", error)
+        return NextResponse.json({
+            error: "Error fetching categories",
+            details: error?.message || "Unknown error"
+        }, { status: 500 })
     }
 }
 

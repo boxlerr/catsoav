@@ -16,8 +16,13 @@ export async function GET(request: Request) {
             ]
         })
         return NextResponse.json(projects)
-    } catch (error) {
-        return NextResponse.json({ error: "Error fetching projects" }, { status: 500 })
+    } catch (error: any) {
+        console.error("Error fetching projects:", error)
+        return NextResponse.json({
+            error: "Error fetching projects",
+            details: error?.message || "Unknown error",
+            stack: error?.stack
+        }, { status: 500 })
     }
 }
 
