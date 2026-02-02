@@ -55,28 +55,12 @@ export function getProjectTheme(project: {
     // Category-based color tendencies
     const category = project.category.toLowerCase()
 
-    // Explicitly check for video-related terms to enforce Red theme
-    const isVideoCategory = category.includes('video') || category.includes('clip') || category.includes('commercial')
-
-    const categoryHues: Record<string, number> = {
-        'videoclips': 0,    // Red
-        'photography': 200, // Cyan
-        'design': 30,       // Orange
-        'branding': 340,    // Pink
-        'motion': 180,      // Blue-green
-    }
-
-    // Force Red (0) for video categories, otherwise check map, otherwise fallback to hash
-    let categoryHue = hueBase
-    if (isVideoCategory) {
-        categoryHue = 0 // Enforce Red
-    } else if (categoryHues[category]) {
-        categoryHue = categoryHues[category]
-    }
+    // Force Red (0) for ALL categories as per user request
+    const categoryHue = 0 // Enforce Red globally
 
     // For Red theme (0), we want to stay within Red/Orange. 
     // If it's Red, minimize variance.
-    const hueVariance = isVideoCategory ? 15 : 30
+    const hueVariance = 15
 
     const hue1 = (categoryHue + (hash % hueVariance)) % 360
 

@@ -133,7 +133,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                         </span>
                     </div>
 
-                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 tracking-tighter uppercase leading-[0.9] animate-in fade-in slide-in-from-top-4 duration-700">
+                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 tracking-tighter uppercase leading-[0.9] animate-in fade-in slide-in-from-top-4 duration-700">
                         <span
                             className="drop-shadow-md"
                             style={{ color: '#FF1F1F', textShadow: '0 0 30px rgba(255, 31, 31, 0.4)' }}
