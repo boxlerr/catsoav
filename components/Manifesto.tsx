@@ -19,8 +19,9 @@ export default function Manifesto() {
             ref={containerRef}
             id="manifesto"
             className="relative min-h-screen flex items-center justify-center py-20 overflow-hidden"
+            suppressHydrationWarning
         >
-            <div className="absolute inset-0 bg-black/80 z-0">
+            <div className="absolute inset-0 bg-black/80 z-0" suppressHydrationWarning>
                 {/* Optimized Noise overlay - Static Image instead of heavy SVG Filter */}
                 <div
                     className="absolute inset-0 opacity-[0.05] pointer-events-none"
@@ -29,13 +30,15 @@ export default function Manifesto() {
                         backgroundRepeat: 'repeat',
                         backgroundSize: '200px 200px'
                     }}
+                    suppressHydrationWarning
                 />
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 relative z-10">
+            <div className="max-w-7xl mx-auto px-6 relative z-10" suppressHydrationWarning>
                 <motion.div
                     style={{ opacity }}
                     className="flex flex-col gap-12"
+                    suppressHydrationWarning
                 >
                     <motion.h2
                         initial={{ opacity: 0, y: 50 }}
@@ -48,12 +51,13 @@ export default function Manifesto() {
                         <span className="text-red-600 italic">GRABAMOS.</span>
                     </motion.h2>
 
-                    <div className="flex flex-col md:flex-row gap-8 md:gap-20 items-start">
+                    <div className="flex flex-col md:flex-row gap-8 md:gap-20 items-start" suppressHydrationWarning>
                         <motion.div
                             style={{ y }}
                             className="md:w-1/3 pt-10 hidden md:block"
+                            suppressHydrationWarning
                         >
-                            <div className="w-full h-[2px] bg-red-600 mb-4 shadow-[0_0_15px_rgba(220,38,38,0.5)]" />
+                            <div className="w-full h-[2px] bg-red-600 mb-4 shadow-[0_0_15px_rgba(220,38,38,0.5)]" suppressHydrationWarning />
                             <span className="text-red-500 text-xs uppercase tracking-[0.3em] font-bold block">
                                 Nuestra Visión
                             </span>
@@ -79,8 +83,8 @@ export default function Manifesto() {
                 </motion.div>
             </div>
 
-            <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black to-transparent z-20" />
-            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black to-transparent z-20" />
+            <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black to-transparent z-20" suppressHydrationWarning />
+            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black to-transparent z-20" suppressHydrationWarning />
         </section>
     )
 }

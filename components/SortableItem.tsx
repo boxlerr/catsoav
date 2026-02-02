@@ -7,9 +7,10 @@ interface SortableItemProps {
     id: string
     children: React.ReactNode
     disabled?: boolean
+    className?: string
 }
 
-export function SortableItem({ id, children, disabled }: SortableItemProps) {
+export function SortableItem({ id, children, disabled, className = "" }: SortableItemProps) {
     const {
         attributes,
         listeners,
@@ -35,6 +36,7 @@ export function SortableItem({ id, children, disabled }: SortableItemProps) {
         <div
             ref={setNodeRef}
             style={style}
+            className={className}
             {...attributes}
             {...listeners}
             onClick={() => {

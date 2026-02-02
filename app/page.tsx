@@ -147,7 +147,15 @@ const CategorySection = memo(({
     : catProjects.slice(0, 3);
 
   return (
-    <div ref={setNodeRef} style={style}>
+    <div
+      ref={(node) => {
+        setNodeRef(node);
+        if (node) {
+          (sectionRef as any).current = node;
+        }
+      }}
+      style={style}
+    >
       <CategoryDroppable
         id={category.name}
         className="min-h-[80vh] flex flex-col justify-center py-20 border-t border-neutral-900 first:border-none"
@@ -181,21 +189,49 @@ const CategorySection = memo(({
           strategy={rectSortingStrategy}
           disabled={session?.user?.role !== "admin"}
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
             {visibleProjects.length > 0 ? (
-              visibleProjects.map((project) => (
-                <SortableItem key={project.id} id={project.id} disabled={session?.user?.role !== "admin"}>
-                  <Link
-                    href={`/project/${project.id}`}
-                    onClick={(e) => {
-                      if (isSorting) {
-                        e.preventDefault()
-                        return
-                      }
-                    }}
-                    className={`hover-burn group relative block aspect-video bg-neutral-900/50 border border-white/5 lg:hover:border-red-600/50 transition-all duration-500 lg:hover:shadow-2xl lg:hover:shadow-red-900/20 w-full h-full cursor-pointer ${!project.published ? "opacity-40 grayscale" : ""}`}
+              visibleProjects.map((project, index) => {
+                const isLastOddItem = visibleProjects.length % 2 !== 0 && index === visibleProjects.length - 1;
+                return (
+                  <SortableItem
+                    key={project.id}
+                    id={project.id}
+                    disabled={session?.user?.role !== "admin"}
+                    className={isLastOddItem ? "col-span-2 lg:col-span-1 flex lg:block justify-center" : "w-full h-full"}
                   >
-                    <div className="absolute inset-0 overflow-hidden rounded-[inherit] z-0">
+                    <Link
+                      href={`/project/${project.id}`}
+                      onClick={(e) => {
+                        if (isSorting) {
+                          e.preventDefault()
+                          return
+                        }
+                      }}
+                      className={`hover-burn group relative block aspect-video bg-neutral-900/50 border border-white/5 lg:hover:border-red-600/50 transition-all duration-500 lg:hover:shadow-2xl lg:hover:shadow-red-900/20 cursor-pointer ${!project.published ? "opacity-40 grayscale" : ""} ${isLastOddItem
+                        ? "w-full max-w-[calc(50%-8px)] md:max-w-[calc(50%-16px)] lg:max-w-none"
+                        : "w-full h-full"
+                        }`}
+                    >
+                      <div className="absolute inset-0 overflow-hidden rounded-[inherit] z-0">
+                        <VideoThumbnail
+                          videoUrl={project.videoUrl || ""}
+                          imageUrl={project.imageUrl}
+                          title={project.title}
+                        />
+
+                        <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent translate-y-full lg:group-hover:translate-y-0 transition-transform duration-500 z-20">
+                          <p className="text-white font-serif font-bold text-lg mb-0.5 tracking-tight">{project.title}</p>
+                          <p className="text-white/40 text-xs uppercase tracking-[0.2em] font-medium">{project.clientName || 'Producción'}</p>
+                          {session?.user?.role === "admin" && (
+                            <div className="mt-3 pt-3 border-t border-white/10 flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
+                              <span className="text-red-500 text-[9px] uppercase tracking-[0.2em] font-bold">Admin: Drag to Reorder</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
                       {session?.user?.role === "admin" && (
                         <div
                           onClick={(e) => toggleVisibility(e, project)}
@@ -213,6 +249,7 @@ const CategorySection = memo(({
                           </span>
                         </div>
                       )}
+
                       {session?.user?.role === "admin" && (
                         <div className="absolute top-2 right-2 z-30 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
                           <button
@@ -243,29 +280,10 @@ const CategorySection = memo(({
                           </button>
                         </div>
                       )}
-
-                      <div className="absolute inset-0 flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
-                        <VideoThumbnail
-                          videoUrl={project.videoUrl || ""}
-                          imageUrl={project.imageUrl}
-                          title={project.title}
-                        />
-                      </div>
-
-                      <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent translate-y-full lg:group-hover:translate-y-0 transition-transform duration-500 z-20">
-                        <p className="text-white font-serif font-bold text-lg mb-0.5 tracking-tight">{project.title}</p>
-                        <p className="text-white/40 text-xs uppercase tracking-[0.2em] font-medium">{project.clientName || 'Producción'}</p>
-                        {session?.user?.role === "admin" && (
-                          <div className="mt-3 pt-3 border-t border-white/10 flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
-                            <span className="text-red-500 text-[9px] uppercase tracking-[0.2em] font-bold">Admin: Drag to Reorder</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
-                </SortableItem>
-              ))
+                    </Link>
+                  </SortableItem>
+                );
+              })
             ) : (
               <div className="col-span-full py-12 text-center text-white/30 border border-white/5 border-dashed rounded-lg">
                 No hay proyectos en esta categoría. {session?.user?.role === "admin" && "Usa el botón + para agregar uno."}
@@ -295,8 +313,8 @@ const CategorySection = memo(({
             </button>
           </div>
         )}
-      </CategoryDroppable>
-    </div>
+      </CategoryDroppable >
+    </div >
   );
 });
 
@@ -840,8 +858,8 @@ function HomeContent() {
         )}
       </AnimatePresence>
 
-      <div className="unicorn-bg">
-        <div data-us-project="DmxX3AU5Ot4TeJbMP4tT" style={{ width: "100vw", height: "100vh" }} />
+      <div className="unicorn-bg" suppressHydrationWarning>
+        <div data-us-project="DmxX3AU5Ot4TeJbMP4tT" style={{ width: "100vw", height: "100vh" }} suppressHydrationWarning></div>
       </div>
 
       <div className="relative z-10 w-full" suppressHydrationWarning>
@@ -849,8 +867,9 @@ function HomeContent() {
           <motion.div
             style={{ opacity, y }}
             className={`transition-all duration-1000 relative z-20 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            suppressHydrationWarning
           >
-            <div className="relative flex flex-col items-center">
+            <div className="relative flex flex-col items-center" suppressHydrationWarning>
               <Image
                 src="/logo-white.png"
                 alt="CATSO AV"
@@ -870,8 +889,9 @@ function HomeContent() {
           <motion.div
             style={{ opacity }}
             className={`absolute bottom-12 transition-all duration-1000 delay-500 z-20 ${isLoaded ? "opacity-70 translate-y-0" : "opacity-0 -translate-y-4"}`}
+            suppressHydrationWarning
           >
-            <div className="animate-bounce text-white flex flex-col items-center gap-2">
+            <div className="animate-bounce text-white flex flex-col items-center gap-2" suppressHydrationWarning>
               <span className="text-xs uppercase tracking-widest">Scroll to Explore</span>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
@@ -879,14 +899,14 @@ function HomeContent() {
             </div>
           </motion.div>
 
-          <div className="absolute bottom-0 left-0 right-0 h-3/4 bg-gradient-to-b from-transparent via-black/40 to-black pointer-events-none z-10" />
+          <div className="absolute bottom-0 left-0 right-0 h-3/4 bg-gradient-to-b from-transparent via-black/40 to-black pointer-events-none z-10" suppressHydrationWarning />
         </section>
 
         <MemoizedManifesto />
 
 
-        <div className="w-full bg-black relative z-20">
-          <div className="max-w-7xl mx-auto px-6 pb-20">
+        <div className="w-full bg-black relative z-20" suppressHydrationWarning>
+          <div className="max-w-7xl mx-auto px-6 pb-20" suppressHydrationWarning>
             {mounted ? (
               <DndContext
                 sensors={sensors}
@@ -942,8 +962,8 @@ function HomeContent() {
           {/* <Clients />
           <Crew /> */}
 
-          <section id="contact" className="py-20 border-t border-neutral-900 bg-black">
-            <div className="max-w-3xl mx-auto px-4 text-center">
+          <section id="contact" className="py-20 border-t border-neutral-900 bg-black" suppressHydrationWarning>
+            <div className="max-w-3xl mx-auto px-4 text-center" suppressHydrationWarning>
               <h2 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4">
                 Let&apos;s Work Together
                 <span className="text-red-600">.</span>
@@ -952,22 +972,22 @@ function HomeContent() {
                 ¿Tienes un proyecto en mente? Cuéntanos tu idea.
               </p>
 
-              <form className="space-y-6 text-left">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
+              <form className="space-y-6 text-left" suppressHydrationWarning>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6" suppressHydrationWarning>
+                  <div suppressHydrationWarning>
                     <label htmlFor="name" className="block text-white/80 mb-2 text-sm uppercase tracking-wider">Nombre</label>
                     <input type="text" id="name" defaultValue={session?.user?.name || ''} className="w-full bg-neutral-900/50 border border-white/10 text-white px-4 py-3 rounded-none focus:outline-none focus:border-red-600 transition-colors" placeholder="Tu nombre" />
                   </div>
-                  <div>
+                  <div suppressHydrationWarning>
                     <label htmlFor="email" className="block text-white/80 mb-2 text-sm uppercase tracking-wider">Email</label>
                     <input type="email" id="email" defaultValue={session?.user?.email || ''} className="w-full bg-neutral-900/50 border border-white/10 text-white px-4 py-3 rounded-none focus:outline-none focus:border-red-600 transition-colors" placeholder="tu@email.com" />
                   </div>
                 </div>
-                <div>
+                <div suppressHydrationWarning>
                   <label htmlFor="message" className="block text-white/80 mb-2 text-sm uppercase tracking-wider">Mensaje</label>
                   <textarea id="message" rows={4} className="w-full bg-neutral-900/50 border border-white/10 text-white px-4 py-3 rounded-none focus:outline-none focus:border-red-600 transition-colors resize-none" placeholder="Cuéntanos sobre tu proyecto..."></textarea>
                 </div>
-                <div className="text-center">
+                <div className="text-center" suppressHydrationWarning>
                   <button type="submit" className="bg-white text-black hover:bg-red-600 hover:text-white px-8 py-3 font-medium uppercase tracking-widest text-sm transition-all duration-300">Enviar Mensaje</button>
                 </div>
               </form>

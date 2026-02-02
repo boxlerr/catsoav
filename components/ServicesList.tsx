@@ -87,9 +87,9 @@ export default function ServicesList() {
     }
 
     return (
-        <section id="services" className="py-20 md:py-32 bg-black relative z-10">
-            <div className="max-w-7xl mx-auto px-6">
-                <div className="mb-16 border-b border-white/10 pb-8 flex items-end justify-between px-4 md:px-0">
+        <section id="services" className="py-20 md:py-32 bg-black relative z-10" suppressHydrationWarning>
+            <div className="max-w-7xl mx-auto px-6" suppressHydrationWarning>
+                <div className="mb-16 border-b border-white/10 pb-8 flex items-end justify-between px-4 md:px-0" suppressHydrationWarning>
                     <h2 className="text-4xl md:text-5xl font-serif font-bold text-white">
                         Servicios
                         <span className="text-red-600">.</span>
@@ -97,7 +97,7 @@ export default function ServicesList() {
                     <span className="text-white/30 text-xs uppercase tracking-widest hidden md:block">Capabilities</span>
                 </div>
 
-                <div className="flex flex-col">
+                <div className="flex flex-col" suppressHydrationWarning>
                     {services.map((service) => (
                         <motion.div
                             key={service.id}
@@ -108,22 +108,24 @@ export default function ServicesList() {
                             onViewportLeave={() => activeService === service.id && setActiveService(null)}
                             onClick={() => toggleService(service.id)}
                             className={`group relative border-b border-white/20 cursor-pointer transition-all duration-500 ${activeService === service.id ? 'bg-neutral-900/40' : 'hover:bg-neutral-900/50'}`}
+                            suppressHydrationWarning
                         >
-                            <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10 px-4 transition-all duration-500 ${activeService === service.id ? 'py-8' : 'py-12'}`}>
-                                <div className="flex items-center gap-4">
+                            <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10 px-4 transition-all duration-500 ${activeService === service.id ? 'py-8' : 'py-12'}`} suppressHydrationWarning>
+                                <div className="flex items-center gap-4" suppressHydrationWarning>
                                     <span className={`font-mono text-sm transition-opacity duration-300 ${activeService === service.id ? 'text-red-600 opacity-100' : 'text-red-600 opacity-0 group-hover:opacity-100'}`}>0{service.id}</span>
                                     <h3 className={`text-3xl md:text-5xl font-sans font-medium transition-colors duration-300 ${activeService === service.id ? 'text-white' : 'text-white group-hover:text-red-500'}`}>
                                         {service.title}
                                     </h3>
                                 </div>
-                                <div className="flex items-center gap-4 md:gap-8">
+                                <div className="flex items-center gap-4 md:gap-8" suppressHydrationWarning>
                                     <p className={`text-white/60 max-w-md text-sm md:text-base font-light transition-colors duration-300 ${activeService === service.id ? 'text-white' : 'group-hover:text-white'}`}>
                                         {service.description}
                                     </p>
-                                    <div className="hidden md:block text-white/40">
+                                    <div className="hidden md:block text-white/40" suppressHydrationWarning>
                                         <motion.div
                                             animate={{ rotate: activeService === service.id ? 180 : 0 }}
                                             transition={{ duration: 0.3 }}
+                                            suppressHydrationWarning
                                         >
                                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 9l-7 7-7-7" />
@@ -131,7 +133,7 @@ export default function ServicesList() {
                                         </motion.div>
                                     </div>
                                 </div>
-                                <div className="md:hidden w-full h-[1px] bg-red-600/30 mt-4" />
+                                <div className="md:hidden w-full h-[1px] bg-red-600/30 mt-4" suppressHydrationWarning />
                             </div>
 
                             {/* Expanded Content */}
@@ -143,9 +145,10 @@ export default function ServicesList() {
                                 }}
                                 transition={{ duration: 0.4, ease: "easeInOut" }}
                                 className="overflow-hidden"
+                                suppressHydrationWarning
                             >
-                                <div className="px-4 md:px-12 pb-12 pt-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                                <div className="px-4 md:px-12 pb-12 pt-4" suppressHydrationWarning>
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8" suppressHydrationWarning>
                                         {processSteps.map((step, index) => (
                                             <motion.div
                                                 key={step.id}
@@ -156,11 +159,12 @@ export default function ServicesList() {
                                                 }}
                                                 transition={{ duration: 0.3, delay: index * 0.1 }}
                                                 className="flex flex-col gap-4"
+                                                suppressHydrationWarning
                                             >
-                                                <div className="text-red-600 opacity-80">
+                                                <div className="text-red-600 opacity-80" suppressHydrationWarning>
                                                     {step.icon}
                                                 </div>
-                                                <div>
+                                                <div suppressHydrationWarning>
                                                     <h4 className="text-white font-bold mb-2 text-sm">{step.title}</h4>
                                                     <p className="text-white/40 text-xs leading-relaxed">
                                                         {step.description}
@@ -169,7 +173,7 @@ export default function ServicesList() {
                                             </motion.div>
                                         ))}
                                     </div>
-                                    <div className="mt-8 flex justify-end">
+                                    <div className="mt-8 flex justify-end" suppressHydrationWarning>
                                         <span className="text-xs uppercase tracking-widest text-red-600 font-bold cursor-pointer hover:text-white transition-colors" onClick={(e) => { e.stopPropagation(); toggleService(service.id) }}>
                                             Cerrar
                                         </span>
