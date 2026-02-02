@@ -32,11 +32,19 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'mir-s3-cdn-cf.behance.net',
+        hostname: '**.behance.net',
       },
       {
         protocol: 'https',
         hostname: 'img.youtube.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.ytimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.vimeocdn.com',
       },
       {
         protocol: 'https',
@@ -48,7 +56,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'www-ccv.adobe.io',
+        hostname: '**.adobe.io',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.adobe.com',
       },
       {
         protocol: 'https',
