@@ -10,6 +10,19 @@ export async function GET(request: Request) {
     try {
         const projects = await prisma.project.findMany({
             where: isAdmin ? {} : { published: true },
+            select: {
+                id: true,
+                title: true,
+                description: true,
+                category: true,
+                imageUrl: true,
+                videoUrl: true,
+                extraVideos: true,
+                clientName: true,
+                published: true,
+                order: true,
+                createdAt: true,
+            },
             orderBy: [
                 { order: 'asc' },
                 { createdAt: 'desc' }

@@ -6,9 +6,12 @@ import dynamic from "next/dynamic"
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent, useInView } from "framer-motion"
 import { SessionProvider, useSession, signOut } from "next-auth/react"
 import Link from "next/link"
-import Image from "next/image"
 import Footer from "@/components/Footer"
 import QuickProjectButton from "@/components/QuickProjectButton"
+import { getProjects, getCategories } from "@/lib/data"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import { Providers } from "./providers"
 import {
   DndContext,
   closestCenter,
@@ -316,29 +319,40 @@ const CategorySection = memo(({
 
 CategorySection.displayName = 'CategorySection';
 
-export default function Home() {
+export default async function Home() {
+  const session = await getServerSession(authOptions)
+  const [initialProjects, initialCategories] = await Promise.all([
+    getProjects(session?.user?.role === "admin"),
+    getCategories()
+  ])
+
   return (
-    <HomeContent />
+    <HomeClient
+      initialProjects={initialProjects}
+      initialCategories={initialCategories}
+      session={session}
+    />
   )
 }
 
-function HomeContent() {
-  const { data: session } = useSession()
+function HomeClient({ initialProjects, initialCategories, session: serverSession }: {
+  initialProjects: Project[],
+  initialCategories: Category[],
+  session: any
+}) {
+  const { data: sessionData } = useSession()
+  const session = serverSession || sessionData
   const [isLoaded, setIsLoaded] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [projects, setProjects] = useState<Project[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
+  const [projects, setProjects] = useState<Project[]>(initialProjects)
+  const [categories, setCategories] = useState<Category[]>(initialCategories)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isSorting, setIsSorting] = useState(false)
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     setMounted(true)
-    const fetchInitialData = async () => {
-      await Promise.all([fetchProjects(), fetchCategories()])
-    }
-    fetchInitialData()
   }, [])
 
   useEffect(() => {
@@ -352,33 +366,6 @@ function HomeContent() {
     }
   }, [isMobileMenuOpen])
 
-  const fetchInitialData = async () => {
-    await Promise.all([fetchProjects(), fetchCategories()])
-  }
-
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch('/api/categories', { next: { revalidate: 3600 } })
-      if (res.ok) {
-        const data = await res.json()
-        setCategories(data)
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error)
-    }
-  }
-
-  const fetchProjects = async () => {
-    try {
-      const res = await fetch('/api/projects', { next: { revalidate: 3600 } })
-      if (res.ok) {
-        const data = await res.json()
-        setProjects(data)
-      }
-    } catch (error) {
-      console.error("Error fetching projects:", error)
-    }
-  }
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
