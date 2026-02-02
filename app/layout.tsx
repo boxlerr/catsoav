@@ -119,7 +119,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://player.vimeo.com" />
         <link rel="dns-prefetch" href="https://mir-s3-cdn-cf.behance.net" />
       </head>
-      <body className="antialiased font-sans" suppressHydrationWarning={true}>
+      <body className="antialiased font-sans">
         {/* Schema WebSite */}
         <script
           type="application/ld+json"

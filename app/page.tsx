@@ -6,12 +6,9 @@ import dynamic from "next/dynamic"
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent, useInView } from "framer-motion"
 import { SessionProvider, useSession, signOut } from "next-auth/react"
 import Link from "next/link"
+import Image from "next/image"
 import Footer from "@/components/Footer"
 import QuickProjectButton from "@/components/QuickProjectButton"
-import { getProjects, getCategories } from "@/lib/data"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import { Providers } from "./providers"
 import {
   DndContext,
   closestCenter,
@@ -319,40 +316,29 @@ const CategorySection = memo(({
 
 CategorySection.displayName = 'CategorySection';
 
-export default async function Home() {
-  const session = await getServerSession(authOptions)
-  const [initialProjects, initialCategories] = await Promise.all([
-    getProjects(session?.user?.role === "admin"),
-    getCategories()
-  ])
-
+export default function Home() {
   return (
-    <HomeClient
-      initialProjects={initialProjects}
-      initialCategories={initialCategories}
-      session={session}
-    />
+    <HomeContent />
   )
 }
 
-function HomeClient({ initialProjects, initialCategories, session: serverSession }: {
-  initialProjects: Project[],
-  initialCategories: Category[],
-  session: any
-}) {
-  const { data: sessionData } = useSession()
-  const session = serverSession || sessionData
+function HomeContent() {
+  const { data: session } = useSession()
   const [isLoaded, setIsLoaded] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [projects, setProjects] = useState<Project[]>(initialProjects)
-  const [categories, setCategories] = useState<Category[]>(initialCategories)
+  const [projects, setProjects] = useState<Project[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isSorting, setIsSorting] = useState(false)
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     setMounted(true)
+    const fetchInitialData = async () => {
+      await Promise.all([fetchProjects(), fetchCategories()])
+    }
+    fetchInitialData()
   }, [])
 
   useEffect(() => {
@@ -366,6 +352,33 @@ function HomeClient({ initialProjects, initialCategories, session: serverSession
     }
   }, [isMobileMenuOpen])
 
+  const fetchInitialData = async () => {
+    await Promise.all([fetchProjects(), fetchCategories()])
+  }
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch('/api/categories', { next: { revalidate: 3600 } })
+      if (res.ok) {
+        const data = await res.json()
+        setCategories(data)
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error)
+    }
+  }
+
+  const fetchProjects = async () => {
+    try {
+      const res = await fetch('/api/projects', { next: { revalidate: 3600 } })
+      if (res.ok) {
+        const data = await res.json()
+        setProjects(data)
+      }
+    } catch (error) {
+      console.error("Error fetching projects:", error)
+    }
+  }
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
@@ -841,11 +854,11 @@ function HomeClient({ initialProjects, initialCategories, session: serverSession
         )}
       </AnimatePresence>
 
-      <div className="unicorn-bg" suppressHydrationWarning>
-        <div data-us-project="DmxX3AU5Ot4TeJbMP4tT" style={{ width: "100vw", height: "100vh" }} suppressHydrationWarning></div>
+      <div className="unicorn-bg">
+        <div data-us-project="DmxX3AU5Ot4TeJbMP4tT" style={{ width: "100vw", height: "100vh" }}></div>
       </div>
 
-      <div className="relative z-10 w-full" suppressHydrationWarning>
+      <div className="relative z-10 w-full">
         <section className="relative h-screen flex flex-col items-center justify-center p-4">
           <motion.div
             style={{ opacity, y }}
@@ -888,8 +901,8 @@ function HomeClient({ initialProjects, initialCategories, session: serverSession
         <MemoizedManifesto />
 
 
-        <div className="w-full bg-black relative z-20" suppressHydrationWarning>
-          <div className="max-w-7xl mx-auto px-6 pb-20" suppressHydrationWarning>
+        <div className="w-full bg-black relative z-20">
+          <div className="max-w-7xl mx-auto px-6 pb-20">
             {mounted ? (
               <DndContext
                 sensors={sensors}
@@ -945,8 +958,8 @@ function HomeClient({ initialProjects, initialCategories, session: serverSession
           {/* <Clients />
           <Crew /> */}
 
-          <section id="contact" className="py-20 border-t border-neutral-900 bg-black" suppressHydrationWarning>
-            <div className="max-w-3xl mx-auto px-4 text-center" suppressHydrationWarning>
+          <section id="contact" className="py-20 border-t border-neutral-900 bg-black">
+            <div className="max-w-3xl mx-auto px-4 text-center">
               <h2 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4">
                 Let&apos;s Work Together
                 <span className="text-red-600">.</span>

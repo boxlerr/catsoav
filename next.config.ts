@@ -77,25 +77,29 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net https://static.cloudflareinsights.com",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: blob: https:",
               "font-src 'self' data: https://fonts.gstatic.com",
               "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://www-ccv.adobe.io",
               "media-src 'self' blob: data: https:",
-              "connect-src 'self' https: wss: https://cloudflareinsights.com",
+              "connect-src 'self' https:",
             ].join('; '),
           },
-          // Browser caching for static assets
+        ],
+      },
+      // Optimize font and static asset loading specifically
+      {
+        source: '/fonts/:path*',
+        headers: [
           {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
           },
         ],
       },
-      // Optimize font loading
       {
-        source: '/fonts/:path*',
+        source: '/_next/static/:path*',
         headers: [
           {
             key: 'Cache-Control',

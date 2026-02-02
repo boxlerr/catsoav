@@ -19,9 +19,8 @@ export default function Manifesto() {
             ref={containerRef}
             id="manifesto"
             className="relative min-h-screen flex items-center justify-center py-20 overflow-hidden"
-            suppressHydrationWarning
         >
-            <div className="absolute inset-0 bg-black/80 z-0" suppressHydrationWarning>
+            <div className="absolute inset-0 bg-black/80 z-0">
                 {/* Optimized Noise overlay - Static Image instead of heavy SVG Filter */}
                 <div
                     className="absolute inset-0 opacity-[0.05] pointer-events-none"
@@ -34,11 +33,10 @@ export default function Manifesto() {
                 />
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 relative z-10" suppressHydrationWarning>
+            <div className="max-w-7xl mx-auto px-6 relative z-10">
                 <motion.div
                     style={{ opacity }}
                     className="flex flex-col gap-12"
-                    suppressHydrationWarning
                 >
                     <motion.h2
                         initial={{ opacity: 0, y: 50 }}
