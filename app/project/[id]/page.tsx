@@ -134,12 +134,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                     </div>
 
                     <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 tracking-tighter uppercase leading-[0.9] animate-in fade-in slide-in-from-top-4 duration-700">
-                        <span
-                            className="drop-shadow-md"
-                            style={{ color: '#FF1F1F', textShadow: '0 0 30px rgba(255, 31, 31, 0.4)' }}
-                        >
-                            {project.title}
-                        </span>
+                        {project.title}
                     </h1>
 
                     {project.clientName && (
@@ -447,7 +442,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                     {relatedProjects.length > 0 && (
                         <section className="pt-20 mt-20 border-t border-white/5">
                             <h2 className="text-2xl md:text-3xl font-black uppercase mb-12 text-center tracking-tighter text-white">
-                                More <span style={{ color: '#FF1F1F' }}>Productions</span>
+                                More <span className="text-white">Productions</span>
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                 {relatedProjects.map((p) => (

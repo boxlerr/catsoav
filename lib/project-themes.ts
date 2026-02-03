@@ -56,7 +56,9 @@ export function getProjectTheme(project: {
     const category = project.category.toLowerCase()
 
     // Force Red (0) for ALL categories as per user request
-    const categoryHue = 0 // Enforce Red globally
+    // Force Grayscale/Black for ALL categories
+    const categoryHue = 0
+    const saturation = 0 // No saturation = grayscale
 
     // For Red theme (0), we want to stay within Red/Orange. 
     // If it's Red, minimize variance.
@@ -75,18 +77,18 @@ export function getProjectTheme(project: {
         default: {
             colors: {
                 // Use ~53% Lightness for primary to be bright but red, not orange.
-                primary: `hsl(${hue1}, 100%, 53%)`,
-                secondary: `hsl(${hue2}, 100%, 50%)`,
-                accent: `hsl(${hue3}, 100%, 60%)`,
+                primary: `hsl(${hue1}, ${saturation}%, 80%)`,
+                secondary: `hsl(${hue2}, ${saturation}%, 60%)`,
+                accent: `hsl(${hue3}, ${saturation}%, 70%)`,
                 background: 'hsl(0, 0%, 4%)',
                 surface: 'hsl(0, 0%, 8%)',
                 text: 'hsl(0, 0%, 100%)',
                 textSecondary: 'hsl(0, 0%, 70%)',
             },
             gradients: {
-                hero: `linear-gradient(135deg, hsl(${hue1}, 100%, 53%) 0%, hsl(${hue2}, 100%, 50%) 100%)`,
-                card: `linear-gradient(135deg, hsl(${hue1}, 100%, 53%, 0.1) 0%, hsl(${hue2}, 100%, 50%, 0.1) 100%)`,
-                glow: `radial-gradient(circle at 50% 0%, hsl(${hue1}, 100%, 53%, 0.15) 0%, transparent 50%)`,
+                hero: `linear-gradient(135deg, hsl(${hue1}, ${saturation}%, 20%) 0%, hsl(${hue2}, ${saturation}%, 10%) 100%)`,
+                card: `linear-gradient(135deg, hsl(${hue1}, ${saturation}%, 53%, 0.05) 0%, hsl(${hue2}, ${saturation}%, 50%, 0.05) 100%)`,
+                glow: `radial-gradient(circle at 50% 0%, hsl(${hue1}, ${saturation}%, 53%, 0.1) 0%, transparent 50%)`,
             },
             effects: {
                 glassBlur: '12px',

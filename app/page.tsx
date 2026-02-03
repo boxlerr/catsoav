@@ -358,7 +358,14 @@ function HomeContent() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch('/api/categories', { next: { revalidate: 3600 } })
+      const timestamp = new Date().getTime()
+      const res = await fetch(`/api/categories?t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Pragma': 'no-cache',
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      })
       if (res.ok) {
         const data = await res.json()
         setCategories(data)
@@ -370,7 +377,14 @@ function HomeContent() {
 
   const fetchProjects = async () => {
     try {
-      const res = await fetch('/api/projects', { next: { revalidate: 3600 } })
+      const timestamp = new Date().getTime()
+      const res = await fetch(`/api/projects?t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Pragma': 'no-cache',
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      })
       if (res.ok) {
         const data = await res.json()
         setProjects(data)
@@ -854,9 +868,6 @@ function HomeContent() {
         )}
       </AnimatePresence>
 
-      <div className="unicorn-bg">
-        <div data-us-project="DmxX3AU5Ot4TeJbMP4tT" style={{ width: "100vw", height: "100vh" }}></div>
-      </div>
 
       <div className="relative z-10 w-full">
         <section className="relative h-screen flex flex-col items-center justify-center p-4">

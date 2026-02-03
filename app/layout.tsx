@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Faustina, Chivo } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import UnicornBackground from "@/components/UnicornBackground";
 
 const faustina = Faustina({
   subsets: ["latin"],
@@ -164,6 +165,7 @@ export default function RootLayout({
           }}
         />
         <Providers>
+          <UnicornBackground />
           {children}
         </Providers>
 

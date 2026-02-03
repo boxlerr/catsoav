@@ -2,7 +2,7 @@
 
 import React from 'react'
 
-export default function SocialIcons() {
+export default function SocialLinks() {
     return (
         <div className="flex gap-6 justify-center" suppressHydrationWarning>
             <a

@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import SocialIcons from "./SocialIcons"
+import SocialLinks from "./SocialLinks"
 
 export default function Footer() {
     const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
@@ -95,7 +95,7 @@ export default function Footer() {
 
                                 {/* Social Icons */}
                                 <div className="mt-6" suppressHydrationWarning>
-                                    <SocialIcons />
+                                    <SocialLinks />
                                 </div>
                             </div>
                         </div>
