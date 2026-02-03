@@ -104,6 +104,15 @@ function SortableCategory({ category, children, isAllSelected, toggleAll }: {
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
+                                window.dispatchEvent(new CustomEvent('editCategory', { detail: category }));
+                            }}
+                            className="text-[10px] font-bold uppercase tracking-widest text-white hover:text-red-500 transition-colors mr-4"
+                        >
+                            Editar
+                        </button>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
                                 window.dispatchEvent(new CustomEvent('newProject', { detail: { category: category.name } }));
                             }}
                             className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400 transition-colors"
@@ -140,7 +149,7 @@ function SortableProject({ project, selectedIds, toggleProject, activeId }: {
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.5 : (isGroupDragging ? 0.3 : 1),
-        zIndex: isDragging ? 100 : 1,
+        zIndex: isDragging ? 100 : 1, // Increased zIndex
         position: 'relative' as const,
     }
 
@@ -212,6 +221,15 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
             coordinateGetter: sortableKeyboardCoordinates,
         })
     )
+
+    // Update local state when props change (for re-hydration after router.refresh)
+    useEffect(() => {
+        setProjects(initialProjects)
+    }, [initialProjects])
+
+    useEffect(() => {
+        setCategories(initialCategories)
+    }, [initialCategories])
 
     // Memoized projects by category
     const projectsByCategory = useMemo(() => {
@@ -289,16 +307,9 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
             })
         }
         else {
-            let actualOverId = overId
-            if (isOverProject) {
-                const overProj = projects.find(p => p.id === overId)!
-                const parentCat = categories.find(c => c.name === overProj.category)
-                if (parentCat) actualOverId = parentCat.id
-            }
-
-            if (activeId !== actualOverId) {
+            if (isOverCategory && activeId !== overId) {
                 const oldIndex = categories.findIndex(c => c.id === activeId)
-                const newIndex = categories.findIndex(c => c.id === actualOverId)
+                const newIndex = categories.findIndex(c => c.id === overId)
                 if (oldIndex !== -1 && newIndex !== -1) {
                     setCategories(prev => arrayMove(prev, oldIndex, newIndex))
                 }
@@ -399,6 +410,7 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
             )}
 
             <DndContext
+                id="admin-dnd-context"
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragStart={handleDragStart}

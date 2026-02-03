@@ -68,14 +68,10 @@ export default function Manifesto() {
                             transition={{ duration: 0.8, delay: 0.2 }}
                             className="md:w-2/3 text-xl md:text-2xl lg:text-3xl text-white font-light leading-relaxed"
                         >
-                            En un mundo saturado de ruido, el silencio visual es un pecado.
-                            Creamos experiencias que <span className="text-white font-medium border-b border-red-600">incomodan</span>,
-                            <span className="text-white font-medium border-b border-red-600 mx-2">emocionan</span> y{' '}
-                            <span className="text-white font-medium border-b border-red-600">permanecen</span>.
-                            Somos el puente entre tu idea abstracta y una realidad visual impactante.
+                            Bienvenidos a nuestro mundo… <br />
+                            de historias delirantes, lo rarocentrista como motor y la creación lúdica y absurda.
                             <br /><br />
-                            No hacemos videos. <br />
-                            <span className="text-red-500 font-bold">Construimos legados digitales.</span>
+                            <span className="text-red-500 font-bold">A la deriva creativa.</span>
                         </motion.p>
                     </div>
                 </motion.div>
