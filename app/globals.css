@@ -409,6 +409,220 @@ body {
   scrollbar-width: none;
 }
 
+/* ========================================
+   BRUTALIST GLITCH & CRT EFFECTS
+   ======================================== */
+
+@keyframes glitch-anim {
+  0% {
+    transform: translate(0);
+    clip-path: inset(0 0 0 0);
+  }
+
+  2% {
+    transform: translate(-5px, 2px);
+    clip-path: inset(10% 0 40% 0);
+  }
+
+  4% {
+    transform: translate(5px, -2px);
+    clip-path: inset(50% 0 10% 0);
+  }
+
+  6% {
+    transform: translate(0);
+    clip-path: inset(0 0 0 0);
+  }
+
+  50% {
+    transform: translate(0);
+    clip-path: inset(0 0 0 0);
+  }
+
+  52% {
+    transform: translate(10px, 5px);
+    clip-path: inset(20% 0 60% 0);
+  }
+
+  54% {
+    transform: translate(-10px, -5px);
+    clip-path: inset(60% 0 20% 0);
+  }
+
+  56% {
+    transform: translate(0);
+    clip-path: inset(0 0 0 0);
+  }
+
+  100% {
+    transform: translate(0);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes glitch-ghost {
+  0% {
+    transform: translate(0);
+    opacity: 0.5;
+  }
+
+  5% {
+    transform: translate(-3px, -1px);
+    opacity: 0.8;
+  }
+
+  10% {
+    transform: translate(3px, 1px);
+    opacity: 0.5;
+  }
+
+  15% {
+    transform: translate(0);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: translate(0);
+    opacity: 0.5;
+  }
+}
+
+@keyframes crt-flicker {
+  0% {
+    opacity: 0.98;
+  }
+
+  5% {
+    opacity: 0.95;
+  }
+
+  10% {
+    opacity: 0.99;
+  }
+
+  15% {
+    opacity: 0.92;
+  }
+
+  20% {
+    opacity: 0.99;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes scanlines {
+  0% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(4px);
+  }
+}
+
+@keyframes static-noise {
+  0% {
+    background-position: 0 0;
+  }
+
+  10% {
+    background-position: 10px 10px;
+  }
+
+  20% {
+    background-position: -5px -5px;
+  }
+
+  30% {
+    background-position: 15px 5px;
+  }
+
+  40% {
+    background-position: -10px -15px;
+  }
+
+  100% {
+    background-position: 0 0;
+  }
+}
+
+.glitch-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+.glitch-text::before {
+  color: #ff0000;
+  animation: glitch-ghost 3s infinite;
+  opacity: 0.5;
+}
+
+.glitch-text-anim {
+  animation: glitch-anim 4s infinite linear alternate-reverse;
+}
+
+.crt-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 50;
+  background:
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  background-size: 100% 4px, 3px 100%;
+}
+
+.crt-grain {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 49;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+.static-box {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  animation: static-noise 0.2s infinite;
+}
+
+.brush-underline {
+  position: relative;
+  z-index: 1;
+}
+
+.brush-underline::after {
+  content: "";
+  position: absolute;
+  left: -5%;
+  bottom: -4px;
+  width: 110%;
+  height: 8px;
+  background-color: #dc2626;
+  z-index: -1;
+  clip-path: polygon(2% 15%, 15% 5%, 30% 12%, 45% 4%, 60% 10%, 75% 6%, 90% 14%, 98% 8%, 95% 45%, 85% 55%, 70% 48%, 55% 58%, 40% 50%, 25% 60%, 10% 52%, 2% 45%);
+}
+
 /* Flexbox grid for inverted pyramid alignment */
 .centered-grid {
   display: flex !important;

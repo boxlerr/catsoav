@@ -129,8 +129,10 @@ const CategorySection = memo(({
   };
 
   useEffect(() => {
-    // If it's expanded but no longer in view, collapse it
-    if (!isInView && isExpanded) {
+    // Only auto-collapse on desktop (>= 768px) to prevent mobile scroll jumps
+    const isDesktop = window.innerWidth >= 768;
+
+    if (!isInView && isExpanded && isDesktop) {
       setExpandedCategories(prev => {
         const next = new Set(prev);
         if (next.has(category.name)) {

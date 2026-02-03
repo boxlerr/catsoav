@@ -18,67 +18,90 @@ export default function Manifesto() {
         <section
             ref={containerRef}
             id="manifesto"
-            className="relative min-h-screen flex items-center justify-center py-20 overflow-hidden"
+            className="relative min-h-screen flex items-center justify-center py-20 overflow-hidden bg-black text-white"
         >
-            <div className="absolute inset-0 bg-black/80 z-0">
-                {/* Optimized Noise overlay - Static Image instead of heavy SVG Filter */}
-                <div
-                    className="absolute inset-0 opacity-[0.05] pointer-events-none"
-                    style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-                        backgroundRepeat: 'repeat',
-                        backgroundSize: '200px 200px'
-                    }}
-                    suppressHydrationWarning
-                />
-            </div>
+            {/* CRT & Grain Textures */}
+            <div className="crt-grain" />
+            <div className="crt-overlay" />
 
             <div className="max-w-7xl mx-auto px-6 relative z-10">
                 <motion.div
                     style={{ opacity }}
-                    className="flex flex-col gap-12"
+                    className="flex flex-col gap-16"
                 >
-                    <motion.h2
-                        initial={{ opacity: 0, y: 50 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8 }}
-                        className="text-4xl md:text-7xl lg:text-8xl font-serif font-bold text-white leading-[0.9] tracking-tighter"
-                    >
-                        NO SOLO <br />
-                        <span className="text-red-600 italic">GRABAMOS.</span>
-                    </motion.h2>
+                    {/* Header with Glitch & Ghosting */}
+                    <div className="relative">
+                        <motion.h2
+                            initial={{ opacity: 0, x: -20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            className="text-3xl md:text-6xl lg:text-7xl font-bold leading-[0.85] tracking-tighter uppercase mb-2 relative"
+                        >
+                            <span className="block glitch-text-anim" data-text="BIENVENIDOS A" style={{ position: 'relative' }}>
+                                <span className="glitch-text" data-text="BIENVENIDOS A">BIENVENIDOS A</span>
+                            </span>
+                            <span className="block text-red-600 italic -mt-2 glitch-text-anim" style={{ animationDelay: '0.2s', position: 'relative' }}>
+                                <span className="glitch-text" data-text="NUESTRO MUNDO…">NUESTRO MUNDO…</span>
+                            </span>
+                        </motion.h2>
+                    </div>
 
-                    <div className="flex flex-col md:flex-row gap-8 md:gap-20 items-start" suppressHydrationWarning>
+                    <div className="flex flex-col md:flex-row gap-12 items-start">
+                        {/* Sidebar */}
                         <motion.div
                             style={{ y }}
-                            className="md:w-1/3 pt-10 hidden md:block"
-                            suppressHydrationWarning
+                            className="md:w-1/4 pt-4 hidden md:block"
                         >
-                            <div className="w-full h-[2px] bg-red-600 mb-4 shadow-[0_0_15px_rgba(220,38,38,0.5)]" suppressHydrationWarning />
-                            <span className="text-red-500 text-xs uppercase tracking-[0.3em] font-bold block">
-                                Nuestra Visión
+                            <div className="w-full h-[3px] bg-red-600 mb-6" />
+                            <span className="text-red-600 text-sm uppercase tracking-[0.4em] font-black block">
+                                ERROR_SYSTEM_VISION
                             </span>
                         </motion.div>
 
-                        <motion.p
-                            initial={{ opacity: 0 }}
-                            whileInView={{ opacity: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8, delay: 0.2 }}
-                            className="md:w-2/3 text-xl md:text-2xl lg:text-3xl text-white font-light leading-relaxed"
-                        >
-                            Bienvenidos a nuestro mundo… <br />
-                            de historias delirantes, lo rarocentrista como motor y la creación lúdica y absurda.
-                            <br /><br />
-                            <span className="text-red-500 font-bold">A la deriva creativa.</span>
-                        </motion.p>
+                        {/* Vision Content */}
+                        <div className="md:w-3/4 flex flex-col gap-8 text-lg md:text-2xl lg:text-3xl font-medium leading-[1.1] font-sans">
+                            <div className="flex flex-wrap gap-x-4 gap-y-4 items-baseline">
+                                <span className="text-white/40 font-light">De historias</span>
+                                <span className="brush-underline text-white italic">delirantes,</span>
+                                <span>lo</span>
+                                <span className="brush-underline text-white">rarocentrista</span>
+                            </div>
+
+                            <div className="flex flex-wrap gap-x-4 gap-y-4 items-center">
+                                <span>como</span>
+                                <motion.span
+                                    className="static-box px-4 py-1 text-black bg-white uppercase font-black"
+                                    animate={{ opacity: [1, 0.8, 1, 0.9, 1] }}
+                                    transition={{ repeat: Infinity, duration: 0.1 }}
+                                >
+                                    MOTOR
+                                </motion.span>
+                                <span>y la</span>
+                            </div>
+
+                            <div className="block">
+                                <span className="brush-underline text-white">creación lúdica y absurda.</span>
+                            </div>
+
+                            {/* Tilted Final Line */}
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
+                                whileInView={{ opacity: 1, scale: 1, rotate: -3 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.8, delay: 0.4, type: 'spring' }}
+                                className="mt-12 md:mt-20 self-end"
+                            >
+                                <span className="text-red-600 font-black text-2xl md:text-5xl lg:text-6xl tracking-tight block transform -skew-x-12 filter blur-[0.5px]">
+                                    A la deriva creativa.
+                                </span>
+                            </motion.div>
+                        </div>
                     </div>
                 </motion.div>
             </div>
 
-            <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black to-transparent z-20" suppressHydrationWarning />
-            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black to-transparent z-20" suppressHydrationWarning />
+            {/* CRT Vignette Overlay */}
+            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_0%,black_100%)] opacity-60 z-40" />
         </section>
     )
 }
