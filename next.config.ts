@@ -20,11 +20,15 @@ const nextConfig: NextConfig = {
 
   // Enable image optimization (was disabled!)
   images: {
-    // Disable optimization to bypass Vercel 402 Payment Required limits
-    unoptimized: true,
+    // Enable optimization for faster loading
+    unoptimized: false,
     // Modern formats
     formats: ['image/avif', 'image/webp'],
-    // ...
+    // Device sizes for responsive images
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Minimize layout shift
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
     remotePatterns: [
       {
         protocol: 'https',
@@ -85,7 +89,7 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net https://static.cloudflareinsights.com",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: blob: https:",
               "font-src 'self' data: https://fonts.gstatic.com",
