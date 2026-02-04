@@ -18,13 +18,15 @@ export default function Manifesto() {
         <section
             ref={containerRef}
             id="manifesto"
-            className="relative min-h-screen flex items-center justify-center py-20 overflow-hidden bg-black text-white"
+            className="relative min-h-screen flex items-center justify-center py-20 overflow-hidden text-white"
         >
             {/* CRT & Grain Textures */}
-            <div className="crt-grain" />
-            <div className="crt-overlay" />
+            <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-black via-black/80 to-transparent z-30 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-black to-transparent z-30 pointer-events-none" />
+            <div className="crt-grain" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)' }} />
+            <div className="crt-overlay" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)' }} />
 
-            <div className="max-w-7xl mx-auto px-6 relative z-10">
+            <div className="max-w-7xl mx-auto px-6 relative z-45">
                 <motion.div
                     style={{ opacity }}
                     className="flex flex-col gap-16"
@@ -40,7 +42,7 @@ export default function Manifesto() {
                             <span className="block glitch-text-anim" data-text="BIENVENIDOS A" style={{ position: 'relative' }}>
                                 <span className="glitch-text" data-text="BIENVENIDOS A">BIENVENIDOS A</span>
                             </span>
-                            <span className="block text-red-600 italic -mt-2 glitch-text-anim" style={{ animationDelay: '0.2s', position: 'relative' }}>
+                            <span className="block text-red-500 italic -mt-2" style={{ animationDelay: '0.2s', position: 'relative', textShadow: '0 0 40px rgba(220, 38, 38, 1)' }}>
                                 <span className="glitch-text" data-text="NUESTRO MUNDO…">NUESTRO MUNDO…</span>
                             </span>
                         </motion.h2>
@@ -91,7 +93,7 @@ export default function Manifesto() {
                                 transition={{ duration: 0.8, delay: 0.4, type: 'spring' }}
                                 className="mt-12 md:mt-20 self-end"
                             >
-                                <span className="text-red-600 font-black text-2xl md:text-5xl lg:text-6xl tracking-tight block transform -skew-x-12 filter blur-[0.5px]">
+                                <span className="text-red-600 font-black text-2xl md:text-5xl lg:text-6xl tracking-tight block transform -skew-x-12" style={{ textShadow: '0 0 30px rgba(220, 38, 38, 0.6)' }}>
                                     A la deriva creativa.
                                 </span>
                             </motion.div>
