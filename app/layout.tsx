@@ -1,4 +1,5 @@
 import type React from "react";
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { Faustina, Chivo } from "next/font/google";
 import "./globals.css";
@@ -166,7 +167,9 @@ export default function RootLayout({
           }}
         />
         <Providers>
-          <ScrollRestoration />
+          <Suspense fallback={null}>
+            <ScrollRestoration />
+          </Suspense>
           <UnicornBackground />
           {children}
         </Providers>
