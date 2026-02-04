@@ -208,6 +208,8 @@ const CategorySection = memo(({
                           e.preventDefault()
                           return
                         }
+                        // Manually save scroll position because we disabled auto-save for Home
+                        sessionStorage.setItem('scroll-pos-/', window.scrollY.toString());
                       }}
                       className={`hover-burn group relative block aspect-video bg-neutral-900/50 border border-white/5 lg:hover:border-red-600/50 transition-all duration-500 lg:hover:shadow-2xl lg:hover:shadow-red-900/20 cursor-pointer ${!project.published ? "opacity-40 grayscale" : ""} w-full h-full`}
                     >
@@ -337,11 +339,49 @@ function HomeContent() {
 
   useEffect(() => {
     setMounted(true)
+    // Restore expanded categories from session storage
+    try {
+      const saved = sessionStorage.getItem('expanded-categories');
+      if (saved) {
+        setExpandedCategories(new Set(JSON.parse(saved)));
+      }
+    } catch (e) {
+      console.error('Failed to restore categories', e);
+    }
+
     const fetchInitialData = async () => {
       await Promise.all([fetchProjects(), fetchCategories()])
     }
     fetchInitialData()
   }, [])
+
+  // Manual scroll restoration for Home Page after data load
+  useEffect(() => {
+    if (projects.length > 0 && categories.length > 0 && mounted) {
+      // Small delay to ensure rendering matches data
+      const timeoutId = setTimeout(() => {
+        const savedPosition = sessionStorage.getItem('scroll-pos-/'); // Key matches ScrollRestoration component
+        if (savedPosition) {
+          const pos = parseInt(savedPosition, 10);
+          if (pos > 0) {
+            window.scrollTo({
+              top: pos,
+              behavior: 'instant'
+            });
+          }
+        }
+      }, 150); // increased delay slightly to be safe
+      return () => clearTimeout(timeoutId);
+    }
+  }, [projects.length, categories.length, mounted]);
+
+  // Save expanded categories to session storage whenever they change
+  useEffect(() => {
+    const array = Array.from(expandedCategories);
+    if (array.length > 0) {
+      sessionStorage.setItem('expanded-categories', JSON.stringify(array));
+    }
+  }, [expandedCategories]);
 
   useEffect(() => {
     if (isMobileMenuOpen) {

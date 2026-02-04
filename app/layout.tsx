@@ -4,6 +4,7 @@ import { Faustina, Chivo } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import UnicornBackground from "@/components/UnicornBackground";
+import ScrollRestoration from "@/components/ScrollRestoration";
 
 const faustina = Faustina({
   subsets: ["latin"],
@@ -165,6 +166,7 @@ export default function RootLayout({
           }}
         />
         <Providers>
+          <ScrollRestoration />
           <UnicornBackground />
           {children}
         </Providers>
