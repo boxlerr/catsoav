@@ -10,10 +10,10 @@ const nextConfig: NextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
 
-  // Enable image optimization (was disabled!)
+  // Disable image optimization because Vercel quota was reached (Error 402)
   images: {
-    // Enable optimization for faster loading
-    unoptimized: false,
+    // Disable optimization to load images directly
+    unoptimized: true,
     // Modern formats
     formats: ['image/avif', 'image/webp'],
     // Device sizes for responsive images
