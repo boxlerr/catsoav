@@ -50,10 +50,8 @@ export function getProjectTheme(project: {
 
     // Create unique color scheme based on project ID (consistent but varied)
     const hash = project.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-    const hueBase = hash % 360
-
     // Category-based color tendencies
-    const category = project.category.toLowerCase()
+    // Force Red (0) for ALL categories as per user request
 
     // Force Red (0) for ALL categories as per user request
     // Force Grayscale/Black for ALL categories

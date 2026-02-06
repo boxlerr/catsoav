@@ -61,9 +61,9 @@ export default function Footer() {
                         <div className="flex flex-col items-center" suppressHydrationWarning>
                             <h4 className="text-white font-bold mb-6 uppercase tracking-widest text-xs">Servicios</h4>
                             <ul className="space-y-4">
-                                <li><a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/40 hover:text-white transition-colors text-sm">Videoclips</a></li>
-                                <li><a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/40 hover:text-white transition-colors text-sm">Commercial</a></li>
-                                <li><a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/40 hover:text-white transition-colors text-sm">Brand Content</a></li>
+                                <li><a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/40 hover:text-white transition-colors text-sm" aria-label="Videoclips">Videoclips</a></li>
+                                <li><a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/40 hover:text-white transition-colors text-sm" aria-label="Commercial">Commercial</a></li>
+                                <li><a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/40 hover:text-white transition-colors text-sm" aria-label="Brand Content">Brand Content</a></li>
                             </ul>
                         </div>
 
@@ -74,7 +74,7 @@ export default function Footer() {
                                     <svg className="w-4 h-4 text-white/40" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M17 2H7c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-5 18c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm5-4H7V4h10v12z" />
                                     </svg>
-                                    <a href="https://wa.me/5493442646868" target="_blank" rel="noopener noreferrer" className="hover:text-red-600 transition-colors" suppressHydrationWarning>
+                                    <a href="https://wa.me/5493442646868" target="_blank" rel="noopener noreferrer" className="hover:text-red-600 transition-colors" aria-label="WhatsApp" suppressHydrationWarning>
                                         +54 9 3442646868
                                     </a>
                                 </p>
@@ -83,13 +83,13 @@ export default function Footer() {
                                         <svg className="w-4 h-4 text-white/40 shrink-0" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
                                         </svg>
-                                        <a href="mailto:laureanogomez@catsoav.com" suppressHydrationWarning>laureanogomez@catsoav.com</a>
+                                        <a href="mailto:laureanogomez@catsoav.com" aria-label="Email Laureano Gomez" suppressHydrationWarning>laureanogomez@catsoav.com</a>
                                     </p>
                                     <p className="text-white/60 text-sm font-medium tracking-wider flex items-center justify-center gap-2 hover:text-red-600 transition-colors">
                                         <svg className="w-4 h-4 text-white/40 shrink-0" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
                                         </svg>
-                                        <a href="mailto:camiloserra@catsoav.com" suppressHydrationWarning>camiloserra@catsoav.com</a>
+                                        <a href="mailto:camiloserra@catsoav.com" aria-label="Email Camilo Serra" suppressHydrationWarning>camiloserra@catsoav.com</a>
                                     </p>
                                 </div>
 

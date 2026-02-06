@@ -10,18 +10,10 @@ const nextConfig: NextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
 
-  // Ignore errors for now to get build passing
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-
   // Enable image optimization (was disabled!)
   images: {
     // Enable optimization for faster loading
-    unoptimized: true,
+    unoptimized: false,
     // Modern formats
     formats: ['image/avif', 'image/webp'],
     // Device sizes for responsive images

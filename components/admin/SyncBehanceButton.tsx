@@ -27,7 +27,7 @@ export default function SyncBehanceButton() {
             } else {
                 setStatus({ type: 'error', message: data.error || data.message || "Error al sincronizar" })
             }
-        } catch (error) {
+        } catch (_error) {
             setStatus({ type: 'error', message: "Error de conexión con el servidor" })
         } finally {
             setIsSyncing(false)

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
@@ -27,11 +27,12 @@ export default function QuickProjectButton() {
     // Category Manager state
     const [editingCatId, setEditingCatId] = useState<string | null>(null)
     const [editCatData, setEditCatData] = useState({ title: "", description: "" })
+    const [newCat, setNewCat] = useState({ title: "", description: "" })
 
     // Project Editor state
     const [editingProjectId, setEditingProjectId] = useState<string | null>(null)
 
-    const fetchCategories = async () => {
+    const fetchCategories = useCallback(async () => {
         try {
             const res = await fetch('/api/categories', { cache: 'no-store' })
             if (res.ok) {
@@ -44,13 +45,13 @@ export default function QuickProjectButton() {
         } catch (error) {
             console.error("Error fetching categories:", error)
         }
-    }
+    }, [formData.category])
 
     useEffect(() => {
         if (isOpen) {
             fetchCategories()
         }
-    }, [isOpen])
+    }, [isOpen, fetchCategories])
 
     useEffect(() => {
         const handleEdit = (e: CustomEvent) => {
@@ -156,7 +157,7 @@ export default function QuickProjectButton() {
         }
     }
 
-    const handleAddCategory = async (e: React.FormEvent) => {
+    const _handleAddCategory = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!newCat.title) return
         setLoading(true)
@@ -242,7 +243,7 @@ export default function QuickProjectButton() {
                                 <h3 className="text-white font-serif font-bold text-xl mb-1">CATSO <span className="text-red-600">AV</span></h3>
                                 <p className="text-white/20 text-[9px] uppercase tracking-[0.3em]">Master Console v2.1</p>
                             </div>
-                            <button onClick={() => setIsOpen(false)} className="group flex items-center gap-3 text-white/40 hover:text-white transition-colors">
+                            <button onClick={() => setIsOpen(false)} className="group flex items-center gap-3 text-white/40 hover:text-white transition-colors" aria-label="Cerrar Panel">
                                 <span className="text-[10px] uppercase font-bold tracking-widest">Cerrar</span>
                                 <svg className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

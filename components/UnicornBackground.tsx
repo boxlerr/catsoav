@@ -7,7 +7,7 @@ export default function UnicornBackground() {
     useEffect(() => {
         // Initialize UnicornStudio when component mounts
         const initShader = () => {
-            const studio = (window as any).UnicornStudio
+            const studio = (window as { UnicornStudio?: { init: () => void } }).UnicornStudio
             const bgElement = document.querySelector('[data-us-project]')
 
             if (studio && bgElement) {

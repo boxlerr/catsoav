@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect } from "react"
 import {
     DndContext,
     closestCenter,
-    closestCorners,
     KeyboardSensor,
     PointerSensor,
     useSensor,
@@ -12,8 +11,6 @@ import {
     DragEndEvent,
     DragOverEvent,
     DragStartEvent,
-    defaultDropAnimationSideEffects,
-    DropAnimation,
     DragOverlay,
 } from "@dnd-kit/core"
 import {
@@ -209,7 +206,6 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
     const [activeType, setActiveType] = useState<'category' | 'project' | null>(null)
     const [selectedIds, setSelectedIds] = useState<string[]>([])
     const [isBulkDeleting, setIsBulkDeleting] = useState(false)
-    const router = useRouter()
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -339,11 +335,10 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ items: reorderItems })
             })
-        }
-        else {
+        } else {
             // Project Reordering
             // Persistence
-            const projectsToSync: any[] = []
+            const projectsToSync: { id: string; order: number; category: string }[] = []
             const counts: Record<string, number> = {}
             projects.forEach(p => {
                 if (!counts[p.category]) counts[p.category] = 0
@@ -360,9 +355,9 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
     }
 
     const toggleProject = (id: string) => {
-        setSelectedIds(prev =>
+        setSelectedIds((prev: string[]) =>
             prev.includes(id)
-                ? prev.filter(i => i !== id)
+                ? prev.filter((i: string) => i !== id)
                 : [...prev, id]
         )
     }

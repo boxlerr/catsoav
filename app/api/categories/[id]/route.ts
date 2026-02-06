@@ -21,8 +21,9 @@ export async function PATCH(
             data: json
         })
         return NextResponse.json(category)
-    } catch (error) {
-        return NextResponse.json({ error: "Error updating category" }, { status: 500 })
+    } catch (_error) {
+        console.error("[CATEGORY_PATCH]", _error)
+        return new NextResponse("Internal Error", { status: 500 })
     }
 }
 

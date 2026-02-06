@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 
 /**
@@ -15,6 +15,8 @@ import { usePathname, useSearchParams } from 'next/navigation'
 export default function ScrollRestoration() {
     const pathname = usePathname()
     const searchParams = useSearchParams()
+    // Category-based color tendencies
+    // Force Red (0) for ALL categories as per user request
     const scrollKey = `scroll-pos-${pathname}`
 
     // Disable browser native restoration to prevent fighting
@@ -33,9 +35,13 @@ export default function ScrollRestoration() {
         const handleScroll = () => {
             // Use requestAnimationFrame for throttling
             if (window.requestAnimationFrame) {
-                window.requestAnimationFrame(() => {
+                try {
+                    window.requestAnimationFrame(() => {
+                        sessionStorage.setItem(scrollKey, window.scrollY.toString())
+                    })
+                } catch (_error) {
                     sessionStorage.setItem(scrollKey, window.scrollY.toString())
-                })
+                }
             } else {
                 sessionStorage.setItem(scrollKey, window.scrollY.toString())
             }

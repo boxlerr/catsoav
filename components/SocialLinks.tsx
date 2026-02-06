@@ -35,6 +35,7 @@ export default function SocialLinks() {
                 rel="noopener noreferrer"
                 className="text-white/40 hover:text-red-600 transition-colors p-2 md:p-0"
                 title="WhatsApp"
+                aria-label="WhatsApp"
                 suppressHydrationWarning
             >
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -47,6 +48,7 @@ export default function SocialLinks() {
                 rel="noopener noreferrer"
                 className="text-white/40 hover:text-red-600 transition-colors p-2 md:p-0"
                 title="YouTube"
+                aria-label="YouTube"
                 suppressHydrationWarning
             >
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -59,6 +61,7 @@ export default function SocialLinks() {
                 rel="noopener noreferrer"
                 className="text-white/40 hover:text-red-600 transition-colors p-2 md:p-0"
                 title="LinkedIn"
+                aria-label="LinkedIn"
                 suppressHydrationWarning
             >
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
