@@ -62,14 +62,14 @@ export default function Manifesto() {
 
                         {/* Vision Content */}
                         <div className="md:w-3/4 flex flex-col gap-8 text-lg md:text-2xl lg:text-3xl font-medium leading-[1.1] font-sans">
-                            <div className="flex flex-wrap gap-x-4 gap-y-4 items-baseline">
+                            <div className="flex flex-wrap gap-x-3 gap-y-4 items-baseline">
                                 <span className="text-white/40 font-light">De historias</span>
                                 <span className="brush-underline text-white italic">delirantes,</span>
                                 <span>lo</span>
                                 <span className="brush-underline text-white">rarocentrista</span>
                             </div>
 
-                            <div className="flex flex-wrap gap-x-4 gap-y-4 items-center">
+                            <div className="flex flex-wrap gap-x-3 gap-y-4 items-center">
                                 <span>como</span>
                                 <motion.span
                                     className="static-box px-4 py-1 text-black bg-white uppercase font-black"
@@ -78,10 +78,7 @@ export default function Manifesto() {
                                 >
                                     MOTOR
                                 </motion.span>
-                                <span>y la</span>
-                            </div>
-
-                            <div className="block">
+                                <span> y la</span>
                                 <span className="brush-underline text-white">creación lúdica y absurda.</span>
                             </div>
 
