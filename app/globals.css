@@ -2,8 +2,8 @@
 
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -142,6 +142,7 @@ body {
   width: 100vw;
   height: 100vh;
   z-index: -1;
+  background-color: #000;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -629,6 +630,10 @@ body {
   flex-wrap: wrap;
   justify-content: center;
   width: 100%;
+}
+
+.centered-grid.left-aligned {
+  justify-content: flex-start !important;
 }
 
 .centered-grid>* {

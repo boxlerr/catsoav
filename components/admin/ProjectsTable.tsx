@@ -102,9 +102,9 @@ export default function ProjectsTable({ projects }: ProjectsTableProps) {
                                 </td>
                             </tr>
                         ) : (
-                            projects.map((project) => (
+                            projects.map((project, idx) => (
                                 <tr
-                                    key={project.id}
+                                    key={project.id || `admin-list-${idx}`}
                                     className={`transition-colors cursor-pointer ${selectedIds.includes(project.id) ? 'bg-red-600/5 hover:bg-red-600/10' : 'hover:bg-white/5'}`}
                                     onClick={() => toggleProject(project.id)}
                                 >

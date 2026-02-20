@@ -31,6 +31,7 @@ interface Project {
     title: string
     category: string
     order: number
+    published: boolean
     createdAt: string | Date
 }
 
@@ -47,12 +48,14 @@ interface AdminContentProps {
 }
 
 // New SortableCategory component
-function SortableCategory({ category, children, isAllSelected, toggleAll }: {
+function SortableCategory({ category, children, isAllSelected, toggleAll, index }: {
     category: Category,
     children: React.ReactNode,
     isAllSelected: boolean,
-    toggleAll: () => void
+    toggleAll: () => void,
+    index: number
 }) {
+    const safeId = category.id ? `cat-${category.id}` : `cat-fallback-${index}`
     const {
         attributes,
         listeners,
@@ -60,7 +63,7 @@ function SortableCategory({ category, children, isAllSelected, toggleAll }: {
         transform,
         transition,
         isDragging
-    } = useSortable({ id: category.id })
+    } = useSortable({ id: safeId })
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -125,12 +128,15 @@ function SortableCategory({ category, children, isAllSelected, toggleAll }: {
 }
 
 // New SortableProject component
-function SortableProject({ project, selectedIds, toggleProject, activeId }: {
+function SortableProject({ project, selectedIds, toggleProject, activeId, onTogglePublished, index }: {
     project: Project,
     selectedIds: string[],
     toggleProject: (id: string) => void,
-    activeId: string | null
+    activeId: string | null,
+    onTogglePublished: (project: Project) => void,
+    index: number
 }) {
+    const safeId = project.id ? `proj-${project.id}` : `proj-fallback-${index}`
     const {
         attributes,
         listeners,
@@ -138,7 +144,7 @@ function SortableProject({ project, selectedIds, toggleProject, activeId }: {
         transform,
         transition,
         isDragging
-    } = useSortable({ id: project.id })
+    } = useSortable({ id: safeId })
 
     const isGroupDragging = activeId && selectedIds.includes(activeId) && selectedIds.includes(project.id)
 
@@ -192,6 +198,15 @@ function SortableProject({ project, selectedIds, toggleProject, activeId }: {
                     >
                         Editar
                     </button>
+                    <button
+                        onClick={() => onTogglePublished(project)}
+                        className="relative inline-flex items-center group/switch"
+                        title={project.published ? 'Ocultar de la web' : 'Mostrar en la web'}
+                    >
+                        <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${project.published ? 'bg-[#007b00]' : 'bg-white/10 group-hover/switch:bg-white/20'}`}>
+                            <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 ${project.published ? 'left-[18px]' : 'left-[2px]'}`} />
+                        </div>
+                    </button>
                     <DeleteProjectButton projectId={project.id} projectTitle={project.title} />
                 </div>
             </td>
@@ -200,12 +215,27 @@ function SortableProject({ project, selectedIds, toggleProject, activeId }: {
 }
 
 export default function AdminContent({ initialProjects, initialCategories }: AdminContentProps) {
-    const [projects, setProjects] = useState<Project[]>(initialProjects)
-    const [categories, setCategories] = useState<Category[]>(initialCategories)
+    const [projects, setProjects] = useState<Project[]>(() => {
+        if (!initialProjects) return []
+        const valid = initialProjects.filter(p => p && p.id && typeof p.id === 'string' && p.id.trim() !== '')
+        return Array.from(new Map(valid.map(p => [p.id, p])).values())
+    })
+    const [categories, setCategories] = useState<Category[]>(() => {
+        if (!initialCategories) return []
+        const valid = initialCategories.filter(c => c && c.id && typeof c.id === 'string' && c.id.trim() !== '')
+        return Array.from(new Map(valid.map(c => [c.id, c])).values())
+    })
     const [activeId, setActiveId] = useState<string | null>(null)
     const [activeType, setActiveType] = useState<'category' | 'project' | null>(null)
     const [selectedIds, setSelectedIds] = useState<string[]>([])
     const [isBulkDeleting, setIsBulkDeleting] = useState(false)
+    const [isSaving, setIsSaving] = useState(false)
+    const [hasMounted, setHasMounted] = useState(false)
+    const router = useRouter()
+
+    useEffect(() => {
+        setHasMounted(true)
+    }, [])
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -218,13 +248,21 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
         })
     )
 
-    // Update local state when props change (for re-hydration after router.refresh)
+    // Update local state when props change, ensuring uniqueness and non-empty IDs
     useEffect(() => {
-        setProjects(initialProjects)
+        if (initialProjects) {
+            const validProjects = initialProjects.filter(p => p && p.id && typeof p.id === 'string' && p.id.trim() !== '')
+            const uniqueProjects = Array.from(new Map(validProjects.map(p => [p.id, p])).values())
+            setProjects(uniqueProjects)
+        }
     }, [initialProjects])
 
     useEffect(() => {
-        setCategories(initialCategories)
+        if (initialCategories) {
+            const validCategories = initialCategories.filter(c => c && c.id && typeof c.id === 'string' && c.id.trim() !== '')
+            const uniqueCategories = Array.from(new Map(validCategories.map(c => [c.id, c])).values())
+            setCategories(uniqueCategories)
+        }
     }, [initialCategories])
 
     // Memoized projects by category
@@ -233,7 +271,6 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
         categories.forEach(cat => {
             grouped[cat.name] = projects
                 .filter(p => p.category === cat.name)
-                .sort((a, b) => a.order - b.order)
         })
         return grouped
     }, [projects, categories])
@@ -242,7 +279,7 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
         const { active } = event
         setActiveId(active.id as string)
 
-        const isCategory = categories.some(c => c.id === active.id)
+        const isCategory = categories.some(c => (c.id ? `cat-${c.id}` : `cat-fallback-${c.name}`) === active.id)
         setActiveType(isCategory ? 'category' : 'project')
     }
 
@@ -255,62 +292,45 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
 
         if (activeId === overId) return
 
-        const isActiveCategory = categories.some(c => c.id === activeId)
-        const isOverProject = projects.some(p => p.id === overId)
-        const isOverCategory = categories.some(c => c.id === overId)
+        const isActiveCategory = categories.some(c => (c.id ? `cat-${c.id}` : `cat-fallback-${c.name}`) === activeId)
+        if (isActiveCategory) return // Category sorting handled in handleDragEnd
 
-        if (!isActiveCategory) {
-            const isDragGroup = selectedIds.includes(activeId)
-            const movingIds = isDragGroup ? selectedIds : [activeId]
+        const overProject = projects.find((p, idx) => (p.id ? `proj-${p.id}` : `proj-fallback-${idx}`) === overId)
+        const overCategory = categories.find((c, idx) => (c.id ? `cat-${c.id}` : `cat-fallback-${idx}`) === overId)
 
-            if (movingIds.includes(overId)) return
+        if (!overProject && !overCategory) return
 
-            setProjects(prev => {
-                const activeProj = prev.find(p => p.id === activeId)!
-                let targetCategory = activeProj.category
+        setProjects((prev) => {
+            const activeIndex = prev.findIndex((p, idx) => (p.id ? `proj-${p.id}` : `proj-fallback-${idx}`) === activeId)
+            const overIndex = prev.findIndex((p, idx) => (p.id ? `proj-${p.id}` : `proj-fallback-${idx}`) === overId)
 
-                if (isOverProject) {
-                    const overProj = prev.find(p => p.id === overId)!
-                    targetCategory = overProj.category
-                } else if (isOverCategory) {
-                    const overCat = categories.find(c => c.id === overId)!
-                    targetCategory = overCat.name
+            const activeProj = prev[activeIndex]
+            if (!activeProj) return prev
+
+            // Case 1: Moving over another project
+            if (overProject) {
+                if (activeProj.category !== overProject.category) {
+                    // Changing category
+                    const newProjects = [...prev]
+                    newProjects[activeIndex] = { ...activeProj, category: overProject.category }
+                    return arrayMove(newProjects, activeIndex, overIndex)
                 }
+                return arrayMove(prev, activeIndex, overIndex)
+            }
 
-                const withNewCats = prev.map(p =>
-                    movingIds.includes(p.id) ? { ...p, category: targetCategory } : p
-                )
-
-                const others = withNewCats.filter(p => !movingIds.includes(p.id))
-                const moving = withNewCats.filter(p => movingIds.includes(p.id))
-
-                if (isOverProject) {
-                    const overIndexInOthers = others.findIndex(p => p.id === overId)
-                    return [
-                        ...others.slice(0, overIndexInOthers),
-                        ...moving,
-                        ...others.slice(overIndexInOthers)
-                    ]
-                } else if (isOverCategory) {
-                    const lastIndexInCat = others.map((p, i) => p.category === targetCategory ? i : -1).reduce((a, b) => Math.max(a, b), -1)
-                    return [
-                        ...others.slice(0, lastIndexInCat + 1),
-                        ...moving,
-                        ...others.slice(lastIndexInCat + 1)
-                    ]
-                }
-                return withNewCats
-            })
-        }
-        else {
-            if (isOverCategory && activeId !== overId) {
-                const oldIndex = categories.findIndex(c => c.id === activeId)
-                const newIndex = categories.findIndex(c => c.id === overId)
-                if (oldIndex !== -1 && newIndex !== -1) {
-                    setCategories(prev => arrayMove(prev, oldIndex, newIndex))
+            // Case 2: Moving over a category header
+            if (overCategory) {
+                if (activeProj.category !== overCategory.name) {
+                    const newProjects = [...prev]
+                    newProjects[activeIndex] = { ...activeProj, category: overCategory.name }
+                    // Move to start of the new category
+                    const firstInCat = newProjects.findIndex(p => p.category === overCategory.name)
+                    return arrayMove(newProjects, activeIndex, firstInCat !== -1 ? firstInCat : activeIndex)
                 }
             }
-        }
+
+            return prev
+        })
     }
 
     async function handleDragEnd(event: DragEndEvent) {
@@ -322,35 +342,50 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
 
         const activeId = active.id as string
 
-        const isActiveCategory = categories.some(c => c.id === activeId)
+        const isActiveCategory = categories.some(c => (c.id ? `cat-${c.id}` : `cat-fallback-${c.name}`) === activeId)
 
-        if (isActiveCategory) {
-            const reorderItems = categories.map((cat, index) => ({
-                id: cat.id,
-                order: index
-            }))
+        setIsSaving(true)
+        try {
+            if (isActiveCategory) {
+                const reorderItems = categories.map((cat, index) => ({
+                    id: cat.id,
+                    order: index
+                }))
 
-            await fetch("/api/categories/reorder", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ items: reorderItems })
-            })
-        } else {
-            // Project Reordering
-            // Persistence
-            const projectsToSync: { id: string; order: number; category: string }[] = []
-            const counts: Record<string, number> = {}
-            projects.forEach(p => {
-                if (!counts[p.category]) counts[p.category] = 0
-                projectsToSync.push({ id: p.id, order: counts[p.category], category: p.category })
-                counts[p.category]++
-            })
+                const res = await fetch("/api/categories/reorder", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ items: reorderItems })
+                })
+                if (!res.ok) throw new Error("Error saving categories order")
+            } else {
+                // Project Reordering
+                // Persistence
+                const projectsToSync: { id: string; order: number; category: string }[] = []
+                const counts: Record<string, number> = {}
+                projects.forEach(p => {
+                    if (!counts[p.category]) counts[p.category] = 0
+                    projectsToSync.push({ id: p.id, order: counts[p.category], category: p.category })
+                    counts[p.category]++
+                })
 
-            await fetch("/api/projects/reorder", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ items: projectsToSync })
-            })
+                const res = await fetch("/api/projects/reorder", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ items: projectsToSync })
+                })
+                if (!res.ok) throw new Error("Error saving projects order")
+            }
+
+            // Sync server state
+            router.refresh()
+        } catch (error) {
+            console.error("Reorder sync error:", error)
+            alert("Error al guardar el nuevo orden")
+            // Reload to revert local state to last known good server state
+            window.location.reload()
+        } finally {
+            setIsSaving(false)
         }
     }
 
@@ -387,22 +422,68 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
         }
     }
 
+    const togglePublished = async (project: Project) => {
+        const newStatus = !project.published
+
+        // Optimistic update
+        setProjects(prev => prev.map(p =>
+            p.id === project.id ? { ...p, published: newStatus } : p
+        ))
+
+        try {
+            const res = await fetch(`/api/projects/${project.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ published: newStatus })
+            })
+
+            if (!res.ok) {
+                // Revert on error
+                setProjects(prev => prev.map(p =>
+                    p.id === project.id ? { ...p, published: project.published } : p
+                ))
+                alert("Error al actualizar la visibilidad")
+            }
+            // No reload needed!
+        } catch (error) {
+            console.error("Toggle visibility error:", error)
+            // Revert on error
+            setProjects(prev => prev.map(p =>
+                p.id === project.id ? { ...p, published: project.published } : p
+            ))
+            alert("Error de red")
+        }
+    }
+
+    if (!hasMounted) return <div className="min-h-screen bg-black" />
+
     return (
         <div className="space-y-6">
-            {selectedIds.length > 0 && (
-                <div className="flex items-center justify-between p-4 bg-red-600/10 border border-red-500/20 rounded-xl">
-                    <p className="text-sm font-medium text-red-500">
-                        {selectedIds.length} proyectos seleccionados
-                    </p>
-                    <button
-                        onClick={handleBulkDelete}
-                        disabled={isBulkDeleting}
-                        className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50"
-                    >
-                        {isBulkDeleting ? 'Eliminando...' : 'Eliminar'}
-                    </button>
-                </div>
-            )}
+            <div className="flex justify-between items-center h-12">
+                {selectedIds.length > 0 ? (
+                    <div className="flex items-center justify-between w-full p-4 bg-red-600/10 border border-red-500/20 rounded-xl animate-in fade-in slide-in-from-top-2">
+                        <p className="text-sm font-medium text-red-500">
+                            {selectedIds.length} proyectos seleccionados
+                        </p>
+                        <button
+                            onClick={handleBulkDelete}
+                            disabled={isBulkDeleting}
+                            className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50"
+                        >
+                            {isBulkDeleting ? 'Eliminando...' : 'Eliminar'}
+                        </button>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-2">
+                        {isSaving && (
+                            <div className="flex items-center gap-2 text-xs text-white/40 animate-pulse">
+                                <div className="w-3 h-3 border border-red-600 border-t-transparent rounded-full animate-spin" />
+                                <span>Guardando cambios...</span>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
 
             <DndContext
                 id="admin-dnd-context"
@@ -414,11 +495,11 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
                 modifiers={[restrictToVerticalAxis]}
             >
                 <SortableContext
-                    items={categories.map(c => c.id)}
+                    items={categories.map((c, idx) => c.id ? `cat-${c.id}` : `cat-fallback-${idx}`)}
                     strategy={verticalListSortingStrategy}
                 >
                     <div className="flex flex-col gap-2">
-                        {categories.map((category) => {
+                        {categories.map((category, idx) => {
                             const catProjects = projectsByCategory[category.name] || []
                             const isAllSelected = catProjects.length > 0 && catProjects.every(p => selectedIds.includes(p.id))
 
@@ -432,17 +513,18 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
 
                             return (
                                 <SortableCategory
-                                    key={category.id}
+                                    key={category.id ? `cat-${category.id}` : `cat-fallback-${idx}`}
                                     category={category}
                                     isAllSelected={isAllSelected}
                                     toggleAll={toggleAll}
+                                    index={idx}
                                 >
                                     {/* Projects Table inside Category */}
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left">
                                             <tbody className="divide-y divide-white/5">
                                                 <SortableContext
-                                                    items={catProjects.map(p => p.id)}
+                                                    items={catProjects.map((p, pIdx) => p.id ? `proj-${p.id}` : `proj-fallback-${pIdx}`)}
                                                     strategy={verticalListSortingStrategy}
                                                 >
                                                     {catProjects.length === 0 ? (
@@ -452,15 +534,20 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
                                                             </td>
                                                         </tr>
                                                     ) : (
-                                                        catProjects.map((project) => (
-                                                            <SortableProject
-                                                                key={project.id}
-                                                                project={project}
-                                                                selectedIds={selectedIds}
-                                                                toggleProject={toggleProject}
-                                                                activeId={activeId}
-                                                            />
-                                                        ))
+                                                        catProjects.map((project, pIdx) => {
+                                                            const projectKey = project.id ? `proj-${project.id}` : `proj-fallback-${pIdx}`
+                                                            return (
+                                                                <SortableProject
+                                                                    key={projectKey}
+                                                                    project={project}
+                                                                    selectedIds={selectedIds}
+                                                                    toggleProject={toggleProject}
+                                                                    activeId={activeId}
+                                                                    onTogglePublished={togglePublished}
+                                                                    index={pIdx}
+                                                                />
+                                                            )
+                                                        })
                                                     )}
                                                 </SortableContext>
                                             </tbody>
@@ -483,7 +570,7 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
                                         </svg>
                                     </div>
                                     <h3 className="text-lg font-serif font-bold text-white uppercase tracking-wider">
-                                        {categories.find(c => c.id === activeId)?.title}
+                                        {categories.find(c => (c.id ? `cat-${c.id}` : `cat-fallback-${c.name}`) === activeId)?.title}
                                     </h3>
                                 </div>
                             </div>
@@ -496,7 +583,7 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
                                             </svg>
                                         </div>
-                                        <span className="font-medium text-sm text-white">{projects.find(p => p.id === activeId)?.title}</span>
+                                        <span className="font-medium text-sm text-white">{projects.find(p => (p.id ? `proj-${p.id}` : `proj-fallback-${p.title.replace(/\s+/g, '-')}`) === activeId)?.title}</span>
                                     </div>
                                     {selectedIds.length > 1 && selectedIds.includes(activeId) && (
                                         <div className="absolute -top-3 -right-3 bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded-full shadow-[0_0_20px_rgba(220,38,38,0.5)] border border-white/20 animate-bounce">

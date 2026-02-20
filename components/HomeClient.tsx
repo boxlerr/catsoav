@@ -5,6 +5,7 @@ import { useEffect, useState, memo, useMemo, useRef } from "react"
 import dynamic from "next/dynamic"
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent, useInView } from "framer-motion"
 import { useSession, signOut } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import Footer from "@/components/Footer"
@@ -62,8 +63,10 @@ interface CategorySectionProps {
     setExpandedCategories: React.Dispatch<React.SetStateAction<Set<string>>>;
     session: ExtendedSession | null;
     isSorting: boolean;
+    isSortingRef: React.RefObject<boolean>;
     toggleVisibility: (e: React.MouseEvent, project: Project) => Promise<void>;
     handleDelete: (e: React.MouseEvent, id: string) => Promise<void>;
+    index: number;
 }
 
 const CategorySection = memo(({
@@ -73,12 +76,15 @@ const CategorySection = memo(({
     setExpandedCategories,
     session,
     isSorting,
+    isSortingRef,
     toggleVisibility,
-    handleDelete
+    handleDelete,
+    index
 }: CategorySectionProps) => {
     const sectionRef = useRef<HTMLDivElement>(null);
     const isInView = useInView(sectionRef, { amount: 0 });
 
+    const sectionId = category.id ? `cat-${category.id}` : `cat-fallback-${category.name || 'unknown'}-${index}`
     const {
         attributes,
         listeners,
@@ -87,7 +93,7 @@ const CategorySection = memo(({
         transition,
         isDragging
     } = useSortable({
-        id: category.id,
+        id: sectionId,
         disabled: session?.user?.role !== "admin"
     });
 
@@ -156,30 +162,31 @@ const CategorySection = memo(({
                 </div>
 
                 <SortableContext
-                    items={visibleProjects.map(p => p.id)}
+                    items={visibleProjects.map((p, pIdx) => p.id ? `proj-${p.id}` : `proj-fallback-${pIdx}`)}
                     strategy={rectSortingStrategy}
                     disabled={session?.user?.role !== "admin"}
                 >
-                    <div className="centered-grid gap-4 md:gap-8">
+                    <div className={`centered-grid gap-4 md:gap-8 ${visibleProjects.length <= 3 ? 'left-aligned' : ''}`}>
                         {visibleProjects.length > 0 ? (
-                            visibleProjects.map((project: Project) => {
+                            visibleProjects.map((project: Project, pIdx: number) => {
+                                const projectKey = project.id ? `proj-${project.id}` : `proj-fallback-${pIdx}`
                                 return (
                                     <SortableItem
-                                        key={project.id}
-                                        id={project.id}
+                                        key={projectKey}
+                                        id={projectKey}
                                         disabled={session?.user?.role !== "admin"}
                                         className="h-full"
                                     >
                                         <Link
                                             href={`/project/${project.id}`}
                                             onClick={(e) => {
-                                                if (isSorting) {
+                                                if (isSorting || isSortingRef.current) {
                                                     e.preventDefault()
                                                     return
                                                 }
                                                 sessionStorage.setItem('scroll-pos-/', window.scrollY.toString());
                                             }}
-                                            className={`hover-burn group relative block aspect-video bg-neutral-900/50 border border-white/5 lg:hover:border-red-600/50 transition-all duration-500 lg:hover:shadow-2xl lg:hover:shadow-red-900/20 cursor-pointer ${!project.published ? "opacity-40 grayscale" : ""} w-full h-full`}
+                                            className={`hover-burn group relative block aspect-video bg-neutral-900/50 border border-white/5 lg:hover:border-red-600/50 transition-all duration-500 lg:hover:shadow-2xl lg:hover:shadow-red-900/20 cursor-pointer ${!project.published ? "opacity-40 grayscale" : ""} w-full h-full ${isSorting ? 'pointer-events-none' : ''}`}
                                         >
                                             <div className="absolute inset-0 overflow-hidden rounded-[inherit] z-0">
                                                 <VideoThumbnail
@@ -298,11 +305,22 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
     const [isLoaded, setIsLoaded] = useState(false)
     const [isScrolled, setIsScrolled] = useState(false)
     const [mounted, setMounted] = useState(false)
-    const [projects, setProjects] = useState<Project[]>(initialProjects)
-    const [categories, setCategories] = useState<Category[]>(initialCategories)
+    const [projects, setProjects] = useState<Project[]>(() => {
+        if (!initialProjects) return []
+        const valid = initialProjects.filter(p => p && p.id && typeof p.id === 'string' && p.id.trim() !== '')
+        return Array.from(new Map(valid.map(p => [p.id, p])).values())
+    })
+    const [categories, setCategories] = useState<Category[]>(() => {
+        if (!initialCategories) return []
+        const valid = initialCategories.filter(c => c && c.id && typeof c.id === 'string' && c.id.trim() !== '')
+        return Array.from(new Map(valid.map(c => [c.id, c])).values())
+    })
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isSorting, setIsSorting] = useState(false)
+    const [isSaving, setIsSaving] = useState(false)
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
+    const router = useRouter()
+    const isSortingRef = useRef(false)
 
     useEffect(() => {
         setMounted(true)
@@ -341,6 +359,23 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
         }
     }, [projects.length, categories.length, mounted]);
 
+    // Keep state in sync with props when router.refresh() happens, ensuring uniqueness and non-empty IDs
+    useEffect(() => {
+        if (initialProjects) {
+            const validProjects = initialProjects.filter(p => p && p.id && typeof p.id === 'string' && p.id.trim() !== '')
+            const uniqueProjects = Array.from(new Map(validProjects.map(p => [p.id, p])).values())
+            setProjects(uniqueProjects)
+        }
+    }, [initialProjects])
+
+    useEffect(() => {
+        if (initialCategories) {
+            const validCategories = initialCategories.filter(c => c && c.id && typeof c.id === 'string' && c.id.trim() !== '')
+            const uniqueCategories = Array.from(new Map(validCategories.map(c => [c.id, c])).values())
+            setCategories(uniqueCategories)
+        }
+    }, [initialCategories])
+
     useEffect(() => {
         const array = Array.from(expandedCategories);
         if (array.length > 0) {
@@ -368,7 +403,9 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
             })
             if (res.ok) {
                 const data = await res.json()
-                setCategories(data)
+                const validCategories = data.filter((c: Category) => c && c.id && typeof c.id === 'string' && c.id.trim() !== '')
+                const uniqueCategories = Array.from(new Map(validCategories.map((c: Category) => [c.id, c])).values())
+                setCategories(uniqueCategories as Category[])
             }
         } catch (error) {
             console.error("Error fetching categories:", error)
@@ -384,7 +421,9 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
             })
             if (res.ok) {
                 const data = await res.json()
-                setProjects(data)
+                const validProjects = data.filter((p: Project) => p && p.id && typeof p.id === 'string' && p.id.trim() !== '')
+                const uniqueProjects = Array.from(new Map(validProjects.map((p: Project) => [p.id, p])).values())
+                setProjects(uniqueProjects as Project[])
             }
         } catch (error) {
             console.error("Error fetching projects:", error)
@@ -418,7 +457,7 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                 body: JSON.stringify({ published: newStatus })
             })
             if (!res.ok) throw new Error()
-        } catch (_err) {
+        } catch {
             setProjects((prev) => prev.map(p => p.id === project.id ? { ...p, published: !newStatus } : p))
         }
     }
@@ -426,14 +465,13 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
     const projectsByCategory = useMemo(() => {
         const map: Record<string, Project[]> = {}
         categories.forEach(cat => {
-            map[cat.name] = projects
+            map[cat.name] = [...projects]
                 .filter((p) => p.category === cat.name)
                 .sort((a, b) => (a.order || 0) - (b.order || 0))
         })
         return map
     }, [projects, categories])
 
-    const [activeId, setActiveId] = useState<string | null>(null)
     const [activeType, setActiveType] = useState<'category' | 'project' | null>(null)
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -443,9 +481,9 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
 
     const handleDragStart = (event: DragStartEvent) => {
         setIsSorting(true)
+        isSortingRef.current = true
         const { active } = event
-        setActiveId(active.id.toString())
-        const isCategory = categories.some(c => c.id === active.id)
+        const isCategory = categories.some(c => (c.id ? `cat-${c.id}` : `cat-fallback-${c.name}`) === active.id)
         setActiveType(isCategory ? 'category' : 'project')
     }
 
@@ -457,66 +495,60 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
         const activeId = active.id.toString()
         const overId = over.id.toString()
 
-        const isActiveProject = projects.some(p => p.id === activeId)
-        const isActiveCategory = categories.some(c => c.id === activeId)
-        const isOverProject = projects.some(p => p.id === overId)
+        const isActiveProject = projects.some((p) => (p.id ? `proj-${p.id}` : `proj-fallback-${p.title.replace(/\s+/g, '-')}`) === activeId)
+        const isActiveCategory = categories.some((c) => (c.id ? `cat-${c.id}` : `cat-fallback-${c.name}`) === activeId)
 
         if (isActiveProject) {
             setProjects((prev) => {
-                const activeProject = prev.find((p) => p.id === activeId)
-                if (!activeProject) return prev
+                const activeIndex = prev.findIndex((p) => (p.id ? `proj-${p.id}` : `proj-fallback-${p.title.replace(/\s+/g, '-')}`) === activeId)
+                const overIndex = prev.findIndex((p) => (p.id ? `proj-${p.id}` : `proj-fallback-${p.title.replace(/\s+/g, '-')}`) === overId)
 
-                const overProject = prev.find((p) => p.id === overId)
-                const overCategory = categories.find((c) => c.id === overId || c.name === overId)
+                if (activeIndex === -1) return prev
+
+                // Moving within same category or to a project in another category
+                const activeProject = prev[activeIndex]
+                const overProject = prev.find((p) => (p.id ? `proj-${p.id}` : `proj-fallback-${p.title.replace(/\s+/g, '-')}`) === overId)
+                const overCategory = categories.find((c) => (c.id ? `cat-${c.id}` : `cat-fallback-${c.name}`) === overId || c.name === overId)
 
                 if (overProject) {
+                    const newProjects = [...prev]
                     if (activeProject.category !== overProject.category) {
-                        const activeIndex = prev.findIndex((p) => p.id === activeId)
-                        const overIndex = prev.findIndex((p) => p.id === overId)
-                        const newProjects = [...prev]
-                        newProjects[activeIndex] = { ...newProjects[activeIndex], category: overProject.category }
-                        return arrayMove(newProjects, activeIndex, overIndex)
+                        newProjects[activeIndex] = { ...activeProject, category: overProject.category }
                     }
+                    return arrayMove(newProjects, activeIndex, overIndex)
                 } else if (overCategory) {
                     if (activeProject.category !== overCategory.name) {
-                        const activeIndex = prev.findIndex((p) => p.id === activeId)
                         const newProjects = [...prev]
-                        newProjects[activeIndex] = { ...newProjects[activeIndex], category: overCategory.name }
+                        newProjects[activeIndex] = { ...activeProject, category: overCategory.name }
                         return newProjects
                     }
                 }
                 return prev
             })
         } else if (isActiveCategory) {
-            let actualOverId = overId;
-            if (isOverProject) {
-                const overProj = projects.find(p => p.id === overId)!
-                const parentCat = categories.find(c => c.name === overProj.category)
-                if (parentCat) actualOverId = parentCat.id
-            }
-
-            if (activeId !== actualOverId) {
-                const oldIndex = categories.findIndex(c => c.id === activeId)
-                const newIndex = categories.findIndex(c => c.id === actualOverId)
-                if (oldIndex !== -1 && newIndex !== -1) {
-                    setCategories(prev => arrayMove(prev, oldIndex, newIndex))
-                }
+            const oldIndex = categories.findIndex((c) => (c.id ? `cat-${c.id}` : `cat-fallback-${c.name}`) === activeId)
+            const newIndex = categories.findIndex((c) => (c.id ? `cat-${c.id}` : `cat-fallback-${c.name}`) === overId)
+            if (oldIndex !== -1 && newIndex !== -1) {
+                setCategories(prev => arrayMove(prev, oldIndex, newIndex))
             }
         }
     }
 
     const handleDragEnd = async (event: DragEndEvent) => {
         const { active, over } = event
-        setIsSorting(false)
-        setActiveId(null)
+
         setActiveType(null)
+
+        // Use a longer delay to ensure the click event is swallowed
+        setTimeout(() => {
+            setIsSorting(false)
+            isSortingRef.current = false
+        }, 300)
 
         if (session?.user?.role !== "admin" || !over) return
 
-        const activeId = active.id.toString()
-        const overId = over.id.toString()
-
-        const isActiveCategory = categories.some(c => c.id === activeId)
+        setIsSaving(true)
+        const isActiveCategory = categories.some((c) => (c.id ? `cat-${c.id}` : `cat-fallback-${c.name}`) === active.id)
 
         if (isActiveCategory) {
             const reorderItems = categories.map((cat, index) => ({
@@ -524,50 +556,46 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                 order: index
             }))
 
-            await fetch("/api/categories/reorder", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ items: reorderItems })
-            })
-        } else {
-            const activeProj = projects.find(p => p.id === activeId)
-            if (!activeProj) return
-
-            const overProj = projects.find(p => p.id === overId)
-            const overCat = categories.find(c => c.id === overId || c.name === overId)
-
-            let newCategory = activeProj.category
-            if (overProj) newCategory = overProj.category
-            else if (overCat) newCategory = overCat.name
-
-            const oldIndex = projects.findIndex(p => p.id === activeId)
-            let newIndex = projects.findIndex(p => p.id === overId)
-            if (newIndex === -1 && overCat) {
-                newIndex = projects.length - 1
+            try {
+                const res = await fetch("/api/categories/reorder", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ items: reorderItems })
+                })
+                if (res.ok) router.refresh()
+            } catch (err) {
+                console.error("Error reordering categories:", err)
             }
-
-            const updatedProjects = [...projects]
-            updatedProjects[oldIndex] = { ...activeProj, category: newCategory }
-            const finalProjects = newIndex !== -1
-                ? arrayMove(updatedProjects, oldIndex, newIndex)
-                : updatedProjects
-
-            setProjects(finalProjects)
+        } else {
+            // Recalculate orders for all projects based on their current array position per category
+            const projectsWithNewOrder = [...projects]
+            const cats = Array.from(new Set(projectsWithNewOrder.map(p => p.category)))
 
             const projectsToSync: { id: string, order: number, category: string }[] = []
-            const counts: Record<string, number> = {}
-            finalProjects.forEach(p => {
-                if (!counts[p.category]) counts[p.category] = 0
-                projectsToSync.push({ id: p.id, order: counts[p.category], category: p.category })
-                counts[p.category]++
+
+            cats.forEach(catName => {
+                projectsWithNewOrder
+                    .filter(p => p.category === catName)
+                    .forEach((p, index) => {
+                        p.order = index
+                        projectsToSync.push({ id: p.id, order: index, category: catName })
+                    })
             })
 
-            await fetch("/api/projects/reorder", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ items: projectsToSync })
-            })
+            setProjects(projectsWithNewOrder)
+
+            try {
+                const res = await fetch("/api/projects/reorder", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ items: projectsToSync })
+                })
+                if (res.ok) router.refresh()
+            } catch (err) {
+                console.error("Error reordering projects:", err)
+            }
         }
+        setIsSaving(false)
     }
 
     const { scrollY } = useScroll()
@@ -640,6 +668,17 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
             />
 
             <AnimatePresence>
+                {isSaving && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="fixed top-24 left-1/2 -translate-x-1/2 z-[60] bg-red-600 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(220,38,38,0.5)] flex items-center gap-2"
+                    >
+                        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                        Guardando cambios en el servidor...
+                    </motion.div>
+                )}
                 {isScrolled && (
                     <motion.nav
                         initial={{ opacity: 0 }}
@@ -674,17 +713,19 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                                     Servicios
                                 </a>
 
-                                {categories.filter(cat => (session as ExtendedSession)?.user?.role === "admin" || (projectsByCategory[cat.name]?.length || 0) > 0).map((category) => (
-                                    <a
-                                        key={category.id}
-                                        href={`#${category.name}`}
-                                        onClick={(e) => scrollToSection(e, category.name)}
-                                        className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider"
-                                        aria-label={`Categoría ${category.title}`}
-                                    >
-                                        {category.title.split(" ")[0]}
-                                    </a>
-                                ))}
+                                {categories
+                                    .filter(cat => (session as ExtendedSession)?.user?.role === "admin" || (projectsByCategory[cat.name]?.length || 0) > 0)
+                                    .map((category) => (
+                                        <a
+                                            key={category.id ? `nav-${category.id}` : `nav-fallback-${category.name}`}
+                                            href={`#${category.name}`}
+                                            onClick={(e) => scrollToSection(e, category.name)}
+                                            className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider"
+                                            aria-label={`Categoría ${category.title}`}
+                                        >
+                                            {category.title.split(" ")[0]}
+                                        </a>
+                                    ))}
                                 {session && (
                                     <div className="flex items-center gap-3">
                                         <span className="text-white/40 text-[10px] uppercase tracking-wider">Hola, {session.user?.name?.split(' ')[0] || 'Admin'}</span>
@@ -721,7 +762,7 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                         </div>
                     </motion.nav>
                 )}
-            </AnimatePresence>
+            </AnimatePresence >
 
             <AnimatePresence>
                 {isMobileMenuOpen && (
@@ -784,17 +825,19 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                                     <div className="my-4 h-px bg-white/5" />
                                     <p className="text-[10px] uppercase tracking-[0.3em] font-black text-white/20 mb-4">Categorías</p>
 
-                                    {categories.filter(cat => (session as ExtendedSession)?.user?.role === "admin" || (projectsByCategory[cat.name]?.length || 0) > 0).map((category) => (
-                                        <a
-                                            key={category.id}
-                                            href={`#${category.name}`}
-                                            onClick={(e) => { scrollToSection(e, category.name); setIsMobileMenuOpen(false); }}
-                                            className="text-xl font-serif font-bold text-white/80 hover:text-red-600 transition-colors flex items-center justify-between group"
-                                        >
-                                            <span>{category.title}</span>
-                                            <span className="h-px w-0 bg-red-600 transition-all duration-300 group-hover:w-4" />
-                                        </a>
-                                    ))}
+                                    {categories
+                                        .filter(cat => (session as ExtendedSession)?.user?.role === "admin" || (projectsByCategory[cat.name]?.length || 0) > 0)
+                                        .map((category) => (
+                                            <a
+                                                key={category.id ? `mob-${category.id}` : `mob-fallback-${category.name}`}
+                                                href={`#${category.name}`}
+                                                onClick={(e) => { scrollToSection(e, category.name); setIsMobileMenuOpen(false); }}
+                                                className="text-xl font-serif font-bold text-white/80 hover:text-red-600 transition-colors flex items-center justify-between group"
+                                            >
+                                                <span>{category.title}</span>
+                                                <span className="h-px w-0 bg-red-600 transition-all duration-300 group-hover:w-4" />
+                                            </a>
+                                        ))}
 
                                     <div className="my-4 h-px bg-white/5" />
 
@@ -897,26 +940,29 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                                 modifiers={activeType === 'category' ? [restrictToVerticalAxis] : []}
                             >
                                 <SortableContext
-                                    items={categories.map(c => c.id)}
+                                    items={categories.map((c, idx) => c.id ? `cat-${c.id}` : `cat-fallback-${idx}`)}
                                     strategy={verticalListSortingStrategy}
                                     disabled={session?.user?.role !== "admin"}
                                 >
                                     <div className="flex flex-col">
-                                        {categories.map((category) => {
+                                        {categories.map((category, idx) => {
                                             const catProjects = projectsByCategory[category.name] || []
                                             if ((session as ExtendedSession)?.user?.role !== "admin" && catProjects.length === 0) return null;
 
+                                            const categoryKey = category.id ? `cat-${category.id}` : `cat-fallback-${idx}`
                                             return (
                                                 <CategorySection
-                                                    key={category.id}
+                                                    key={categoryKey}
                                                     category={category}
                                                     catProjects={catProjects}
                                                     isExpanded={expandedCategories.has(category.name)}
                                                     setExpandedCategories={setExpandedCategories}
                                                     session={session}
                                                     isSorting={isSorting}
+                                                    isSortingRef={isSortingRef}
                                                     toggleVisibility={toggleVisibility}
                                                     handleDelete={handleDelete}
+                                                    index={idx}
                                                 />
                                             )
                                         })}
@@ -925,7 +971,7 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                             </DndContext>
                         ) : (
                             categories.map((category) => (
-                                <section key={category.id} id={category.name} className="min-h-[80vh] flex flex-col justify-center py-20 border-t border-neutral-900 first:border-none">
+                                <section key={category.id || `static-${category.name}`} id={category.name} className="min-h-[80vh] flex flex-col justify-center py-20 border-t border-neutral-900 first:border-none">
                                     <div className="mb-12 md:mb-16 px-4 md:px-0">
                                         <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">{category.title}<span className="text-red-600">.</span></h2>
                                         <p className="text-white/60 text-lg md:text-xl font-light max-w-xl">{category.description}</p>

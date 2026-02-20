@@ -98,14 +98,23 @@ export default function QuickProjectButton() {
             setView('categories')
         }
 
+        const handleNewCategory = (e: CustomEvent) => {
+            setEditingCatId(null)
+            setNewCat({ title: "", description: "" })
+            setIsOpen(true)
+            setView('categories')
+        }
+
         console.log("Adding event listeners in QuickProjectButton")
         window.addEventListener('editProject' as string, handleEdit as EventListener)
         window.addEventListener('newProject' as string, handleNew as EventListener)
         window.addEventListener('editCategory' as string, handleEditCategory as EventListener)
+        window.addEventListener('newCategory' as string, handleNewCategory as EventListener)
         return () => {
             window.removeEventListener('editProject' as string, handleEdit as EventListener)
             window.removeEventListener('newProject' as string, handleNew as EventListener)
             window.removeEventListener('editCategory' as string, handleEditCategory as EventListener)
+            window.removeEventListener('newCategory' as string, handleNewCategory as EventListener)
         }
     }, [categories])
 
@@ -157,7 +166,7 @@ export default function QuickProjectButton() {
         }
     }
 
-    const _handleAddCategory = async (e: React.FormEvent) => {
+    const handleAddCategory = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!newCat.title) return
         setLoading(true)
@@ -170,6 +179,8 @@ export default function QuickProjectButton() {
             if (res.ok) {
                 setNewCat({ title: "", description: "" })
                 await fetchCategories()
+                setIsOpen(false)
+                router.refresh()
             } else {
                 const errorData = await res.json()
                 alert(errorData.error || "Error al crear la categoría")
@@ -280,8 +291,8 @@ export default function QuickProjectButton() {
                                         <div className="space-y-4">
                                             <label className="text-white/30 text-[10px] uppercase tracking-[0.2em] font-black ml-1">Categoría Destino</label>
                                             <div className="flex flex-wrap gap-2 p-2 bg-black/40 rounded-2xl border border-white/5">
-                                                {categories.map(cat => (
-                                                    <button key={cat.id} type="button" onClick={() => setFormData({ ...formData, category: cat.name })} className={`px-5 py-2.5 rounded-xl text-[10px] uppercase font-bold tracking-wider transition-all ${formData.category === cat.name ? "bg-red-600 text-white shadow-lg" : "hover:bg-white/5 text-white/40 hover:text-white"}`}>
+                                                {categories.map((cat, idx) => (
+                                                    <button key={cat.id || `quick-cat-${idx}`} type="button" onClick={() => setFormData({ ...formData, category: cat.name })} className={`px-5 py-2.5 rounded-xl text-[10px] uppercase font-bold tracking-wider transition-all ${formData.category === cat.name ? "bg-red-600 text-white shadow-lg" : "hover:bg-white/5 text-white/40 hover:text-white"}`}>
                                                         {cat.title}
                                                     </button>
                                                 ))}
@@ -339,7 +350,7 @@ export default function QuickProjectButton() {
                                     <div className="space-y-4">
                                         <label className="text-white/30 text-[10px] uppercase tracking-[0.2em] font-black ml-1">Visibilidad del Proyecto</label>
                                         <div className="flex items-center gap-4 p-5 bg-white/[0.02] border border-white/5 rounded-3xl group/toggle cursor-pointer" onClick={() => setFormData({ ...formData, published: !formData.published })}>
-                                            <div className={`w-12 h-6 rounded-full relative transition-colors duration-500 ${formData.published ? 'bg-red-600' : 'bg-white/10'}`}>
+                                            <div className={`w-12 h-6 rounded-full relative transition-colors duration-500 ${formData.published ? 'bg-[#007b00]' : 'bg-white/10'}`}>
                                                 <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-500 ${formData.published ? 'left-7' : 'left-1'}`} />
                                             </div>
                                             <div>
@@ -370,10 +381,14 @@ export default function QuickProjectButton() {
                                     </div>
                                 </form>
                             ) : (
-                                <form onSubmit={handleUpdateCategory} className="max-w-xl mx-auto space-y-10 py-10">
+                                <form onSubmit={editingCatId ? handleUpdateCategory : handleAddCategory} className="max-w-xl mx-auto space-y-10 py-10">
                                     <header className="text-center">
-                                        <h2 className="text-3xl font-serif font-bold text-white mb-2">Editar Categoría</h2>
-                                        <p className="text-white/40 text-sm">Modifica el nombre y descripción de la categoría.</p>
+                                        <h2 className="text-3xl font-serif font-bold text-white mb-2">
+                                            {editingCatId ? 'Editar Categoría' : 'Nueva Categoría'}
+                                        </h2>
+                                        <p className="text-white/40 text-sm">
+                                            {editingCatId ? 'Modifica el nombre y descripción.' : 'Crea una nueva categoría para organizar tus videos.'}
+                                        </p>
                                     </header>
 
                                     <div className="space-y-6">
@@ -382,33 +397,50 @@ export default function QuickProjectButton() {
                                             <input
                                                 required
                                                 type="text"
-                                                value={editCatData.title}
-                                                onChange={e => setEditCatData({ ...editCatData, title: e.target.value })}
+                                                value={editingCatId ? editCatData.title : newCat.title}
+                                                onChange={e => editingCatId
+                                                    ? setEditCatData({ ...editCatData, title: e.target.value })
+                                                    : setNewCat({ ...newCat, title: e.target.value })}
                                                 className="w-full bg-white/[0.03] border border-white/10 text-white px-5 py-4 rounded-2xl focus:outline-none focus:border-red-600 transition-all"
+                                                placeholder="Ej: Producciones Musicales"
                                             />
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-white/30 text-[10px] uppercase tracking-[0.2em] font-black ml-1">Descripción</label>
                                             <textarea
                                                 rows={3}
-                                                value={editCatData.description}
-                                                onChange={e => setEditCatData({ ...editCatData, description: e.target.value })}
+                                                value={editingCatId ? editCatData.description : newCat.description}
+                                                onChange={e => editingCatId
+                                                    ? setEditCatData({ ...editCatData, description: e.target.value })
+                                                    : setNewCat({ ...newCat, description: e.target.value })}
                                                 className="w-full bg-white/[0.03] border border-white/10 text-white px-5 py-4 rounded-2xl focus:outline-none focus:border-red-600 transition-all resize-none"
+                                                placeholder="Breve descripción de la categoría..."
                                             />
                                         </div>
                                     </div>
 
                                     <div className="pt-6 space-y-4">
-                                        <button disabled={loading} type="submit" className="w-full bg-white text-black hover:bg-red-600 hover:text-white font-serif font-black tracking-[0.2em] uppercase text-xs py-4 rounded-xl transition-all shadow-lg">
-                                            {loading ? "Guardando..." : "Guardar Cambios"}
+                                        <button disabled={loading} type="submit" className="w-full bg-white text-black hover:bg-red-600 hover:text-white font-serif font-black tracking-[0.2em] uppercase text-xs py-4 rounded-xl transition-all shadow-lg active:scale-[0.98]">
+                                            {loading ? "Sincronizando..." : (editingCatId ? "Guardar Cambios" : "Crear Categoría")}
                                         </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleDeleteCategory(editingCatId!)}
-                                            className="w-full text-red-500/50 hover:text-red-500 text-[10px] uppercase font-bold tracking-widest transition-colors"
-                                        >
-                                            Eliminar Categoría
-                                        </button>
+                                        {editingCatId && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteCategory(editingCatId!)}
+                                                className="w-full text-red-500/50 hover:text-red-500 text-[10px] uppercase font-bold tracking-widest transition-colors"
+                                            >
+                                                Eliminar Categoría
+                                            </button>
+                                        )}
+                                        {!editingCatId && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsOpen(false)}
+                                                className="w-full text-white/20 hover:text-white text-[10px] uppercase font-bold tracking-widest transition-colors"
+                                            >
+                                                Cancelar
+                                            </button>
+                                        )}
                                     </div>
                                 </form>
                             )}

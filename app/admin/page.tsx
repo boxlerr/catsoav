@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import SyncBehanceButton from "@/components/admin/SyncBehanceButton"
 import NewProjectButton from "@/components/admin/NewProjectButton"
+import NewCategoryButton from "@/components/admin/NewCategoryButton"
 import AdminContent from "@/components/admin/AdminContent"
 
 async function getAdminData() {
@@ -15,37 +16,37 @@ async function getAdminData() {
 
     const [
         projectsCount,
-        usersCount,
+        allUsers,
         projects,
         categories
     ] = await Promise.all([
-        prisma.project.count(),
-        prisma.user.count(),
+        prisma.project.count().catch(() => 0),
+        prisma.user.findMany({ select: { id: true } }).catch(() => []),
         prisma.project.findMany({
             orderBy: [{ category: 'asc' }, { order: 'asc' }]
-        }),
+        }).catch(() => []),
         prisma.category.findMany({
             orderBy: { order: 'asc' }
-        })
+        }).catch(() => [])
     ])
 
     // Serialize Date objects for client components
     const serializedProjects = projects.map(p => ({
         ...p,
-        createdAt: p.createdAt.toISOString(),
-        updatedAt: p.updatedAt.toISOString()
+        createdAt: p.createdAt instanceof Date ? p.createdAt.toISOString() : new Date().toISOString(),
+        updatedAt: p.updatedAt instanceof Date ? p.updatedAt.toISOString() : new Date().toISOString()
     }))
 
     const serializedCategories = categories.map(c => ({
         ...c,
-        createdAt: c.createdAt.toISOString(),
-        updatedAt: c.updatedAt.toISOString()
+        createdAt: c.createdAt instanceof Date ? c.createdAt.toISOString() : new Date().toISOString(),
+        updatedAt: c.updatedAt instanceof Date ? c.updatedAt.toISOString() : new Date().toISOString()
     }))
 
     return {
         projectsCount,
         categoriesCount: categories.length,
-        usersCount,
+        usersCount: allUsers.length,
         projects: serializedProjects,
         categories: serializedCategories
     }
@@ -85,6 +86,7 @@ export default async function AdminDashboard() {
                 <h2 className="text-2xl font-bold">Gestión de Contenido</h2>
                 <div className="flex items-center gap-4">
                     <SyncBehanceButton />
+                    <NewCategoryButton />
                     <NewProjectButton />
                 </div>
             </div>
