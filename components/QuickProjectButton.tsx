@@ -10,7 +10,6 @@ export default function QuickProjectButton() {
     const router = useRouter()
     const [isOpen, setIsOpen] = useState(false)
     const [loading, setLoading] = useState(false)
-    console.log("QuickProjectButton mounted, session:", session?.user?.role)
     const [view, setView] = useState<'project' | 'categories'>('project')
     const [categories, setCategories] = useState<{ id: string, name: string, title: string, description?: string }[]>([])
     const [activeTab, setActiveTab] = useState({ image: 'url', video: 'url' })
@@ -105,7 +104,6 @@ export default function QuickProjectButton() {
             setView('categories')
         }
 
-        console.log("Adding event listeners in QuickProjectButton")
         window.addEventListener('editProject' as string, handleEdit as EventListener)
         window.addEventListener('newProject' as string, handleNew as EventListener)
         window.addEventListener('editCategory' as string, handleEditCategory as EventListener)

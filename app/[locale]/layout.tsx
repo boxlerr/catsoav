@@ -4,6 +4,8 @@ import type { Metadata, Viewport } from "next";
 import { Faustina, Chivo } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import {NextIntlClientProvider} from 'next-intl';
+import {getMessages} from 'next-intl/server';
 import UnicornBackground from "@/components/UnicornBackground";
 import ScrollRestoration from "@/components/ScrollRestoration";
 
@@ -103,13 +105,18 @@ export const viewport: Viewport = {
   themeColor: "#dc2626",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{locale: string}>;
 }) {
+  const { locale } = await params;
+  const messages = await getMessages();
+
   return (
-    <html lang="es" className={`${faustina.variable} ${chivo.variable}`} suppressHydrationWarning data-scroll-behavior="smooth">
+    <html lang={locale} className={`${faustina.variable} ${chivo.variable}`} suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
         {/* Preconnect to critical third-party origins */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -121,6 +128,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.youtube.com" />
         <link rel="dns-prefetch" href="https://player.vimeo.com" />
         <link rel="dns-prefetch" href="https://mir-s3-cdn-cf.behance.net" />
+        <link rel="dns-prefetch" href="https://gateway.unicorn.studio" />
       </head>
       <body className="antialiased font-sans">
         {/* Schema WebSite */}
@@ -166,13 +174,15 @@ export default function RootLayout({
             }),
           }}
         />
-        <Providers>
-          <Suspense fallback={null}>
-            <ScrollRestoration />
-          </Suspense>
-          <UnicornBackground />
-          {children}
-        </Providers>
+        <NextIntlClientProvider messages={messages}>
+          <Providers>
+            <Suspense fallback={null}>
+              <ScrollRestoration />
+            </Suspense>
+            <UnicornBackground />
+            {children}
+          </Providers>
+        </NextIntlClientProvider>
 
         {/* Global SVG Filters */}
         <svg style={{ width: 0, height: 0, position: 'absolute', pointerEvents: 'none' }} aria-hidden="true">
