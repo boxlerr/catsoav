@@ -1,0 +1,152 @@
+{
+  "header": {
+    "home": "Home",
+    "about": "About",
+    "services": "Services",
+    "contact": "Contact",
+    "admin": "Dashboard",
+    "logout": "Logout",
+    "dashboard": "Admin Dashboard"
+  },
+  "index": {
+    "hero": {
+      "subtitle": "Video Production Company",
+      "scroll": "Scroll to Explore"
+    },
+    "home": {
+      "newProject": "+ New Project",
+      "saving": "Saving changes to server...",
+      "loading": "Loading projects...",
+      "viewMore": "View More",
+      "viewLess": "View Less",
+      "noProjects": "No projects in this category.",
+      "adminHint": "Use the + button to add one.",
+      "dragToReorder": "Admin: Drag to Reorder",
+      "on": "On",
+      "off": "Off"
+    },
+    "manifesto": {
+      "welcome": "WELCOME TO",
+      "world": "OUR WORLD…",
+      "vision": "ERROR_SYSTEM_VISION",
+      "line1_1": "Of delirious",
+      "line1_2": "stories,",
+      "line1_3": "the",
+      "line1_4": "weird-centric",
+      "line2_1": "as an",
+      "line2_2": "ENGINE",
+      "line2_3": "and the",
+      "line3": "playful and absurd creation.",
+      "final": "To creative drift."
+    }
+  },
+  "services": {
+    "title": "Services",
+    "capabilities": "Capabilities",
+    "commercial": {
+      "title": "Commercial",
+      "description": "High-impact advertising for TV and Digital Media."
+    },
+    "musicVideos": {
+      "title": "Music Videos",
+      "description": "High-impact musical and visual production."
+    },
+    "brandContent": {
+      "title": "Brand Content",
+      "description": "Strategic content to boost your brand identity."
+    },
+    "documentary": {
+      "title": "Documentary",
+      "description": "Real stories, told with depth and respect."
+    },
+    "photography": {
+      "title": "Photography",
+      "description": "Fixed campaign, editorial and product."
+    },
+    "process": {
+      "concept": {
+        "title": "Concept & Script",
+        "description": "Where everything is born. We define the narrative, tone and visual aesthetic that will guide the project."
+      },
+      "preProduction": {
+        "title": "Pre-Production",
+        "description": "Detailed planning. Casting, locations, technical equipment and comprehensive logistics."
+      },
+      "filming": {
+        "title": "Filming",
+        "description": "Action. We capture the images with digital cinema technology and an expert team."
+      },
+      "postProduction": {
+        "title": "Post-Production",
+        "description": "Editing, color grading, VFX and sound design for the perfect final finish."
+      }
+    },
+    "close": "Close"
+  },
+  "contact": {
+    "title": "Let's Work Together",
+    "subtitle": "Have a project in mind? Tell us your idea.",
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "send": "Send Message",
+    "placeholderName": "Your name",
+    "placeholderEmail": "you@email.com",
+    "placeholderMessage": "Tell us about your project..."
+  },
+  "footer": {
+    "company": "Company",
+    "services": "Services",
+    "contact": "Contact",
+    "about": "About Us",
+    "videoclips": "Music Videos",
+    "commercial": "Commercial",
+    "brandContent": "Brand Content",
+    "rights": "All rights reserved",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "description": "Audiovisual production company specialized in high-impact content creation. We transform ideas into unique visual experiences.",
+    "social": "Social"
+  },
+  "portfolio": {
+    "commercial": {
+      "title": "Cinematic Ads",
+      "description": "Commercial and brand works."
+    },
+    "nightclubs": {
+      "title": "Nightclubs",
+      "description": "The energy of the night, immortalized."
+    },
+    "videoclips": {
+      "title": "Music Videos",
+      "description": "High-impact musical and visual production."
+    },
+    "social-media": {
+      "title": "Social Media",
+      "description": "Optimized content for social networks."
+    },
+    "photography": {
+      "title": "Photography",
+      "description": "Static moments with dynamic narrative."
+    },
+    "dj-sets": {
+      "title": "DJ Sets",
+      "description": "Full sessions with premium sound and visuals."
+    }
+  },
+  "Metadata": {
+    "title": "CATSO AV - Professional Video Production",
+    "description": "Video production company specialized in music videos, product photography, social media content, and aftermovies."
+  },
+  "Project": {
+    "back": "Back to Home",
+    "client": "Client",
+    "gallery": "Gallery Captures",
+    "viewBehance": "Explore on Behance",
+    "behanceDescription": "View the full project, technical details and more on our official showcase.",
+    "launchBehance": "Open in Behance",
+    "moreProductions": "More Productions",
+    "noPreview": "No Preview",
+    "production": "Production"
+  }
+}

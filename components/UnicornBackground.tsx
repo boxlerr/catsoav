@@ -1,64 +1,42 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import Script from "next/script"
 
 export default function UnicornBackground() {
-    useEffect(() => {
-        // Initialize UnicornStudio when component mounts
-        const initShader = () => {
-            const studio = (window as { UnicornStudio?: { init: () => void } }).UnicornStudio
-            const bgElement = document.querySelector('[data-us-project]')
+    const isInitialized = useRef(false);
 
-            if (studio && bgElement) {
-                try {
-                    const canvas = bgElement.querySelector('canvas')
-
-                    if (!canvas) {
-                        console.log('[UnicornStudio] Initializing background')
-                        studio.init()
-                    }
-                } catch (err) {
-                    console.debug('[UnicornStudio] Init failed:', err)
-                }
+    const initStudio = () => {
+        if (isInitialized.current) return;
+        
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const studio = (window as any).UnicornStudio;
+        if (studio && typeof studio.init === 'function') {
+            try {
+                console.log('[UnicornStudio] Initializing...');
+                studio.init();
+                isInitialized.current = true;
+            } catch (err) {
+                console.error('[UnicornStudio] Init error:', err);
             }
         }
+    };
 
-        // Try initialization multiple times
-        const timers = [200, 500, 1000, 2000].map(ms =>
-            setTimeout(initShader, ms)
-        )
-
+    useEffect(() => {
+        // Fallback in case script loaded before mount
+        const timer = setTimeout(initStudio, 500);
         return () => {
-            timers.forEach(t => clearTimeout(t))
-        }
-    }, [])
+            clearTimeout(timer);
+        };
+    }, []);
 
     return (
         <>
             <Script
-                id="unicorn-studio"
-                strategy="lazyOnload"
-                dangerouslySetInnerHTML={{
-                    __html: `
-            !function(){
-              if(!window.UnicornStudio){
-                window.UnicornStudio={isInitialized:!1};
-                var i=document.createElement("script");
-                i.src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v1.4.29/dist/unicornStudio.umd.js",
-                i.onload=function(){
-                  if(!window.UnicornStudio.isInitialized){
-                    try {
-                      UnicornStudio.init()
-                      window.UnicornStudio.isInitialized=!0
-                    } catch(e) {}
-                  }
-                },
-                (document.head || document.body).appendChild(i)
-              }
-            }();
-          `,
-                }}
+                id="unicorn-studio-lib"
+                src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v1.4.29/dist/unicornStudio.umd.js"
+                strategy="afterInteractive"
+                onLoad={initStudio}
             />
 
             <div
@@ -75,7 +53,11 @@ export default function UnicornBackground() {
                 }}
                 suppressHydrationWarning
             >
-                <div data-us-project="DmxX3AU5Ot4TeJbMP4tT" style={{ width: "100%", height: "100%" }} suppressHydrationWarning></div>
+                <div 
+                    data-us-project="DmxX3AU5Ot4TeJbMP4tT" 
+                    style={{ width: "100%", height: "100%" }} 
+                    suppressHydrationWarning
+                ></div>
             </div>
         </>
     )

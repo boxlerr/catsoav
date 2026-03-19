@@ -5,11 +5,12 @@ import { useEffect, useState, memo, useMemo, useRef } from "react"
 import dynamic from "next/dynamic"
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent, useInView } from "framer-motion"
 import { useSession, signOut } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
+import { Link, useRouter } from "@/i18n/routing"
 import Image from "next/image"
 import Footer from "@/components/Footer"
 import QuickProjectButton from "@/components/QuickProjectButton"
+import LanguageSwitcher from "@/components/LanguageSwitcher"
+import { useTranslations } from "next-intl"
 import {
     DndContext,
     closestCenter,
@@ -67,6 +68,7 @@ interface CategorySectionProps {
     toggleVisibility: (e: React.MouseEvent, project: Project) => Promise<void>;
     handleDelete: (e: React.MouseEvent, id: string) => Promise<void>;
     index: number;
+    t: (key: string) => string;
 }
 
 const CategorySection = memo(({
@@ -79,7 +81,8 @@ const CategorySection = memo(({
     isSortingRef,
     toggleVisibility,
     handleDelete,
-    index
+    index,
+    t
 }: CategorySectionProps) => {
     const sectionRef = useRef<HTMLDivElement>(null);
     const isInView = useInView(sectionRef, { amount: 0 });
@@ -122,6 +125,10 @@ const CategorySection = memo(({
         ? catProjects
         : catProjects.slice(0, 3);
 
+    const tp = useTranslations('portfolio');
+    const displayTitle = tp.has(`${category.name}.title`) ? tp(`${category.name}.title`) : category.title;
+    const displayDescription = tp.has(`${category.name}.description`) ? tp(`${category.name}.description`) : category.description;
+
     return (
         <div
             id={category.name}
@@ -143,10 +150,10 @@ const CategorySection = memo(({
                         {...(session?.user?.role === "admin" ? { ...attributes, ...listeners } : {})}
                     >
                         <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">
-                            {category.title}
+                            {displayTitle}
                             <span className="text-red-600">.</span>
                         </h2>
-                        <p className="text-white/60 text-lg md:text-xl font-light max-w-xl">{category.description}</p>
+                        <p className="text-white/60 text-lg md:text-xl font-light max-w-xl">{displayDescription}</p>
                     </div>
 
                     {session?.user?.role === "admin" && (
@@ -155,7 +162,7 @@ const CategorySection = memo(({
                                 onClick={() => window.dispatchEvent(new CustomEvent('newProject', { detail: { category: category.name } }))}
                                 className="bg-white/5 hover:bg-white text-white hover:text-black px-4 py-2 rounded-full text-[10px] uppercase font-bold tracking-widest transition-all"
                             >
-                                + Nuevo Proyecto
+                                {t('newProject')}
                             </button>
                         </div>
                     )}
@@ -201,7 +208,7 @@ const CategorySection = memo(({
                                                     {session?.user?.role === "admin" && (
                                                         <div className="mt-3 pt-3 border-t border-white/10 flex items-center gap-2">
                                                             <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
-                                                            <span className="text-red-500 text-[9px] uppercase tracking-[0.2em] font-bold">Admin: Drag to Reorder</span>
+                                                            <span className="text-red-500 text-[9px] uppercase tracking-[0.2em] font-bold">{t('dragToReorder')}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -220,7 +227,7 @@ const CategorySection = memo(({
                                                         />
                                                     </div>
                                                     <span className={`text-[8px] uppercase font-black tracking-widest transition-opacity duration-300 ${project.published ? "text-white opacity-0 group-hover/switch:opacity-100" : "text-white/40"}`}>
-                                                        {project.published ? "On" : "Off"}
+                                                        {project.published ? t('on') : t('off')}
                                                     </span>
                                                 </div>
                                             )}
@@ -261,7 +268,7 @@ const CategorySection = memo(({
                             })
                         ) : (
                             <div className="col-span-full py-12 text-center text-white/30 border border-white/5 border-dashed rounded-lg">
-                                No hay proyectos en esta categoría. {session?.user?.role === "admin" && "Usa el botón + para agregar uno."}
+                                {t('noProjects')} {session?.user?.role === "admin" && t('adminHint')}
                             </div>
                         )}
                     </div>
@@ -282,7 +289,7 @@ const CategorySection = memo(({
                             className="group flex flex-col items-center gap-4 py-4"
                         >
                             <span className="text-xs font-serif text-white/50 tracking-[0.3em] uppercase group-hover:text-white transition-colors duration-500">
-                                {isExpanded ? "Ver Menos" : "Ver Más"}
+                                {isExpanded ? t('viewLess') : t('viewMore')}
                             </span>
                             <div className={`w-px bg-gradient-to-b from-white/20 to-transparent transition-all duration-500 ${isExpanded ? "h-12 from-red-600 to-red-600/20 group-hover:h-8 group-hover:from-white/20" : "h-8 group-hover:h-12 group-hover:from-red-600 group-hover:to-red-600/20"}`} />
                         </button>
@@ -321,6 +328,13 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
     const router = useRouter()
     const isSortingRef = useRef(false)
+
+    // Translations
+    const tNav = useTranslations('header')
+    const tHero = useTranslations('index.hero')
+    const tHome = useTranslations('index.home')
+    const tContact = useTranslations('contact')
+    const tFooter = useTranslations('footer')
 
     useEffect(() => {
         setMounted(true)
@@ -676,7 +690,7 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                         className="fixed top-24 left-1/2 -translate-x-1/2 z-[60] bg-red-600 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(220,38,38,0.5)] flex items-center gap-2"
                     >
                         <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                        Guardando cambios en el servidor...
+                        {tHome('saving')}
                     </motion.div>
                 )}
                 {isScrolled && (
@@ -704,13 +718,13 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
 
                             <div className="hidden md:flex gap-4 lg:gap-8 items-center">
                                 <a href="#" onClick={(e) => scrollToSection(e, "top")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider" aria-label="Inicio">
-                                    Inicio
+                                    {tNav('home')}
                                 </a>
                                 <a href="#" onClick={(e) => scrollToSection(e, "manifesto")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider" aria-label="Nosotros">
-                                    Nosotros
+                                    {tNav('about')}
                                 </a>
                                 <a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider" aria-label="Servicios">
-                                    Servicios
+                                    {tNav('services')}
                                 </a>
 
                                 {categories
@@ -726,22 +740,25 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                                             {category.title.split(" ")[0]}
                                         </a>
                                     ))}
+                                
+                                <LanguageSwitcher />
+
                                 {session && (
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 ml-4">
                                         <span className="text-white/40 text-[10px] uppercase tracking-wider">Hola, {session.user?.name?.split(' ')[0] || 'Admin'}</span>
                                         {session.user.role === "admin" && (
                                             <Link
                                                 href="/admin"
                                                 className="text-white/80 hover:text-white text-[9px] uppercase tracking-widest font-bold border-r border-white/20 pr-3 mr-1 transition-colors"
                                             >
-                                                Panel
+                                                {tNav('admin')}
                                             </Link>
                                         )}
                                         <button
                                             onClick={() => signOut({ callbackUrl: "/" })}
                                             className="bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white text-[9px] uppercase tracking-widest font-bold py-1.5 px-3 rounded border border-red-600/20 transition-all"
                                         >
-                                            Salir
+                                            {tNav('logout')}
                                         </button>
                                     </div>
                                 )}
@@ -796,12 +813,15 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
 
                             <div className="flex-1 overflow-y-auto px-6 py-8">
                                 <nav className="flex flex-col gap-6">
+                                    <div className="mb-4">
+                                        <LanguageSwitcher />
+                                    </div>
                                     <a
                                         href="#"
                                         onClick={(e) => { scrollToSection(e, "top"); setIsMobileMenuOpen(false); }}
                                         className="text-2xl font-serif font-bold text-white hover:text-red-600 transition-colors flex items-center justify-between group"
                                     >
-                                        <span>Inicio</span>
+                                        <span>{tNav('home')}</span>
                                         <span className="h-0.5 w-0 bg-red-600 transition-all duration-300 group-hover:w-8" />
                                     </a>
                                     <a
@@ -809,7 +829,7 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                                         onClick={(e) => { scrollToSection(e, "manifesto"); setIsMobileMenuOpen(false); }}
                                         className="text-2xl font-serif font-bold text-white hover:text-red-600 transition-colors flex items-center justify-between group"
                                     >
-                                        <span>Nosotros</span>
+                                        <span>{tNav('about')}</span>
                                         <span className="h-0.5 w-0 bg-red-600 transition-all duration-300 group-hover:w-8" />
                                     </a>
                                     <a
@@ -817,7 +837,7 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                                         onClick={(e) => { scrollToSection(e, "services"); setIsMobileMenuOpen(false); }}
                                         className="text-2xl font-serif font-bold text-white hover:text-red-600 transition-colors flex items-center justify-between group"
                                     >
-                                        <span>Servicios</span>
+                                        <span>{tNav('services')}</span>
                                         <span className="h-0.5 w-0 bg-red-600 transition-all duration-300 group-hover:w-8" />
                                     </a>
 
@@ -842,13 +862,13 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                                     <div className="my-4 h-px bg-white/5" />
 
                                     {((session as ExtendedSession)?.user?.role === "admin") && (
-                                        <a
+                                        <Link
                                             href="/admin"
                                             className="text-2xl font-serif font-bold text-red-500 hover:text-red-400 transition-colors flex items-center justify-between group"
                                         >
-                                            <span>Panel Admin</span>
+                                            <span>{tNav('dashboard')}</span>
                                             <span className="h-0.5 w-8 bg-red-600" />
-                                        </a>
+                                        </Link>
                                     )}
 
                                     <a
@@ -856,7 +876,7 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                                         onClick={(e) => { scrollToSection(e, "contact"); setIsMobileMenuOpen(false); }}
                                         className="text-2xl font-serif font-bold text-white hover:text-red-600 transition-colors flex items-center justify-between group"
                                     >
-                                        <span>Contacto</span>
+                                        <span>{tNav('contact')}</span>
                                         <span className="h-0.5 w-0 bg-red-600 transition-all duration-300 group-hover:w-8" />
                                     </a>
 
@@ -865,14 +885,14 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                                             onClick={() => signOut({ callbackUrl: "/" })}
                                             className="w-full mt-6 bg-red-600/10 border border-red-600/30 text-red-500 py-4 font-bold uppercase tracking-widest text-sm hover:bg-red-600 hover:text-white transition-all"
                                         >
-                                            Cerrar Sesión
+                                            {tNav('logout')}
                                         </button>
                                     )}
                                 </nav>
                             </div>
 
                             <div className="p-8 border-t border-white/5 bg-black/30 backdrop-blur-md">
-                                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40 mb-4">Social</p>
+                                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40 mb-4">{tFooter('social')}</p>
                                 <div className="flex gap-6">
                                     <a href="https://www.instagram.com/catso.av" target="_blank" className="text-white/60 hover:text-white transition-colors">
                                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.335 3.608 1.31.975.975 1.248 2.242 1.31 3.608.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.062 1.366-.335 2.633-1.31 3.608-.975.975-2.242 1.248-3.608 1.31-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.366-.062-2.633-.335-3.608-1.31-.975-.975-1.248-2.242-1.31-3.608-.058-1.266-.07-1.646-.07-4.85s.012-3.584.07-4.85c.062-1.366.335-2.633 1.31-3.608.975-.975 2.242-1.248 3.608-1.31 1.266-.058-1.646-.07 4.85-.07zm0-2.163c-3.259 0-3.667.014-4.947.072-1.277.057-2.148.258-2.911.554-.789.308-1.458.72-2.122 1.384-.664.664-1.076 1.333-1.384 2.122-.296.763-.497 1.634-.554 2.911-.058 1.28-.072 1.688-.072 4.947s.014 3.667.072 4.947c.057 1.277.258 2.148.554 2.911.308.789.72 1.458 1.384 2.122.664.664 1.333 1.076 2.122 1.384.763.296 1.634.497 2.911.554 1.28.058 1.688.072 4.947.072s3.667-.014 4.947-.072c1.277-.057 2.148-.258 2.911-.554.789-.308 1.458-.72 2.122-1.384.664-.664 1.076-1.333 1.384-2.122.296-.763.497-1.634.554-2.911.058-1.28.072-1.688-.072-4.947s-.014-3.667-.072-4.947c-.057-1.277-.258-2.148-.554-2.911-.308-.789-.72-1.458-1.384-2.122-.664-.664-1.333-1.076-2.122-1.384-.763-.296-1.634-.497-2.911-.554-1.28-.058-1.688-.072-4.947-.072zM12 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
@@ -905,8 +925,8 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                                 style={{ height: "auto" }}
                             />
                             <p className="absolute bottom-[22%] md:bottom-[28%] lg:bottom-[32%] left-1/2 -translate-x-1/2 font-sans text-white/70 text-[10px] md:text-sm lg:text-lg font-extralight tracking-[0.5em] uppercase text-center leading-none w-full">
-                                <span className="inline md:hidden leading-relaxed">Video Production<br />Company</span>
-                                <span className="hidden md:inline text-nowrap">Video Production Company</span>
+                                <span className="inline md:hidden leading-relaxed">{tHero('subtitle')}</span>
+                                <span className="hidden md:inline text-nowrap">{tHero('subtitle')}</span>
                             </p>
                         </div>
                     </motion.div>
@@ -916,7 +936,7 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                         className={`absolute bottom-12 transition-all duration-1000 delay-500 z-20 ${isLoaded ? "opacity-70 translate-y-0" : "opacity-0 -translate-y-4"}`}
                     >
                         <div className="animate-bounce text-white flex flex-col items-center gap-2">
-                            <span className="text-xs uppercase tracking-widest">Scroll to Explore</span>
+                            <span className="text-xs uppercase tracking-widest">{tHero('scroll')}</span>
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                             </svg>
@@ -963,6 +983,7 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                                                     toggleVisibility={toggleVisibility}
                                                     handleDelete={handleDelete}
                                                     index={idx}
+                                                    t={tHome}
                                                 />
                                             )
                                         })}
@@ -976,7 +997,7 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                                         <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">{category.title}<span className="text-red-600">.</span></h2>
                                         <p className="text-white/60 text-lg md:text-xl font-light max-w-xl">{category.description}</p>
                                     </div>
-                                    <div className="flex items-center justify-center p-12 text-white/40">Cargando proyectos...</div>
+                                    <div className="flex items-center justify-center p-12 text-white/40">{tHome('loading')}</div>
                                 </section>
                             ))
                         )}
@@ -987,30 +1008,30 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                     <section id="contact" className="py-20 border-t border-neutral-900 bg-black">
                         <div className="max-w-3xl mx-auto px-4 text-center">
                             <h2 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4">
-                                Let&apos;s Work Together
+                                {tContact('title')}
                                 <span className="text-red-600">.</span>
                             </h2>
                             <p className="text-white/60 text-lg mb-12">
-                                ¿Tienes un proyecto en mente? Cuéntanos tu idea.
+                                {tContact('subtitle')}
                             </p>
 
                             <form className="space-y-6 text-left">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label htmlFor="name" className="block text-white/80 mb-2 text-sm uppercase tracking-wider">Nombre</label>
-                                        <input type="text" id="name" defaultValue={session?.user?.name || ''} className="w-full bg-neutral-900/50 border border-white/10 text-white px-4 py-3 rounded-none focus:outline-none focus:border-red-600 transition-colors" placeholder="Tu nombre" />
+                                        <label htmlFor="name" className="block text-white/80 mb-2 text-sm uppercase tracking-wider">{tContact('name')}</label>
+                                        <input type="text" id="name" defaultValue={session?.user?.name || ''} className="w-full bg-neutral-900/50 border border-white/10 text-white px-4 py-3 rounded-none focus:outline-none focus:border-red-600 transition-colors" placeholder={tContact('placeholderName')} />
                                     </div>
                                     <div>
-                                        <label htmlFor="email" className="block text-white/80 mb-2 text-sm uppercase tracking-wider">Email</label>
-                                        <input type="email" id="email" defaultValue={session?.user?.email || ''} className="w-full bg-neutral-900/50 border border-white/10 text-white px-4 py-3 rounded-none focus:outline-none focus:border-red-600 transition-colors" placeholder="tu@email.com" />
+                                        <label htmlFor="email" className="block text-white/80 mb-2 text-sm uppercase tracking-wider">{tContact('email')}</label>
+                                        <input type="email" id="email" defaultValue={session?.user?.email || ''} className="w-full bg-neutral-900/50 border border-white/10 text-white px-4 py-3 rounded-none focus:outline-none focus:border-red-600 transition-colors" placeholder={tContact('placeholderEmail')} />
                                     </div>
                                 </div>
                                 <div>
-                                    <label htmlFor="message" className="block text-white/80 mb-2 text-sm uppercase tracking-wider">Mensaje</label>
-                                    <textarea id="message" rows={4} className="w-full bg-neutral-900/50 border border-white/10 text-white px-4 py-3 rounded-none focus:outline-none focus:border-red-600 transition-colors resize-none" placeholder="Cuéntanos sobre tu proyecto..."></textarea>
+                                    <label htmlFor="message" className="block text-white/80 mb-2 text-sm uppercase tracking-wider">{tContact('message')}</label>
+                                    <textarea id="message" rows={4} className="w-full bg-neutral-900/50 border border-white/10 text-white px-4 py-3 rounded-none focus:outline-none focus:border-red-600 transition-colors resize-none" placeholder={tContact('placeholderMessage')}></textarea>
                                 </div>
                                 <div className="text-center">
-                                    <button type="submit" className="bg-white text-black hover:bg-red-600 hover:text-white px-8 py-3 font-medium uppercase tracking-widest text-sm transition-all duration-300">Enviar Mensaje</button>
+                                    <button type="submit" className="bg-white text-black hover:bg-red-600 hover:text-white px-8 py-3 font-medium uppercase tracking-widest text-sm transition-all duration-300">{tContact('send')}</button>
                                 </div>
                             </form>
                         </div>

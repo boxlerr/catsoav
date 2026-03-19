@@ -1,0 +1,152 @@
+{
+  "header": {
+    "home": "Inicio",
+    "about": "Nosotros",
+    "services": "Servicios",
+    "contact": "Contacto",
+    "admin": "Panel",
+    "logout": "Salir",
+    "dashboard": "Panel Admin"
+  },
+  "index": {
+    "hero": {
+      "subtitle": "Video Production Company",
+      "scroll": "Scroll to Explore"
+    },
+    "home": {
+      "newProject": "+ Nuevo Proyecto",
+      "saving": "Guardando cambios en el servidor...",
+      "loading": "Cargando proyectos...",
+      "viewMore": "Ver Más",
+      "viewLess": "Ver Menos",
+      "noProjects": "No hay proyectos en esta categoría.",
+      "adminHint": "Usa el botón + para agregar uno.",
+      "dragToReorder": "Admin: Drag to Reorder",
+      "on": "On",
+      "off": "Off"
+    },
+    "manifesto": {
+      "welcome": "BIENVENIDOS A",
+      "world": "NUESTRO MUNDO…",
+      "vision": "ERROR_SYSTEM_VISION",
+      "line1_1": "De historias",
+      "line1_2": "delirantes,",
+      "line1_3": "lo",
+      "line1_4": "rarocentrista",
+      "line2_1": "como",
+      "line2_2": "MOTOR",
+      "line2_3": "y la",
+      "line3": "creación lúdica y absurda.",
+      "final": "A la deriva creativa."
+    }
+  },
+  "services": {
+    "title": "Servicios",
+    "capabilities": "Capabilities",
+    "commercial": {
+      "title": "Comerciales",
+      "description": "Publicidad de alto impacto para TV y Medios Digitales."
+    },
+    "musicVideos": {
+      "title": "Music Videos",
+      "description": "Producción musical y visual de alto impacto."
+    },
+    "brandContent": {
+      "title": "Brand Content",
+      "description": "Contenido estratégico para potenciar tu identidad de marca."
+    },
+    "documentary": {
+      "title": "Documentales",
+      "description": "Historias reales, contadas con profundidad y respeto."
+    },
+    "photography": {
+      "title": "Fotografía",
+      "description": "Campaña fija, editorial y producto."
+    },
+    "process": {
+      "concept": {
+        "title": "Concepto & Guion",
+        "description": "Donde nace todo. Definimos la narrativa, el tono y la estética visual que guiará el proyecto."
+      },
+      "preProduction": {
+        "title": "Pre-Producción",
+        "description": "Planificación detallada. Casting, locaciones, equipo técnico y logística integral."
+      },
+      "filming": {
+        "title": "Rodaje",
+        "description": "Acción. Capturamos las imágenes con tecnología de cine digital y un equipo experto."
+      },
+      "postProduction": {
+        "title": "Post-Producción",
+        "description": "Edición, color grading, VFX y diseño sonoro para el acabado final perfecto."
+      }
+    },
+    "close": "Cerrar"
+  },
+  "contact": {
+    "title": "Let's Work Together",
+    "subtitle": "¿Tienes un proyecto en mente? Cuéntanos tu idea.",
+    "name": "Nombre",
+    "email": "Email",
+    "message": "Mensaje",
+    "send": "Enviar Mensaje",
+    "placeholderName": "Tu nombre",
+    "placeholderEmail": "tu@email.com",
+    "placeholderMessage": "Cuéntanos sobre tu proyecto..."
+  },
+  "footer": {
+    "company": "Empresa",
+    "services": "Servicios",
+    "contact": "Contacto",
+    "about": "Sobre Nosotros",
+    "videoclips": "Videoclips",
+    "commercial": "Comercial",
+    "brandContent": "Contenido de Marca",
+    "rights": "Todos los derechos reservados",
+    "privacy": "Privacidad",
+    "terms": "Términos",
+    "description": "Productora audiovisual especializada en la creación de contenido de alto impacto. Transformamos ideas en experiencias visuales únicas.",
+    "social": "Social"
+  },
+  "portfolio": {
+    "commercial": {
+      "title": "Cinematic Ads",
+      "description": "Trabajos comerciales y de marca."
+    },
+    "nightclubs": {
+      "title": "Nightclubs",
+      "description": "La energía de la noche, inmortalizada."
+    },
+    "videoclips": {
+      "title": "Music Videos",
+      "description": "Producción musical y visual de alto impacto."
+    },
+    "social-media": {
+      "title": "Social Media",
+      "description": "Contenido optimizado para redes."
+    },
+    "photography": {
+      "title": "Photography",
+      "description": "Momentos estáticos con narrativa dinámica."
+    },
+    "dj-sets": {
+      "title": "DJ Sets",
+      "description": "Sesiones completas con sonido y visuales premium."
+    }
+  },
+  "Metadata": {
+    "title": "CATSO AV - Productora de Video Profesional",
+    "description": "Productora de video especializada en videoclips musicales, fotografía de productos, contenido para redes sociales y aftermovies."
+  },
+  "Project": {
+    "back": "Volver al Inicio",
+    "client": "Cliente",
+    "gallery": "Galería de Capturas",
+    "viewBehance": "Explorar en Behance",
+    "behanceDescription": "Visualiza el proyecto completo, detalles técnicos y más en nuestra vitrina oficial.",
+    "launchBehance": "Abrir en Behance",
+    "moreProductions": "Más Producciones",
+    "noPreview": "Sin Vista Previa",
+    "production": "Producción"
+  }
+}

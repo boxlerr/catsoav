@@ -1,0 +1,154 @@
+{
+  "Navigation": {
+    "home": "Home",
+    "about": "About",
+    "services": "Services",
+    "contact": "Contact",
+    "admin": "Dashboard",
+    "logout": "Logout",
+    "dashboard": "Admin Dashboard"
+  },
+  "Hero": {
+    "subtitle": "Video Production Company",
+    "scroll": "Scroll to Explore"
+  },
+  "Home": {
+    "newProject": "+ New Project",
+    "saving": "Saving changes to server...",
+    "loading": "Loading projects...",
+    "viewMore": "View More",
+    "viewLess": "View Less",
+    "noProjects": "No projects in this category.",
+    "adminHint": "Use the + button to add one.",
+    "dragToReorder": "Admin: Drag to Reorder",
+    "on": "On",
+    "off": "Off"
+  },
+  "Contact": {
+    "title": "Let's Work Together",
+    "subtitle": "Have a project in mind? Tell us your idea.",
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "send": "Send Message",
+    "placeholderName": "Your name",
+    "placeholderEmail": "you@email.com",
+    "placeholderMessage": "Tell us about your project..."
+  },
+  "Footer": {
+    "company": "Company",
+    "services": "Services",
+    "contact": "Contact",
+    "about": "About Us",
+    "videoclips": "Music Videos",
+    "commercial": "Commercial",
+    "brandContent": "Brand Content",
+    "rights": "All rights reserved",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "description": "Audiovisual production company specialized in high-impact content creation. We transform ideas into unique visual experiences.",
+    "social": "Social"
+  },
+  "Manifesto": {
+    "welcome": "WELCOME TO",
+    "world": "OUR WORLD…",
+    "vision": "ERROR_SYSTEM_VISION",
+    "line1_1": "Of delirious",
+    "line1_2": "stories,",
+    "line1_3": "the",
+    "line1_4": "weird-centric",
+    "line2_1": "as an",
+    "line2_2": "ENGINE",
+    "line2_3": "and the",
+    "line3": "playful and absurd creation.",
+    "final": "To creative drift."
+  },
+  "services": {
+    "title": "Our Services",
+    "capabilities": "Audiovisual Capabilities",
+    "close": "Close",
+    "commercial": {
+      "title": "Commercial",
+      "description": "High-impact advertising for brands looking to stand out."
+    },
+    "musicVideos": {
+      "title": "Music Videos",
+      "description": "Unique visuals that elevate your music to the next level."
+    },
+    "brandContent": {
+      "title": "Brand Content",
+      "description": "Strategic content for social media and digital platforms."
+    },
+    "documentary": {
+      "title": "Documentary",
+      "description": "We tell real stories with a cinematic aesthetic."
+    },
+    "photography": {
+      "title": "Photography",
+      "description": "We capture the essence of every moment and product."
+    },
+    "process": {
+      "concept": {
+        "title": "CONCEPT",
+        "description": "We develop the creative idea and the technical script of the project."
+      },
+      "preProduction": {
+        "title": "PRE-PRODUCTION",
+        "description": "Logistical planning, casting, locations, and storyboarding."
+      },
+      "filming": {
+        "title": "FILMING",
+        "description": "Technical execution with state-of-the-art professional equipment."
+      },
+      "postProduction": {
+        "title": "POST-PRODUCTION",
+        "description": "Editing, color grading, sound design, and visual effects."
+      }
+    }
+  },
+  "Project": {
+    "back": "Back",
+    "client": "Client",
+    "gallery": "Gallery",
+    "viewBehance": "View on Behance",
+    "behanceDescription": "This project features high-fidelity content hosted on Behance.",
+    "launchBehance": "LAUNCH BEHANCE",
+    "moreProductions": "More Productions",
+    "noPreview": "No Preview",
+    "production": "Production"
+  },
+  "Admin": {
+    "dashboard": "Dashboard",
+    "totalProjects": "Total Projects",
+    "categories": "Categories",
+    "monthlyVisits": "Visits (Month)",
+    "users": "Users",
+    "contentManagement": "Content Management",
+    "edit": "Edit",
+    "new": "+ New",
+    "newProject": "+ New Project",
+    "saving": "Saving changes...",
+    "projectsSelected": "projects selected",
+    "deleting": "Deleting...",
+    "delete": "Delete",
+    "emptyCategory": "Empty category. Drag projects here.",
+    "hideWeb": "Hide from web",
+    "showWeb": "Show on web",
+    "items": "ITEMS"
+  },
+  "Auth": {
+    "adminPanel": "Admin Panel",
+    "login": "Login",
+    "invalidCredentials": "Invalid credentials",
+    "error": "Error logging in",
+    "email": "Email",
+    "password": "Password",
+    "rememberMe": "Remember me",
+    "loggingIn": "Logging in...",
+    "backHome": "Back to home"
+  },
+  "Metadata": {
+    "title": "CATSO AV - Professional Video Production",
+    "description": "Video production company specialized in music videos, product photography, social media content, and aftermovies."
+  }
+}

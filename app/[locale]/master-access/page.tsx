@@ -3,10 +3,12 @@
 import { useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 import Image from "next/image"
+import { useTranslations } from "next-intl"
 
 export default function LoginPage() {
+    const t = useTranslations('Auth')
     const router = useRouter()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
@@ -26,13 +28,13 @@ export default function LoginPage() {
             })
 
             if (result?.error) {
-                setError("Credenciales inválidas")
+                setError(t('invalidCredentials'))
             } else {
                 router.push("/admin")
                 router.refresh()
             }
         } catch {
-            setError("Error al iniciar sesión")
+            setError(t('error'))
         } finally {
             setLoading(false)
         }
@@ -45,11 +47,11 @@ export default function LoginPage() {
                     <div className="flex justify-center mb-2">
                         <Image src="/logo-white.png" alt="CATSO AV" width={200} height={48} className="h-12 w-auto" />
                     </div>
-                    <p className="text-white/60">Panel de Administración</p>
+                    <p className="text-white/60">{t('adminPanel')}</p>
                 </div>
 
                 <div className="bg-neutral-900/50 border border-white/10 p-8 rounded-lg">
-                    <h2 className="text-2xl font-bold text-white mb-6">Iniciar Sesión</h2>
+                    <h2 className="text-2xl font-bold text-white mb-6">{t('login')}</h2>
 
                     {error && (
                         <div className="bg-red-600/20 border border-red-600/50 text-red-400 px-4 py-3 rounded mb-4">
@@ -60,7 +62,7 @@ export default function LoginPage() {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label htmlFor="email" className="block text-white/80 mb-2 text-sm">
-                                Email
+                                {t('email')}
                             </label>
                             <input
                                 id="email"
@@ -75,7 +77,7 @@ export default function LoginPage() {
 
                         <div>
                             <label htmlFor="password" className="block text-white/80 mb-2 text-sm">
-                                Contraseña
+                                {t('password')}
                             </label>
                             <input
                                 id="password"
@@ -96,7 +98,7 @@ export default function LoginPage() {
                                 className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600 bg-black/50 border-white/20"
                             />
                             <label htmlFor="remember-me" className="ml-2 block text-sm text-white/80">
-                                Recordarme
+                                {t('rememberMe')}
                             </label>
                         </div>
 
@@ -105,7 +107,7 @@ export default function LoginPage() {
                             disabled={loading}
                             className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
+                            {loading ? t('loggingIn') : t('login')}
                         </button>
                     </form>
 
@@ -114,7 +116,7 @@ export default function LoginPage() {
 
                 <div className="mt-6 text-center">
                     <Link href="/" className="text-white/60 hover:text-white transition-colors text-sm">
-                        ← Volver al inicio
+                        ← {t('backHome')}
                     </Link>
                 </div>
             </div>

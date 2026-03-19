@@ -1,22 +1,24 @@
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 import Image from "next/image"
 import CatsoVideoPlayer from "@/components/CatsoVideoPlayer"
 import EnhancedGallery from "@/components/EnhancedGallery"
 import { getProjectTheme, generateThemeCSS } from "@/lib/project-themes"
+import { getTranslations } from "next-intl/server"
 
 export const dynamic = 'force-dynamic'
 
 interface ProjectPageProps {
     params: Promise<{
         id: string
+        locale: string
     }>
 }
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
-    const { id } = await params
-    console.log(`[ProjectPage] Requesting ID: ${id}`)
+    const { id, locale } = await params
+    const t = await getTranslations({ locale, namespace: 'Project' })
 
     const project = await prisma.project.findUnique({
         where: { id },
@@ -32,10 +34,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     })
 
     if (!project) {
-        console.error(`[ProjectPage] 404 - Project not found: ${id}`)
-        // Check if maybe it's a valid ID but just missing
-        const allProjects = await prisma.project.findMany({ select: { id: true } })
-        console.log(`[ProjectPage] Available IDs: ${allProjects.map(p => p.id).join(', ')}`)
         notFound()
     }
 
@@ -111,7 +109,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                             </svg>
                         </div>
                         <span className="uppercase tracking-[0.2em] text-[10px] font-black opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300">
-                            Back
+                            {t('back')}
                         </span>
                     </Link>
                 </div>
@@ -139,7 +137,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
                     {project.clientName && (
                         <p className="text-white/40 font-medium tracking-[0.4em] uppercase text-xs mb-8 animate-in fade-in duration-1000">
-                            Client: <span className="text-white">{project.clientName}</span>
+                            {t('client')}: <span className="text-white">{project.clientName}</span>
                         </p>
                     )}
 
@@ -195,7 +193,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                                 <section className="space-y-12 animate-in fade-in duration-1000">
                                     <div className="flex items-center gap-4">
                                         <div className="h-px flex-1 bg-white/10" />
-                                        <h2 className="text-xs font-black uppercase tracking-[0.4em] text-white/20">Gallery</h2>
+                                        <h2 className="text-xs font-black uppercase tracking-[0.4em] text-white/20">{t('gallery')}</h2>
                                         <div className="h-px flex-1 bg-white/10" />
                                     </div>
                                     <EnhancedGallery
@@ -354,7 +352,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                                 <section className="space-y-12 animate-in fade-in duration-1000">
                                     <div className="flex items-center gap-4">
                                         <div className="h-px flex-1 bg-white/10" />
-                                        <h2 className="text-xs font-black uppercase tracking-[0.4em] text-white/20">Gallery</h2>
+                                        <h2 className="text-xs font-black uppercase tracking-[0.4em] text-white/20">{t('gallery')}</h2>
                                         <div className="h-px flex-1 bg-white/10" />
                                     </div>
                                     <EnhancedGallery
@@ -415,8 +413,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                                     </svg>
                                 </div>
                                 <div className="space-y-2">
-                                    <h3 className="text-2xl font-black uppercase tracking-tighter">View on Behance</h3>
-                                    <p className="text-white/40 text-sm max-w-sm mx-auto">This project features high-fidelity content hosted on Behance.</p>
+                                    <h3 className="text-2xl font-black uppercase tracking-tighter">{t('viewBehance')}</h3>
+                                    <p className="text-white/40 text-sm max-w-sm mx-auto">{t('behanceDescription')}</p>
                                 </div>
                                 <a
                                     href={project.videoUrl || '#'}
@@ -429,7 +427,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                                     }}
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
-                                    <span className="tracking-widest uppercase text-sm text-white">LAUNCH BEHANCE</span>
+                                    <span className="tracking-widest uppercase text-sm text-white">{t('launchBehance')}</span>
                                     <svg className="w-5 h-5 text-white group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                                     </svg>
@@ -442,7 +440,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                     {relatedProjects.length > 0 && (
                         <section className="pt-20 mt-20 border-t border-white/5">
                             <h2 className="text-2xl md:text-3xl font-black uppercase mb-12 text-center tracking-tighter text-white">
-                                More <span className="text-white">Productions</span>
+                                {t('moreProductions').split(' ')[0]} <span className="text-white">{t('moreProductions').split(' ').slice(1).join(' ')}</span>
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                 {relatedProjects.map((p) => (
@@ -457,7 +455,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-white/20">
-                                                    <span className="text-xs uppercase tracking-widest">No Preview</span>
+                                                    <span className="text-xs uppercase tracking-widest">{t('noPreview')}</span>
                                                 </div>
                                             )}
                                             {/* Overlay */}
@@ -474,7 +472,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                                                 {p.title}
                                             </h3>
                                             <p className="text-xs text-white/40 uppercase tracking-[0.2em] font-medium">
-                                                {p.category || 'Production'}
+                                                {p.category || t('production')}
                                             </p>
                                         </div>
                                     </Link>

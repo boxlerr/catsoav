@@ -1,15 +1,19 @@
 "use client"
 
 import { signOut } from "next-auth/react"
-import Link from "next/link"
+import { Link } from "@/i18n/routing"
 import Image from "next/image"
 import QuickProjectButton from "@/components/QuickProjectButton"
+import { useTranslations } from "next-intl"
 
 export default function AdminLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
+    const tNav = useTranslations('Navigation')
+    const tAdmin = useTranslations('Admin')
+
     return (
         <div className="min-h-screen bg-black text-white">
             <nav className="border-b border-white/10 bg-neutral-900/50 backdrop-blur-md sticky top-0 z-50">
@@ -21,17 +25,17 @@ export default function AdminLayout({
                                 <span className="text-xs font-sans font-normal text-white/40 uppercase tracking-widest">Admin</span>
                             </div>
                             <div className="hidden md:flex gap-6">
-                                <Link href="/admin" className="text-sm font-medium hover:text-red-600 transition-colors">Dashboard</Link>
-                                <Link href="/admin/users" className="text-sm font-medium text-white/50 hover:text-white transition-colors">Usuarios</Link>
+                                <Link href="/admin" className="text-sm font-medium hover:text-red-600 transition-colors">{tAdmin('dashboard')}</Link>
+                                <Link href="/admin/users" className="text-sm font-medium text-white/50 hover:text-white transition-colors">{tAdmin('users')}</Link>
                             </div>
                         </div>
-                        <div>
-                            <Link href="/" className="text-sm text-white/60 hover:text-white mr-4">Ver Sitio</Link>
+                        <div className="flex items-center gap-4">
+                            <Link href="/" className="text-sm text-white/60 hover:text-white">{tNav('home')}</Link>
                             <button
                                 onClick={() => signOut({ callbackUrl: "/" })}
                                 className="bg-red-600/10 hover:bg-red-600/20 text-red-500 text-xs uppercase tracking-wider font-bold py-2 px-4 rounded border border-red-600/20 transition-all"
                             >
-                                Cerrar Sesión
+                                {tNav('logout')}
                             </button>
                         </div>
                     </div>

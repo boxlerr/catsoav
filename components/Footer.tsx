@@ -2,8 +2,11 @@
 
 import Image from "next/image"
 import SocialLinks from "./SocialLinks"
+import { useTranslations } from "next-intl"
 
 export default function Footer() {
+    const t = useTranslations('footer')
+
     const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
         e.preventDefault()
         if (id === "top") {
@@ -43,32 +46,30 @@ export default function Footer() {
                             <Image src="/logo-white.png" alt="CATSO AV" width={180} height={80} className="h-24 w-auto opacity-80 object-contain" unoptimized />
                         </div>
                         <p className="text-white/40 text-sm leading-relaxed">
-                            Productora audiovisual especializada en la creación de contenido de alto impacto. Transformamos ideas en experiencias visuales únicas.
+                            {t('description')}
                         </p>
                     </div>
 
                     {/* Links Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-24 w-full max-w-4xl border-t border-b border-white/5 py-12" suppressHydrationWarning>
                         <div className="flex flex-col items-center" suppressHydrationWarning>
-                            <h4 className="text-white font-bold mb-6 uppercase tracking-widest text-xs">Empresa</h4>
+                            <h4 className="text-white font-bold mb-6 uppercase tracking-widest text-xs">{t('company')}</h4>
                             <ul className="space-y-4">
-                                <li><a href="#" onClick={(e) => scrollToSection(e, "manifesto")} className="text-white/40 hover:text-white transition-colors text-sm">Sobre Nosotros</a></li>
-                                {/* <li><a href="#" onClick={(e) => scrollToSection(e, "crew")} className="text-white/40 hover:text-white transition-colors text-sm">Nuestro Equipo</a></li>
-                <li><a href="#" onClick={(e) => scrollToSection(e, "clients")} className="text-white/40 hover:text-white transition-colors text-sm">Clientes</a></li> */}
+                                <li><a href="#" onClick={(e) => scrollToSection(e, "manifesto")} className="text-white/40 hover:text-white transition-colors text-sm">{t('about')}</a></li>
                             </ul>
                         </div>
 
                         <div className="flex flex-col items-center" suppressHydrationWarning>
-                            <h4 className="text-white font-bold mb-6 uppercase tracking-widest text-xs">Servicios</h4>
+                            <h4 className="text-white font-bold mb-6 uppercase tracking-widest text-xs">{t('services')}</h4>
                             <ul className="space-y-4">
-                                <li><a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/40 hover:text-white transition-colors text-sm" aria-label="Videoclips">Videoclips</a></li>
-                                <li><a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/40 hover:text-white transition-colors text-sm" aria-label="Commercial">Commercial</a></li>
-                                <li><a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/40 hover:text-white transition-colors text-sm" aria-label="Brand Content">Brand Content</a></li>
+                                <li><a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/40 hover:text-white transition-colors text-sm" aria-label={t('videoclips')}>{t('videoclips')}</a></li>
+                                <li><a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/40 hover:text-white transition-colors text-sm" aria-label={t('commercial')}>{t('commercial')}</a></li>
+                                <li><a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/40 hover:text-white transition-colors text-sm" aria-label={t('brandContent')}>{t('brandContent')}</a></li>
                             </ul>
                         </div>
 
                         <div className="flex flex-col items-center" suppressHydrationWarning>
-                            <h4 className="text-white font-bold mb-6 uppercase tracking-widest text-xs">Contacto</h4>
+                            <h4 className="text-white font-bold mb-6 uppercase tracking-widest text-xs">{t('contact')}</h4>
                             <div className="flex flex-col items-center gap-4" suppressHydrationWarning>
                                 <p className="text-white/60 text-sm font-medium tracking-wider flex items-center justify-center gap-2">
                                     <svg className="w-4 h-4 text-white/40" fill="currentColor" viewBox="0 0 24 24">
@@ -104,11 +105,11 @@ export default function Footer() {
 
                     <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4" suppressHydrationWarning>
                         <p className="text-white/20 text-xs text-center md:text-left" suppressHydrationWarning>
-                            © {new Date().getFullYear()} <a href="https://vaxler.com.ar/" target="_blank" rel="noopener noreferrer" className="hover:text-red-600 transition-colors" suppressHydrationWarning>Vaxler</a>. Todos los derechos reservados.
+                            © {new Date().getFullYear()} <a href="https://vaxler.com.ar/" target="_blank" rel="noopener noreferrer" className="hover:text-red-600 transition-colors" suppressHydrationWarning>Vaxler</a>. {t('rights')}.
                         </p>
                         <div className="flex gap-8" suppressHydrationWarning>
-                            <a href="#" className="text-white/20 hover:text-white transition-colors text-xs">Privacidad</a>
-                            <a href="#" className="text-white/20 hover:text-white transition-colors text-xs">Términos</a>
+                            <a href="#" className="text-white/20 hover:text-white transition-colors text-xs">{t('privacy')}</a>
+                            <a href="#" className="text-white/20 hover:text-white transition-colors text-xs">{t('terms')}</a>
                         </div>
                     </div>
                 </div>

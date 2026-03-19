@@ -2,8 +2,10 @@ import type React from "react";
 import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { Faustina, Chivo } from "next/font/google";
-import "./globals.css";
-import { Providers } from "./providers";
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages, getTranslations } from 'next-intl/server';
+import "../globals.css";
+import { Providers } from "../providers";
 import UnicornBackground from "@/components/UnicornBackground";
 import ScrollRestoration from "@/components/ScrollRestoration";
 
@@ -23,78 +25,87 @@ const chivo = Chivo({
   fallback: ['system-ui', 'sans-serif'],
 });
 
-export const metadata: Metadata = {
-  title:
-    "CATSO AV - Productora de Video Profesional | Videoclips, Fotografía y Contenido Digital",
-  metadataBase: new URL("https://catsoav.com"),
-  description:
-    "CATSO AV es una productora de video profesional especializada en videoclips musicales, fotografía de productos, contenido para redes sociales, aftermovies de discotecas y DJ sets. Servicios audiovisuales de alta calidad.",
-  keywords: [
-    "productora de video",
-    "videoclips musicales",
-    "fotografía profesional",
-    "contenido redes sociales",
-    "aftermovies discotecas",
-    "DJ sets",
-    "producción audiovisual",
-    "CATSO AV",
-    "video marketing",
-    "contenido digital",
-  ],
-  authors: [{ name: "CATSO AV" }],
-  creator: "CATSO AV",
-  publisher: "CATSO AV",
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'Metadata' });
+
+  return {
+    title: t('title'),
+    metadataBase: new URL("https://catsoav.com"),
+    description: t('description'),
+    keywords: [
+      "productora de video",
+      "videoclips musicales",
+      "fotografía profesional",
+      "contenido redes sociales",
+      "aftermovies discotecas",
+      "DJ sets",
+      "producción audiovisual",
+      "CATSO AV",
+      "video marketing",
+      "contenido digital",
+    ],
+    authors: [{ name: "CATSO AV" }],
+    creator: "CATSO AV",
+    publisher: "CATSO AV",
+    robots: {
       index: true,
       follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-  openGraph: {
-    type: "website",
-    locale: "es_ES",
-    url: "https://catsoav.com",
-    siteName: "CATSO AV",
-    title: "CATSO AV - Productora de Video Profesional",
-    description:
-      "Productora de video especializada en videoclips musicales, fotografía de productos, contenido para redes sociales y aftermovies. Servicios audiovisuales profesionales.",
-    images: [
-      {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "CATSO AV - Productora de Video Profesional",
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
       },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "CATSO AV - Productora de Video Profesional",
-    description:
-      "Servicios audiovisuales profesionales: videoclips, fotografía, contenido digital y más.",
-    images: ["/og-image.jpg"],
-  },
-  verification: {
-    google: "your-google-verification-code",
-  },
-  category: "business",
-  icons: {
-    icon: [
-      { url: "/favicon.ico" },
-      { url: "/catsoav.png", type: "image/png" },
-    ],
-    shortcut: "/favicon.ico",
-    apple: "/catsoav.png",
-  },
-  alternates: {
-    canonical: "https://catsoav.com",
-  },
-};
+    },
+    openGraph: {
+      type: "website",
+      locale: locale === 'en' ? 'en_US' : 'es_ES',
+      url: `https://catsoav.com/${locale}`,
+      siteName: "CATSO AV",
+      title: t('title'),
+      description: t('description'),
+      images: [
+        {
+          url: "/og-image.jpg",
+          width: 1200,
+          height: 630,
+          alt: t('title'),
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t('title'),
+      description: t('description'),
+      images: ["/og-image.jpg"],
+    },
+    verification: {
+      google: "your-google-verification-code",
+    },
+    category: "business",
+    icons: {
+      icon: [
+        { url: "/favicon.ico" },
+        { url: "/catsoav.png", type: "image/png" },
+      ],
+      shortcut: "/favicon.ico",
+      apple: "/catsoav.png",
+    },
+    alternates: {
+      canonical: `https://catsoav.com/${locale}`,
+      languages: {
+        'es': 'https://catsoav.com/es',
+        'en': 'https://catsoav.com/en',
+      },
+    },
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -103,13 +114,18 @@ export const viewport: Viewport = {
   themeColor: "#dc2626",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
+  params
 }: {
   children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
+  const messages = await getMessages();
+
   return (
-    <html lang="es" className={`${faustina.variable} ${chivo.variable}`} suppressHydrationWarning data-scroll-behavior="smooth">
+    <html lang={locale} className={`${faustina.variable} ${chivo.variable}`} suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
         {/* Preconnect to critical third-party origins */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -166,13 +182,15 @@ export default function RootLayout({
             }),
           }}
         />
-        <Providers>
-          <Suspense fallback={null}>
-            <ScrollRestoration />
-          </Suspense>
-          <UnicornBackground />
-          {children}
-        </Providers>
+        <NextIntlClientProvider messages={messages}>
+          <Providers>
+            <Suspense fallback={null}>
+              <ScrollRestoration />
+            </Suspense>
+            <UnicornBackground />
+            {children}
+          </Providers>
+        </NextIntlClientProvider>
 
         {/* Global SVG Filters */}
         <svg style={{ width: 0, height: 0, position: 'absolute', pointerEvents: 'none' }} aria-hidden="true">

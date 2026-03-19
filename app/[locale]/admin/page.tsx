@@ -6,6 +6,7 @@ import SyncBehanceButton from "@/components/admin/SyncBehanceButton"
 import NewProjectButton from "@/components/admin/NewProjectButton"
 import NewCategoryButton from "@/components/admin/NewCategoryButton"
 import AdminContent from "@/components/admin/AdminContent"
+import { getTranslations } from "next-intl/server"
 
 async function getAdminData() {
     const session = await getServerSession(authOptions)
@@ -52,38 +53,44 @@ async function getAdminData() {
     }
 }
 
-export default async function AdminDashboard() {
+interface AdminPageProps {
+    params: Promise<{ locale: string }>
+}
+
+export default async function AdminDashboard({ params }: AdminPageProps) {
+    const { locale } = await params
+    const t = await getTranslations({ locale, namespace: 'Admin' })
     const { projectsCount, categoriesCount, usersCount, projects, categories } = await getAdminData()
 
     return (
         <div>
-            <h1 className="text-3xl font-serif font-bold mb-8">Dashboard</h1>
+            <h1 className="text-3xl font-serif font-bold mb-8">{t('dashboard')}</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                 {/* Stat Cards */}
                 <div className="bg-neutral-900 border border-white/10 p-6 rounded-xl">
-                    <h3 className="text-white/60 text-sm uppercase tracking-wider mb-2">Total Proyectos</h3>
+                    <h3 className="text-white/60 text-sm uppercase tracking-wider mb-2">{t('totalProjects')}</h3>
                     <p className="text-4xl font-bold">{projectsCount}</p>
                 </div>
 
                 <div className="bg-neutral-900 border border-white/10 p-6 rounded-xl">
-                    <h3 className="text-white/60 text-sm uppercase tracking-wider mb-2">Categorías</h3>
+                    <h3 className="text-white/60 text-sm uppercase tracking-wider mb-2">{t('categories')}</h3>
                     <p className="text-4xl font-bold">{categoriesCount}</p>
                 </div>
 
                 <div className="bg-neutral-900 border border-white/10 p-6 rounded-xl">
-                    <h3 className="text-white/60 text-sm uppercase tracking-wider mb-2">Visitas (Mes)</h3>
+                    <h3 className="text-white/60 text-sm uppercase tracking-wider mb-2">{t('monthlyVisits')}</h3>
                     <p className="text-4xl font-bold">-</p>
                 </div>
 
                 <div className="bg-neutral-900 border border-white/10 p-6 rounded-xl">
-                    <h3 className="text-white/60 text-sm uppercase tracking-wider mb-2">Usuarios</h3>
+                    <h3 className="text-white/60 text-sm uppercase tracking-wider mb-2">{t('users')}</h3>
                     <p className="text-4xl font-bold">{usersCount}</p>
                 </div>
             </div>
 
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">Gestión de Contenido</h2>
+                <h2 className="text-2xl font-bold">{t('contentManagement')}</h2>
                 <div className="flex items-center gap-4">
                     <SyncBehanceButton />
                     <NewCategoryButton />

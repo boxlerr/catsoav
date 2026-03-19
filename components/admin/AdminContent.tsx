@@ -18,13 +18,13 @@ import {
     SortableContext,
     sortableKeyboardCoordinates,
     verticalListSortingStrategy,
-    useSortable // Added
+    useSortable
 } from "@dnd-kit/sortable"
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
-import { CSS } from "@dnd-kit/utilities" // Added
-// import { SortableItem } from "@/components/SortableItem" // Removed
+import { CSS } from "@dnd-kit/utilities"
 import DeleteProjectButton from "./DeleteProjectButton"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 interface Project {
     id: string
@@ -48,12 +48,13 @@ interface AdminContentProps {
 }
 
 // New SortableCategory component
-function SortableCategory({ category, children, isAllSelected, toggleAll, index }: {
+function SortableCategory({ category, children, isAllSelected, toggleAll, index, t }: {
     category: Category,
     children: React.ReactNode,
     isAllSelected: boolean,
     toggleAll: () => void,
-    index: number
+    index: number,
+    t: (key: string) => string
 }) {
     const safeId = category.id ? `cat-${category.id}` : `cat-fallback-${index}`
     const {
@@ -108,7 +109,7 @@ function SortableCategory({ category, children, isAllSelected, toggleAll, index 
                             }}
                             className="text-[10px] font-bold uppercase tracking-widest text-white hover:text-red-500 transition-colors mr-4"
                         >
-                            Editar
+                            {t('edit')}
                         </button>
                         <button
                             onClick={(e) => {
@@ -117,7 +118,7 @@ function SortableCategory({ category, children, isAllSelected, toggleAll, index 
                             }}
                             className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400 transition-colors"
                         >
-                            + Nuevo
+                            {t('new')}
                         </button>
                     </div>
                 </div>
@@ -128,13 +129,14 @@ function SortableCategory({ category, children, isAllSelected, toggleAll, index 
 }
 
 // New SortableProject component
-function SortableProject({ project, selectedIds, toggleProject, activeId, onTogglePublished, index }: {
+function SortableProject({ project, selectedIds, toggleProject, activeId, onTogglePublished, index, t }: {
     project: Project,
     selectedIds: string[],
     toggleProject: (id: string) => void,
     activeId: string | null,
     onTogglePublished: (project: Project) => void,
-    index: number
+    index: number,
+    t: (key: string) => string
 }) {
     const safeId = project.id ? `proj-${project.id}` : `proj-fallback-${index}`
     const {
@@ -152,7 +154,7 @@ function SortableProject({ project, selectedIds, toggleProject, activeId, onTogg
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.5 : (isGroupDragging ? 0.3 : 1),
-        zIndex: isDragging ? 100 : 1, // Increased zIndex
+        zIndex: isDragging ? 100 : 1,
         position: 'relative' as const,
     }
 
@@ -196,12 +198,12 @@ function SortableProject({ project, selectedIds, toggleProject, activeId, onTogg
                         onClick={() => window.dispatchEvent(new CustomEvent('editProject', { detail: project }))}
                         className="text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors"
                     >
-                        Editar
+                        {t('edit')}
                     </button>
                     <button
                         onClick={() => onTogglePublished(project)}
                         className="relative inline-flex items-center group/switch"
-                        title={project.published ? 'Ocultar de la web' : 'Mostrar en la web'}
+                        title={project.published ? t('hideWeb') : t('showWeb')}
                     >
                         <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${project.published ? 'bg-[#007b00]' : 'bg-white/10 group-hover/switch:bg-white/20'}`}>
                             <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 ${project.published ? 'left-[18px]' : 'left-[2px]'}`} />
@@ -215,6 +217,7 @@ function SortableProject({ project, selectedIds, toggleProject, activeId, onTogg
 }
 
 export default function AdminContent({ initialProjects, initialCategories }: AdminContentProps) {
+    const t = useTranslations('Admin')
     const [projects, setProjects] = useState<Project[]>(() => {
         if (!initialProjects) return []
         const valid = initialProjects.filter(p => p && p.id && typeof p.id === 'string' && p.id.trim() !== '')
@@ -360,7 +363,6 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
                 if (!res.ok) throw new Error("Error saving categories order")
             } else {
                 // Project Reordering
-                // Persistence
                 const projectsToSync: { id: string; order: number; category: string }[] = []
                 const counts: Record<string, number> = {}
                 projects.forEach(p => {
@@ -382,7 +384,6 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
         } catch (error) {
             console.error("Reorder sync error:", error)
             alert("Error al guardar el nuevo orden")
-            // Reload to revert local state to last known good server state
             window.location.reload()
         } finally {
             setIsSaving(false)
@@ -444,10 +445,8 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
                 ))
                 alert("Error al actualizar la visibilidad")
             }
-            // No reload needed!
         } catch (error) {
             console.error("Toggle visibility error:", error)
-            // Revert on error
             setProjects(prev => prev.map(p =>
                 p.id === project.id ? { ...p, published: project.published } : p
             ))
@@ -463,14 +462,14 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
                 {selectedIds.length > 0 ? (
                     <div className="flex items-center justify-between w-full p-4 bg-red-600/10 border border-red-500/20 rounded-xl animate-in fade-in slide-in-from-top-2">
                         <p className="text-sm font-medium text-red-500">
-                            {selectedIds.length} proyectos seleccionados
+                            {selectedIds.length} {t('projectsSelected')}
                         </p>
                         <button
                             onClick={handleBulkDelete}
                             disabled={isBulkDeleting}
                             className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50"
                         >
-                            {isBulkDeleting ? 'Eliminando...' : 'Eliminar'}
+                            {isBulkDeleting ? t('deleting') : t('delete')}
                         </button>
                     </div>
                 ) : (
@@ -478,7 +477,7 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
                         {isSaving && (
                             <div className="flex items-center gap-2 text-xs text-white/40 animate-pulse">
                                 <div className="w-3 h-3 border border-red-600 border-t-transparent rounded-full animate-spin" />
-                                <span>Guardando cambios...</span>
+                                <span>{t('saving')}</span>
                             </div>
                         )}
                     </div>
@@ -518,6 +517,7 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
                                     isAllSelected={isAllSelected}
                                     toggleAll={toggleAll}
                                     index={idx}
+                                    t={t}
                                 >
                                     {/* Projects Table inside Category */}
                                     <div className="overflow-x-auto">
@@ -530,7 +530,7 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
                                                     {catProjects.length === 0 ? (
                                                         <tr>
                                                             <td className="px-6 py-8 text-center text-white/20 text-sm italic">
-                                                                Categoría vacía. Arrastra proyectos aquí.
+                                                                {t('emptyCategory')}
                                                             </td>
                                                         </tr>
                                                     ) : (
@@ -545,6 +545,7 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
                                                                     activeId={activeId}
                                                                     onTogglePublished={togglePublished}
                                                                     index={pIdx}
+                                                                    t={t}
                                                                 />
                                                             )
                                                         })
@@ -587,7 +588,7 @@ export default function AdminContent({ initialProjects, initialCategories }: Adm
                                     </div>
                                     {selectedIds.length > 1 && selectedIds.includes(activeId) && (
                                         <div className="absolute -top-3 -right-3 bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded-full shadow-[0_0_20px_rgba(220,38,38,0.5)] border border-white/20 animate-bounce">
-                                            + {selectedIds.length} ITEMS
+                                            + {selectedIds.length} {t('items')}
                                         </div>
                                     )}
                                 </div>
