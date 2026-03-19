@@ -1,5 +1,6 @@
 "use client"
 
+import Script from "next/script"
 import { useEffect, useState, memo, useMemo, useRef } from "react"
 import dynamic from "next/dynamic"
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent, useInView } from "framer-motion"
@@ -9,8 +10,6 @@ import Link from "next/link"
 import Image from "next/image"
 import Footer from "@/components/Footer"
 import QuickProjectButton from "@/components/QuickProjectButton"
-import { useTranslations } from 'next-intl';
-import { usePathname, useRouter as useIntlRouter } from '@/i18n/routing';
 import {
     DndContext,
     closestCenter,
@@ -321,16 +320,7 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
     const [isSaving, setIsSaving] = useState(false)
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
     const router = useRouter()
-    const routerIntl = useIntlRouter() // router from next-intl handles locale changes
-    const pathname = usePathname()
-    const t = useTranslations('HomePage')
     const isSortingRef = useRef(false)
-
-    const switchLanguage = (newLocale: 'es' | 'en') => {
-        // Redirigimos usando window.location para forzar una recarga completa
-        // y evitar problemas con la cache o remounting del WebGL Context en UnicornStudio.
-        window.location.href = `/${newLocale}${pathname === '/' ? '' : pathname}`;
-    }
 
     useEffect(() => {
         setMounted(true)
@@ -657,6 +647,26 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
 
     return (
         <>
+            <Script
+                id="unicorn-studio"
+                strategy="lazyOnload"
+                dangerouslySetInnerHTML={{
+                    __html: `
+            !function(){
+              if(!window.UnicornStudio){
+                window.UnicornStudio={isInitialized:!1};
+                var i=document.createElement("script");
+                i.src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v1.4.29/dist/unicornStudio.umd.js",
+                i.onload=function(){
+                  window.UnicornStudio.isInitialized||(UnicornStudio.init(),window.UnicornStudio.isInitialized=!0)
+                },
+                (document.head || document.body).appendChild(i)
+              }
+            }();
+          `,
+                }}
+            />
+
             <AnimatePresence>
                 {isSaving && (
                     <motion.div
@@ -694,15 +704,15 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
 
                             <div className="hidden md:flex gap-4 lg:gap-8 items-center">
                                 <a href="#" onClick={(e) => scrollToSection(e, "top")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider" aria-label="Inicio">
-                                    {t("title") !== "HomePage.title" && t.has("title") ? t("title") : "Inicio"}
+                                    Inicio
                                 </a>
                                 <a href="#" onClick={(e) => scrollToSection(e, "manifesto")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider" aria-label="Nosotros">
-                                    {t.has("description") ? t("description") : "Nosotros"}
+                                    Nosotros
                                 </a>
-                                <div className="flex bg-white/10 rounded-full p-1 ml-4 border border-white/20">
-                                    <button onClick={() => switchLanguage('es')} className="text-xs font-bold px-3 py-1 rounded-full text-white hover:bg-white/20 transition-all">ES</button>
-                                    <button onClick={() => switchLanguage('en')} className="text-xs font-bold px-3 py-1 rounded-full text-white hover:bg-white/20 transition-all">EN</button>
-                                </div>
+                                <a href="#" onClick={(e) => scrollToSection(e, "services")} className="text-white/80 hover:text-red-600 transition-colors text-sm font-medium uppercase tracking-wider" aria-label="Servicios">
+                                    Servicios
+                                </a>
+
                                 {categories
                                     .filter(cat => (session as ExtendedSession)?.user?.role === "admin" || (projectsByCategory[cat.name]?.length || 0) > 0)
                                     .map((category) => (
@@ -832,13 +842,13 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                                     <div className="my-4 h-px bg-white/5" />
 
                                     {((session as ExtendedSession)?.user?.role === "admin") && (
-                                        <Link
+                                        <a
                                             href="/admin"
                                             className="text-2xl font-serif font-bold text-red-500 hover:text-red-400 transition-colors flex items-center justify-between group"
                                         >
                                             <span>Panel Admin</span>
                                             <span className="h-0.5 w-8 bg-red-600" />
-                                        </Link>
+                                        </a>
                                     )}
 
                                     <a
