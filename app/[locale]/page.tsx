@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import HomeClient from "@/components/HomeClient"
+import HomeContent from "@/components/HomeContent"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 
@@ -26,7 +26,7 @@ export default async function Home() {
   const categories = JSON.parse(JSON.stringify(initialCategories))
 
   return (
-    <HomeClient
+    <HomeContent
       initialProjects={projects}
       initialCategories={categories}
     />

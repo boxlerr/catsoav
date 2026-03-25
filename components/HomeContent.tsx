@@ -1,9 +1,9 @@
 "use client"
 
-import Script from "next/script"
+
 import { useEffect, useState, memo, useMemo, useRef } from "react"
 import dynamic from "next/dynamic"
-import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent, useInView } from "framer-motion"
+import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent } from "framer-motion"
 import { useSession, signOut } from "next-auth/react"
 import { Link, useRouter } from "@/i18n/routing"
 import Image from "next/image"
@@ -27,20 +27,19 @@ import {
     arrayMove,
     SortableContext,
     sortableKeyboardCoordinates,
-    rectSortingStrategy,
     verticalListSortingStrategy,
     useSortable,
 } from '@dnd-kit/sortable'
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
 import { CSS } from "@dnd-kit/utilities"
-import VideoThumbnail from "@/components/VideoThumbnail"
 import { CategoryDroppable } from "@/components/CategoryDroppable"
-import { SortableItem } from "@/components/SortableItem"
 import { Project, Category } from "@/types"
 
 // Dynamic imports for heavy sections
 const Manifesto = dynamic(() => import("@/components/Manifesto"), { ssr: true })
 const ServicesList = dynamic(() => import("@/components/ServicesList"), { ssr: true })
+
+const NetflixCarousel = dynamic(() => import("@/components/NetflixCarousel"), { ssr: false })
 
 const MemoizedManifesto = memo(Manifesto)
 const MemoizedServicesList = memo(ServicesList)
@@ -60,13 +59,7 @@ interface ExtendedSession {
 interface CategorySectionProps {
     category: Category;
     catProjects: Project[];
-    isExpanded: boolean;
-    setExpandedCategories: React.Dispatch<React.SetStateAction<Set<string>>>;
     session: ExtendedSession | null;
-    isSorting: boolean;
-    isSortingRef: React.RefObject<boolean>;
-    toggleVisibility: (e: React.MouseEvent, project: Project) => Promise<void>;
-    handleDelete: (e: React.MouseEvent, id: string) => Promise<void>;
     index: number;
     t: (key: string) => string;
 }
@@ -74,18 +67,11 @@ interface CategorySectionProps {
 const CategorySection = memo(({
     category,
     catProjects,
-    isExpanded,
-    setExpandedCategories,
     session,
-    isSorting,
-    isSortingRef,
-    toggleVisibility,
-    handleDelete,
     index,
     t
 }: CategorySectionProps) => {
     const sectionRef = useRef<HTMLDivElement>(null);
-    const isInView = useInView(sectionRef, { amount: 0 });
 
     const sectionId = category.id ? `cat-${category.id}` : `cat-fallback-${category.name || 'unknown'}-${index}`
     const {
@@ -106,25 +92,6 @@ const CategorySection = memo(({
         opacity: isDragging ? 0.5 : 1,
     };
 
-    useEffect(() => {
-        const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
-
-        if (!isInView && isExpanded && isDesktop) {
-            setExpandedCategories(prev => {
-                const next = new Set(prev as Set<string>);
-                if (next.has(category.name)) {
-                    next.delete(category.name);
-                    return next;
-                }
-                return prev;
-            });
-        }
-    }, [isInView, isExpanded, category.name, setExpandedCategories]);
-
-    const visibleProjects = isExpanded
-        ? catProjects
-        : catProjects.slice(0, 3);
-
     const tp = useTranslations('portfolio');
     const displayTitle = tp.has(`${category.name}.title`) ? tp(`${category.name}.title`) : category.title;
     const displayDescription = tp.has(`${category.name}.description`) ? tp(`${category.name}.description`) : category.description;
@@ -142,18 +109,18 @@ const CategorySection = memo(({
         >
             <CategoryDroppable
                 id={category.name}
-                className="min-h-[80vh] flex flex-col justify-center py-20 border-t border-neutral-900 first:border-none"
+                className="flex flex-col py-12 md:py-16 border-t border-neutral-900 first:border-none"
             >
-                <div className="mb-12 md:mb-16 flex items-start justify-between">
+                <div className="mb-6 md:mb-8 flex items-start justify-between px-6 md:px-10">
                     <div
                         className={session?.user?.role === "admin" ? "cursor-move" : ""}
                         {...(session?.user?.role === "admin" ? { ...attributes, ...listeners } : {})}
                     >
-                        <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">
+                        <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-2">
                             {displayTitle}
                             <span className="text-red-600">.</span>
                         </h2>
-                        <p className="text-white/60 text-lg md:text-xl font-light max-w-xl">{displayDescription}</p>
+                        <p className="text-white/60 text-base md:text-lg font-light max-w-xl">{displayDescription}</p>
                     </div>
 
                     {session?.user?.role === "admin" && (
@@ -168,146 +135,21 @@ const CategorySection = memo(({
                     )}
                 </div>
 
-                <SortableContext
-                    items={visibleProjects.map((p, pIdx) => p.id ? `proj-${p.id}` : `proj-fallback-${pIdx}`)}
-                    strategy={rectSortingStrategy}
-                    disabled={session?.user?.role !== "admin"}
-                >
-                    <div className={`centered-grid gap-4 md:gap-8 ${visibleProjects.length <= 3 ? 'left-aligned' : ''}`}>
-                        {visibleProjects.length > 0 ? (
-                            visibleProjects.map((project: Project, pIdx: number) => {
-                                const projectKey = project.id ? `proj-${project.id}` : `proj-fallback-${pIdx}`
-                                return (
-                                    <SortableItem
-                                        key={projectKey}
-                                        id={projectKey}
-                                        disabled={session?.user?.role !== "admin"}
-                                        className="h-full"
-                                    >
-                                        <Link
-                                            href={`/project/${project.id}`}
-                                            onClick={(e) => {
-                                                if (isSorting || isSortingRef.current) {
-                                                    e.preventDefault()
-                                                    return
-                                                }
-                                                sessionStorage.setItem('scroll-pos-/', window.scrollY.toString());
-                                            }}
-                                            className={`hover-burn group relative block aspect-video bg-neutral-900/50 border border-white/5 lg:hover:border-red-600/50 transition-all duration-500 lg:hover:shadow-2xl lg:hover:shadow-red-900/20 cursor-pointer ${!project.published ? "opacity-40 grayscale" : ""} w-full h-full ${isSorting ? 'pointer-events-none' : ''}`}
-                                        >
-                                            <div className="absolute inset-0 overflow-hidden rounded-[inherit] z-0">
-                                                <VideoThumbnail
-                                                    videoUrl={project.videoUrl || ""}
-                                                    imageUrl={project.imageUrl}
-                                                    title={project.title}
-                                                />
-
-                                                <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent translate-y-full lg:group-hover:translate-y-0 transition-transform duration-500 z-20">
-                                                    <p className="text-white font-serif font-bold text-lg mb-0.5 tracking-tight">{project.title}</p>
-                                                    <p className="text-white/40 text-xs uppercase tracking-[0.2em] font-medium">{project.clientName || 'Producción'}</p>
-                                                    {session?.user?.role === "admin" && (
-                                                        <div className="mt-3 pt-3 border-t border-white/10 flex items-center gap-2">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
-                                                            <span className="text-red-500 text-[9px] uppercase tracking-[0.2em] font-bold">{t('dragToReorder')}</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {session?.user?.role === "admin" && (
-                                                <div
-                                                    onClick={(e) => toggleVisibility(e, project)}
-                                                    className="absolute top-3 left-3 z-40 flex items-center gap-2 group/switch cursor-pointer"
-                                                >
-                                                    <div className={`w-9 h-5 rounded-full relative transition-colors duration-500 backdrop-blur-md border border-white/20 flex items-center px-1 ${project.published ? "bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.3)]" : "bg-black/60"}`}>
-                                                        <motion.div
-                                                            animate={{ x: project.published ? 16 : 0 }}
-                                                            transition={{ type: "spring", stiffness: 600, damping: 35 }}
-                                                            className="w-3 h-3 bg-white rounded-full shadow-md"
-                                                        />
-                                                    </div>
-                                                    <span className={`text-[8px] uppercase font-black tracking-widest transition-opacity duration-300 ${project.published ? "text-white opacity-0 group-hover/switch:opacity-100" : "text-white/40"}`}>
-                                                        {project.published ? t('on') : t('off')}
-                                                    </span>
-                                                </div>
-                                            )}
-
-                                            {session?.user?.role === "admin" && (
-                                                <div className="absolute top-2 right-2 z-30 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation()
-                                                            e.preventDefault()
-                                                            window.dispatchEvent(new CustomEvent('editProject', { detail: project }))
-                                                        }}
-                                                        className="bg-black/60 hover:bg-white text-white/40 hover:text-black p-1.5 rounded-md transition-all duration-300"
-                                                        title="Editar Proyecto"
-                                                    >
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                                        </svg>
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation()
-                                                            e.preventDefault()
-                                                            handleDelete(e, project.id)
-                                                        }}
-                                                        className="bg-black/60 hover:bg-red-600 text-white/40 hover:text-white p-1.5 rounded-md transition-all duration-300"
-                                                        title="Eliminar Proyecto"
-                                                    >
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </Link>
-                                    </SortableItem>
-                                );
-                            })
-                        ) : (
-                            <div className="col-span-full py-12 text-center text-white/30 border border-white/5 border-dashed rounded-lg">
-                                {t('noProjects')} {session?.user?.role === "admin" && t('adminHint')}
-                            </div>
-                        )}
-                    </div>
-                </SortableContext>
-
-                {(catProjects.length > 3 || isExpanded) && (
-                    <div className="flex justify-center mt-12">
-                        <button
-                            onClick={() => setExpandedCategories(prev => {
-                                const next = new Set(prev as Set<string>)
-                                if (isExpanded) {
-                                    next.delete(category.name)
-                                } else {
-                                    next.add(category.name)
-                                }
-                                return next
-                            })}
-                            className="group flex flex-col items-center gap-4 py-4"
-                        >
-                            <span className="text-xs font-serif text-white/50 tracking-[0.3em] uppercase group-hover:text-white transition-colors duration-500">
-                                {isExpanded ? t('viewLess') : t('viewMore')}
-                            </span>
-                            <div className={`w-px bg-gradient-to-b from-white/20 to-transparent transition-all duration-500 ${isExpanded ? "h-12 from-red-600 to-red-600/20 group-hover:h-8 group-hover:from-white/20" : "h-8 group-hover:h-12 group-hover:from-red-600 group-hover:to-red-600/20"}`} />
-                        </button>
-                    </div>
-                )}
-            </CategoryDroppable >
-        </div >
+                <NetflixCarousel projects={catProjects} hideTitle />
+            </CategoryDroppable>
+        </div>
     );
 });
 
 CategorySection.displayName = 'CategorySection';
 
-interface HomeClientProps {
+interface HomeContentProps {
     initialProjects: Project[];
     initialCategories: Category[];
+    initialHeroSlides?: unknown[];
 }
 
-export default function HomeClient({ initialProjects, initialCategories }: HomeClientProps) {
+export default function HomeContent({ initialProjects, initialCategories, initialHeroSlides }: HomeContentProps) {
     const { data: session } = useSession()
     const [isLoaded, setIsLoaded] = useState(false)
     const [isScrolled, setIsScrolled] = useState(false)
@@ -323,11 +165,9 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
         return Array.from(new Map(valid.map(c => [c.id, c])).values())
     })
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-    const [isSorting, setIsSorting] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
-    const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
     const router = useRouter()
-    const isSortingRef = useRef(false)
+
 
     // Translations
     const tNav = useTranslations('header')
@@ -338,15 +178,6 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
 
     useEffect(() => {
         setMounted(true)
-        // Restore expanded categories from session storage
-        try {
-            const saved = sessionStorage.getItem('expanded-categories');
-            if (saved) {
-                setExpandedCategories(new Set(JSON.parse(saved)));
-            }
-        } catch (e) {
-            console.error('Failed to restore categories', e);
-        }
 
         // Refresh data in background to ensure sync
         const refreshData = async () => {
@@ -390,12 +221,7 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
         }
     }, [initialCategories])
 
-    useEffect(() => {
-        const array = Array.from(expandedCategories);
-        if (array.length > 0) {
-            sessionStorage.setItem('expanded-categories', JSON.stringify(array));
-        }
-    }, [expandedCategories]);
+
 
     useEffect(() => {
         if (isMobileMenuOpen) {
@@ -444,43 +270,27 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
         }
     }
 
-    const handleDelete = async (e: React.MouseEvent, id: string) => {
-        e.stopPropagation()
-        e.preventDefault()
-        if (!confirm("¿Estás seguro de que quieres eliminar este proyecto?")) return
-
-        try {
-            const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' })
-            if (res.ok) {
-                setProjects(prev => prev.filter(p => p.id !== id))
-            }
-        } catch (error) {
-            console.error("Error deleting project:", error)
-        }
-    }
-
-    const toggleVisibility = async (e: React.MouseEvent, project: Project) => {
-        e.stopPropagation()
-        e.preventDefault()
-        const newStatus = !project.published
-        setProjects((prev) => prev.map(p => p.id === project.id ? { ...p, published: newStatus } : p))
-        try {
-            const res = await fetch(`/api/projects/${project.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ published: newStatus })
-            })
-            if (!res.ok) throw new Error()
-        } catch {
-            setProjects((prev) => prev.map(p => p.id === project.id ? { ...p, published: !newStatus } : p))
-        }
-    }
 
     const projectsByCategory = useMemo(() => {
         const map: Record<string, Project[]> = {}
         categories.forEach(cat => {
+            const catLower = cat.name?.toLowerCase() || ''
+            const catIdLower = cat.id?.toLowerCase() || ''
+            
             map[cat.name] = [...projects]
-                .filter((p) => p.category === cat.name)
+                .filter((p) => {
+                    const projectCat = p.category?.toLowerCase() || ''
+                    // Flexible matching for Behance imports vs translated categories
+                    if (projectCat === catLower || projectCat === catIdLower) return true;
+                    
+                    // Known Behance categories -> Spanish/Custom mapping
+                    if (projectCat === 'commercial' && (catLower === 'comercial' || catLower.includes('comercio'))) return true;
+                    if (projectCat === 'music' && catLower.includes('music')) return true;
+                    if (projectCat === 'photography' && catLower.includes('foto')) return true;
+                    if (projectCat === 'event' && catLower.includes('evento')) return true;
+                    
+                    return false;
+                })
                 .sort((a, b) => (a.order || 0) - (b.order || 0))
         })
         return map
@@ -494,8 +304,6 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
     )
 
     const handleDragStart = (event: DragStartEvent) => {
-        setIsSorting(true)
-        isSortingRef.current = true
         const { active } = event
         const isCategory = categories.some(c => (c.id ? `cat-${c.id}` : `cat-fallback-${c.name}`) === active.id)
         setActiveType(isCategory ? 'category' : 'project')
@@ -553,12 +361,6 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
 
         setActiveType(null)
 
-        // Use a longer delay to ensure the click event is swallowed
-        setTimeout(() => {
-            setIsSorting(false)
-            isSortingRef.current = false
-        }, 300)
-
         if (session?.user?.role !== "admin" || !over) return
 
         setIsSaving(true)
@@ -613,13 +415,13 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
     }
 
     const { scrollY } = useScroll()
-    const opacity = useTransform(scrollY, [0, 500], [1, 0])
-    const y = useTransform(scrollY, [0, 500], [0, 50])
+    const opacity = useTransform(scrollY, [300, 1100], [1, 0])
+    const y = useTransform(scrollY, [300, 1100], [0, 80])
 
     useEffect(() => {
         const timer = setTimeout(() => {
             setIsLoaded(true)
-        }, 100)
+        }, 300)
         return () => clearTimeout(timer)
     }, [])
 
@@ -661,26 +463,6 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
 
     return (
         <>
-            <Script
-                id="unicorn-studio"
-                strategy="lazyOnload"
-                dangerouslySetInnerHTML={{
-                    __html: `
-            !function(){
-              if(!window.UnicornStudio){
-                window.UnicornStudio={isInitialized:!1};
-                var i=document.createElement("script");
-                i.src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v1.4.29/dist/unicornStudio.umd.js",
-                i.onload=function(){
-                  window.UnicornStudio.isInitialized||(UnicornStudio.init(),window.UnicornStudio.isInitialized=!0)
-                },
-                (document.head || document.body).appendChild(i)
-              }
-            }();
-          `,
-                }}
-            />
-
             <AnimatePresence>
                 {isSaving && (
                     <motion.div
@@ -909,10 +691,10 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
 
 
             <div className="relative z-10 w-full">
-                <section className="relative h-screen flex flex-col items-center justify-center p-4">
+                <section className="relative h-screen flex flex-col items-center justify-center p-4 z-40">
                     <motion.div
                         style={{ opacity, y }}
-                        className={`transition-all duration-1000 relative z-20 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+                        className={`transition-all duration-1000 relative z-20 w-full flex-grow flex flex-col items-center justify-center pb-32 md:pb-48 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
                     >
                         <div className="relative flex flex-col items-center">
                             <Image
@@ -924,32 +706,23 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                                 priority
                                 style={{ height: "auto" }}
                             />
-                            <p className="absolute bottom-[22%] md:bottom-[28%] lg:bottom-[32%] left-1/2 -translate-x-1/2 font-sans text-white/70 text-[10px] md:text-sm lg:text-lg font-extralight tracking-[0.5em] uppercase text-center leading-none w-full">
+                            <p 
+                                className="absolute bottom-[22%] md:bottom-[28%] lg:bottom-[32%] left-1/2 -translate-x-1/2 font-sans text-white/70 text-[10px] md:text-sm lg:text-lg font-extralight tracking-[0.5em] uppercase text-center leading-none w-full"
+                            >
                                 <span className="inline md:hidden leading-relaxed">{tHero('subtitle')}</span>
                                 <span className="hidden md:inline text-nowrap">{tHero('subtitle')}</span>
                             </p>
                         </div>
                     </motion.div>
+                    <div className="absolute inset-x-0 bottom-0 h-[60vh] bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none z-10" />
 
-                    <motion.div
-                        style={{ opacity }}
-                        className={`absolute bottom-12 transition-all duration-1000 delay-500 z-20 ${isLoaded ? "opacity-70 translate-y-0" : "opacity-0 -translate-y-4"}`}
-                    >
-                        <div className="animate-bounce text-white flex flex-col items-center gap-2">
-                            <span className="text-xs uppercase tracking-widest">{tHero('scroll')}</span>
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                            </svg>
-                        </div>
-                    </motion.div>
 
-                    <div className="absolute bottom-0 left-0 right-0 h-3/4 bg-gradient-to-b from-transparent via-black/40 to-black pointer-events-none z-10" />
                 </section>
 
                 <MemoizedManifesto />
 
                 <div className="w-full bg-black relative z-20">
-                    <div className="max-w-7xl mx-auto px-6 pb-20">
+                    <div className="w-full pb-20">
                         {mounted ? (
                             <DndContext
                                 sensors={sensors}
@@ -975,13 +748,7 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                                                     key={categoryKey}
                                                     category={category}
                                                     catProjects={catProjects}
-                                                    isExpanded={expandedCategories.has(category.name)}
-                                                    setExpandedCategories={setExpandedCategories}
                                                     session={session}
-                                                    isSorting={isSorting}
-                                                    isSortingRef={isSortingRef}
-                                                    toggleVisibility={toggleVisibility}
-                                                    handleDelete={handleDelete}
                                                     index={idx}
                                                     t={tHome}
                                                 />
@@ -992,7 +759,7 @@ export default function HomeClient({ initialProjects, initialCategories }: HomeC
                             </DndContext>
                         ) : (
                             categories.map((category) => (
-                                <section key={category.id || `static-${category.name}`} id={category.name} className="min-h-[80vh] flex flex-col justify-center py-20 border-t border-neutral-900 first:border-none">
+                                <section key={category.id || `static-${category.name}`} id={category.name} className="min-h-[80vh] flex flex-col justify-center py-20 border-t border-neutral-900 first:border-none px-6 md:px-10">
                                     <div className="mb-12 md:mb-16 px-4 md:px-0">
                                         <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">{category.title}<span className="text-red-600">.</span></h2>
                                         <p className="text-white/60 text-lg md:text-xl font-light max-w-xl">{category.description}</p>

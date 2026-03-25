@@ -1,7 +1,7 @@
 import type React from "react";
 import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
-import { Faustina, Chivo } from "next/font/google";
+import { Faustina, Chivo, Permanent_Marker } from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
 import "../globals.css";
@@ -23,6 +23,13 @@ const chivo = Chivo({
   variable: "--font-chivo",
   preload: true,
   fallback: ['system-ui', 'sans-serif'],
+});
+
+const permanentMarker = Permanent_Marker({
+  weight: '400',
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-permanent-marker",
 });
 
 export async function generateMetadata({
@@ -125,7 +132,7 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${faustina.variable} ${chivo.variable}`} suppressHydrationWarning data-scroll-behavior="smooth">
+    <html lang={locale} className={`${faustina.variable} ${chivo.variable} ${permanentMarker.variable}`} suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
         {/* Preconnect to critical third-party origins */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

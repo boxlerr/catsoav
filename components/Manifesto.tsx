@@ -20,7 +20,7 @@ export default function Manifesto() {
         <section
             ref={containerRef}
             id="manifesto"
-            className="relative min-h-screen flex items-center justify-center py-20 overflow-hidden text-white"
+            className="relative min-h-screen flex items-center justify-start py-20 overflow-hidden text-white"
         >
             {/* CRT & Grain Textures */}
             <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-black via-black/80 to-transparent z-30 pointer-events-none" />
@@ -28,7 +28,7 @@ export default function Manifesto() {
             <div className="crt-grain" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)' }} />
             <div className="crt-overlay" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)' }} />
 
-            <div className="max-w-7xl mx-auto px-6 relative z-45">
+            <div className="w-full px-6 md:px-10 relative z-45">
                 <motion.div
                     style={{ opacity }}
                     className="flex flex-col gap-16"
@@ -56,7 +56,7 @@ export default function Manifesto() {
                             style={{ y }}
                             className="md:w-1/4 pt-4 hidden md:block"
                         >
-                            <div className="w-full h-[3px] bg-red-600 mb-6" />
+                            <div className="w-full h-px bg-gradient-to-r from-red-600/0 via-red-600/40 to-red-600/0 mb-6" />
                             <span className="text-red-600 text-sm uppercase tracking-[0.4em] font-black block">
                                 {t('vision')}
                             </span>
@@ -93,7 +93,7 @@ export default function Manifesto() {
                                 whileInView={{ opacity: 1, scale: 1, rotate: -3 }}
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.8, delay: 0.4, type: 'spring' }}
-                                className="mt-12 md:mt-20 self-end"
+                                className="mt-12 md:mt-20 self-start"
                             >
                                 <span className="text-red-600 font-black text-2xl md:text-5xl lg:text-6xl tracking-tight block transform -skew-x-12" style={{ textShadow: '0 0 30px rgba(220, 38, 38, 0.6)' }}>
                                     {t('final')}
