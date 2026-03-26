@@ -143,7 +143,7 @@ export default function NetflixCarousel({ projects, onHoverChange, hideTitle }: 
                     {/* Scroll container with padding for hover expansion - NO negative margins to avoid overlap */}
                     <div 
                         ref={scrollRef}
-                        className="flex gap-2 md:gap-4 pl-6 md:pl-10 pr-[30vw] overflow-x-auto no-scrollbar pt-12 pb-12 md:pt-16 md:pb-16 pointer-events-auto"
+                        className="flex gap-2 md:gap-4 pl-6 md:pl-10 pr-6 md:pr-10 overflow-x-auto no-scrollbar pt-12 pb-12 md:pt-16 md:pb-16 pointer-events-auto"
                     >
                         {(() => {
                             const filtered = projects
@@ -167,65 +167,77 @@ export default function NetflixCarousel({ projects, onHoverChange, hideTitle }: 
                         })()}
                     </div>
 
-                    {/* Overlay container - positioned over the scroll container's active area */}
-                    <div 
-                        className="absolute inset-0 pointer-events-none z-[60]"
-                    >
-                        {/* Inner relative container to center things relative to the cards, not the expansion padding */}
-                        <div className="relative w-full h-full">
-                            {/* Left gradient fade */}
-                            {isOverflowing && showLeftArrow && (
-                                <div className="absolute left-0 top-0 bottom-0 w-32 md:w-48 lg:w-64 z-[60] pointer-events-none transition-opacity duration-300"
-                                    style={{ 
-                                        background: 'linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 30%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0) 100%)',
-                                        opacity: isCarouselHovered ? 1 : 0.6
-                                    }}
-                                />
-                            )}
+                    {/* Left gradient fade */}
+                    {showLeftArrow && (
+                        <div 
+                            className="absolute left-0 top-0 bottom-0 w-32 md:w-48 lg:w-72 z-[80] pointer-events-none transition-opacity duration-300"
+                            style={{ 
+                                background: 'linear-gradient(to right, #000 0%, rgba(0,0,0,0.85) 20%, rgba(0,0,0,0.4) 60%, transparent 100%)',
+                                opacity: isCarouselHovered ? 1 : 0.7
+                            }}
+                        />
+                    )}
 
-                            {/* Right gradient fade - visible when there is more content */}
-                            {isOverflowing && showRightArrow && (
-                                <div className="absolute right-0 top-0 bottom-0 w-32 md:w-48 lg:w-64 z-[60] pointer-events-none transition-opacity duration-300"
-                                    style={{ 
-                                        background: 'linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 30%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0) 100%)',
-                                        opacity: isCarouselHovered ? 1 : 0.6
-                                    }}
-                                />
-                            )}
+                    {/* Right gradient fade */}
+                    {showRightArrow && (
+                        <div 
+                            className="absolute right-0 top-0 bottom-0 w-32 md:w-48 lg:w-72 z-[80] pointer-events-none transition-opacity duration-300"
+                            style={{ 
+                                background: 'linear-gradient(to left, #000 0%, rgba(0,0,0,0.85) 20%, rgba(0,0,0,0.4) 60%, transparent 100%)',
+                                opacity: isCarouselHovered ? 1 : 0.7
+                            }}
+                        />
+                    )}
 
-                            {/* Left Arrow */}
-                            {isOverflowing && showLeftArrow && (
-                                <button 
-                                    onClick={(e) => {
-                                        e.preventDefault()
-                                        e.stopPropagation()
-                                        scroll('left')
-                                    }}
-                                    onMouseEnter={handleCarouselMouseEnter}
-                                    onMouseLeave={handleCarouselMouseLeave}
-                                    className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-[70] transition-all duration-300 flex items-center justify-center text-white cursor-pointer hover:scale-125 ${isCarouselHovered ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-                                >
-                                    <svg className="w-10 h-10 md:w-14 md:h-14 drop-shadow-[0_0_15px_rgba(0,0,0,1)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" /></svg>
-                                </button>
-                            )}
-                            
-                            {/* Right Arrow */}
-                            {isOverflowing && showRightArrow && (
-                                <button 
-                                    onClick={(e) => {
-                                        e.preventDefault()
-                                        e.stopPropagation()
-                                        scroll('right')
-                                    }}
-                                    onMouseEnter={handleCarouselMouseEnter}
-                                    onMouseLeave={handleCarouselMouseLeave}
-                                    className={`absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-[70] transition-all duration-300 flex items-center justify-center text-white cursor-pointer hover:scale-125 ${isCarouselHovered ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-                                >
-                                    <svg className="w-10 h-10 md:w-14 md:h-14 drop-shadow-[0_0_15px_rgba(0,0,0,1)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
-                                </button>
-                            )}
-                        </div>
-                    </div>
+                    {/* Left Arrow */}
+                    <AnimatePresence>
+                        {showLeftArrow && (
+                            <motion.button 
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ 
+                                    opacity: isCarouselHovered ? 1 : 0,
+                                    x: 0,
+                                    pointerEvents: isCarouselHovered ? 'auto' : 'none'
+                                }}
+                                exit={{ opacity: 0, x: -10 }}
+                                onClick={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    scroll('left')
+                                }}
+                                onMouseEnter={handleCarouselMouseEnter}
+                                onMouseLeave={handleCarouselMouseLeave}
+                                className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-[90] flex items-center justify-center text-white cursor-pointer hover:scale-125 transition-transform"
+                            >
+                                <svg className="w-10 h-10 md:w-14 md:h-14 drop-shadow-[0_0_15px_rgba(0,0,0,1)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" /></svg>
+                            </motion.button>
+                        )}
+                    </AnimatePresence>
+                    
+                    {/* Right Arrow */}
+                    <AnimatePresence>
+                        {showRightArrow && (
+                            <motion.button 
+                                initial={{ opacity: 0, x: 10 }}
+                                animate={{ 
+                                    opacity: isCarouselHovered ? 1 : 0,
+                                    x: 0,
+                                    pointerEvents: isCarouselHovered ? 'auto' : 'none'
+                                }}
+                                exit={{ opacity: 0, x: 10 }}
+                                onClick={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    scroll('right')
+                                }}
+                                onMouseEnter={handleCarouselMouseEnter}
+                                onMouseLeave={handleCarouselMouseLeave}
+                                className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-[90] flex items-center justify-center text-white cursor-pointer hover:scale-125 transition-transform"
+                            >
+                                <svg className="w-10 h-10 md:w-14 md:h-14 drop-shadow-[0_0_15px_rgba(0,0,0,1)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                            </motion.button>
+                        )}
+                    </AnimatePresence>
                 </div>
             </div>
         </div>
